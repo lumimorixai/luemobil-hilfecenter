@@ -70,8 +70,85 @@ export type SeedResult =
       ok: boolean
     }
 
+/** Startinhalte für die Seite „Ausblick auf Version 2“. */
+const ROADMAP_GROUPS: Array<{
+  kicker: string
+  heading: string
+  intro: string
+  items: Array<{ title: string; status: 'geplant' | 'in Prüfung' | 'in Vorbereitung'; text: string }>
+}> = [
+  {
+    kicker: 'Tickets & Bezahlen',
+    heading: 'Tickets direkt in der App kaufen',
+    intro:
+      'Der größte Schritt für Version 2: Fahrscheine direkt in LüMobil erwerben und im Konto verwalten. Der Start erfolgt zunächst in der Region Lübeck; die Zahlungsabwicklung übernimmt der Zahldienstleister Payone (über die Sparkasse zu Lübeck).',
+    items: [
+      { title: 'Direkter Ticketkauf (Einzel- und Monatstickets)', status: 'geplant', text: 'Einzel- und Monatstickets werden direkt in der App gekauft.' },
+      { title: 'Deutschlandticket', status: 'geplant', text: 'Das Deutschlandticket wird nicht direkt in der App gekauft, sondern über die AboOnline-Bestellstrecke bestellt und anschließend im Konto hinterlegt.' },
+      { title: 'Bezahlarten', status: 'geplant', text: 'Gängige Bezahlarten: Apple Pay, Google Pay, Kreditkarte und Wero.' },
+      { title: 'Start in der Region Lübeck', status: 'geplant', text: 'Zunächst nur Ticketverkauf in der Region Lübeck.' },
+      { title: 'Ablösung der FährTic-App', status: 'geplant', text: 'Die bisherige FährTic-App wird abgelöst; der Ticketverkauf erfolgt künftig über die LüMobil-App.' },
+    ],
+  },
+  {
+    kicker: 'Echtzeitdaten',
+    heading: 'Einbindung der Echtzeitdaten',
+    intro: 'Live-Informationen zum Fahrbetrieb direkt in der App.',
+    items: [
+      { title: 'Füllstandsanzeige für die Busse', status: 'geplant', text: 'Anzeige der aktuellen Auslastung der Busse.' },
+      { title: 'Anzeige der Busse auf der Karte', status: 'geplant', text: 'Darstellung der fahrenden Busse in Echtzeit auf der Karte.' },
+      { title: 'Auslastungsprognose', status: 'geplant', text: 'Prognose, wie voll der kommende Bus voraussichtlich sein wird.' },
+    ],
+  },
+  {
+    kicker: 'Störungen & Kommunikation',
+    heading: 'Live-Informationen bei Störungen',
+    intro:
+      'Die aktuell extern eingebundene Störungsübersicht soll fester Bestandteil der App werden — mit aktiver Benachrichtigung statt passivem Nachschlagen.',
+    items: [
+      { title: 'Integrierte Störungsanzeige', status: 'geplant', text: 'Störungen und Ausfälle direkt in der Verbindungssuche und auf der Startseite, abgestimmt auf die eigene Route.' },
+      { title: 'Push-Benachrichtigungen', status: 'geplant', text: 'Optionale Hinweise, wenn auf einer gespeicherten Linie oder Lieblingsverbindung eine Störung auftritt.' },
+    ],
+  },
+  {
+    kicker: 'Anliegen & Support',
+    heading: 'Fragen und Meldungen schneller bearbeiten',
+    intro: 'Engere Verzahnung der in Version 1 eingeführten Formulare mit den internen Abläufen.',
+    items: [
+      { title: 'Anliegen-Routing', status: 'geplant', text: 'Eingereichte Fragen und Meldungen werden automatisch an die zuständige Stelle geleitet.' },
+    ],
+  },
+  {
+    kicker: 'Weiteres',
+    heading: 'Datenqualität, Sicherheit und CRM',
+    intro: 'Anbindung weiterer Dienste rund um Kundendaten und Sicherheit.',
+    items: [
+      { title: 'Adressvalidierung', status: 'geplant', text: 'Einbindung des Endereco-Service zur Prüfung von Adressen.' },
+      { title: 'Betrugsprävention', status: 'geplant', text: 'Einbindung von Cosmo Fraud Detection.' },
+      { title: 'Buchungszentrum & CRM', status: 'geplant', text: 'Anbindung von Buchungszentrum und CRM für Kundendaten, Transaktionsdaten und Störungsinformationen.' },
+    ],
+  },
+]
+
+/** Ausblick-Blöcke importieren, falls die Collection noch leer ist (eigener Guard). */
+async function seedRoadmap(payload: Payload) {
+  const existing = await payload.count({ collection: 'roadmap' })
+  if (existing.totalDocs > 0) return
+  let order = 0
+  for (const g of ROADMAP_GROUPS) {
+    await payload.create({
+      collection: 'roadmap',
+      data: { order: order++, kicker: g.kicker, heading: g.heading, intro: g.intro, items: g.items },
+    })
+  }
+  payload.logger.info(`Ausblick V2: ${ROADMAP_GROUPS.length} Blöcke importiert.`)
+}
+
 export async function seedDatabase(payload: Payload, opts: SeedOptions = {}): Promise<SeedResult> {
   const legacyDir = opts.legacyDir ?? path.join(process.cwd(), 'legacy')
+
+  // Ausblick-Blöcke unabhängig vom übrigen Inhalt sicherstellen (auch nachträglich).
+  await seedRoadmap(payload)
 
   // Abbruch, wenn schon Inhalte existieren (kein Duplikat-Import)
   const existing = await payload.count({ collection: 'articles' })

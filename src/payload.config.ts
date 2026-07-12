@@ -16,6 +16,7 @@ import { KnownBugs } from './collections/KnownBugs'
 import { OpenQuestions } from './collections/OpenQuestions'
 import { BugReports } from './collections/BugReports'
 import { QuestionSubmissions } from './collections/QuestionSubmissions'
+import { RoadmapGroups } from './collections/RoadmapGroups'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -68,6 +69,7 @@ export default buildConfig({
     OpenQuestions,
     BugReports,
     QuestionSubmissions,
+    RoadmapGroups,
     Media,
     Users,
   ],
