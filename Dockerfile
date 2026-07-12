@@ -13,7 +13,9 @@ ENV DOCKER_BUILD=1
 # Dummy-Werte nur für den Build (zur Laufzeit kommen echte Werte aus docker-compose)
 ENV DATABASE_URI=file:./build-dummy.db
 ENV PAYLOAD_SECRET=build-dummy-secret
-RUN pnpm build
+# Payload-Typen vor dem Build frisch erzeugen, damit sie garantiert zum Code
+# passen (verhindert Typfehler durch eine veraltete payload-types.ts).
+RUN pnpm generate:types && pnpm build
 
 # ---- Runtime-Stage ----
 FROM node:22-alpine AS runner
