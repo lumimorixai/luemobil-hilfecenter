@@ -9,6 +9,7 @@ const TABS = [
   { href: '/handbuch', label: 'App-Handbuch' },
   { href: '/fragen', label: 'Offene Fragen' },
   { href: '/fehler', label: 'Bekannte Fehler' },
+  { href: '/stoerungen', label: 'Aktuelle Störungen' },
 ]
 
 export function TabNav() {
