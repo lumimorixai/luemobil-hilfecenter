@@ -1,8 +1,6 @@
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { buildConfig } from 'payload'
-import { sqliteAdapter } from '@payloadcms/db-sqlite'
-import { postgresAdapter } from '@payloadcms/db-postgres'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { de } from '@payloadcms/translations/languages/de'
 import { en } from '@payloadcms/translations/languages/en'
@@ -24,9 +22,18 @@ const dirname = path.dirname(filename)
 
 const databaseUri = process.env.DATABASE_URI || 'file:./luemobil.db'
 
+// Adapter bedingt laden: im Container (Postgres) wird der SQLite-Adapter — und
+// damit dessen native Abhängigkeit `libsql` — gar nicht erst geladen.
 const db = databaseUri.startsWith('postgres')
-  ? postgresAdapter({ pool: { connectionString: databaseUri } })
-  : sqliteAdapter({ client: { url: databaseUri } })
+  ? (await import('@payloadcms/db-postgres')).postgresAdapter({
+      pool: { connectionString: databaseUri },
+      // Schema beim Start automatisch anlegen/abgleichen — sonst fehlen im
+      // Produktionsmodus die Tabellen (push ist dort standardmäßig aus).
+      push: true,
+    })
+  : (await import('@payloadcms/db-sqlite')).sqliteAdapter({
+      client: { url: databaseUri },
+    })
 
 export default buildConfig({
   admin: {
