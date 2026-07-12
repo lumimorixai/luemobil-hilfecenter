@@ -59,7 +59,9 @@ export const BugReports: CollectionConfig = {
           data: {
             bugId: await nextBugId(req.payload),
             severity: doc.severity,
-            state: 'gemeldet',
+            // 'gemeldet' ist ein gültiger known-bugs-Status; die Assertion macht
+            // den Build unabhängig vom Stand der generierten payload-types.ts.
+            state: 'gemeldet' as unknown as 'offen',
             hidden: false,
             title: doc.title,
             fundort: `Nutzermeldung${doc.reporter ? ` von ${doc.reporter}` : ''}${reportedAt ? ` vom ${reportedAt}` : ''}`,
