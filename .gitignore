@@ -3,7 +3,9 @@ node_modules/
 .env
 *.db
 *.db-*
-media/
+# Nur das Laufzeit-Medienverzeichnis am Projektstamm ignorieren
+# (NICHT legacy/media — das sind die Seed-Bilder und müssen ins Repo).
+/media/
 dist/
 .DS_Store
 *.tsbuildinfo
