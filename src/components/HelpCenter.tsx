@@ -3,19 +3,7 @@
 import Link from 'next/link'
 import React, { useMemo, useState } from 'react'
 import type { ArticleCard, FaqGroup } from '@/lib/content'
-
-function highlight(text: string, term: string): React.ReactNode {
-  if (!term) return text
-  const idx = text.toLowerCase().indexOf(term.toLowerCase())
-  if (idx === -1) return text
-  return (
-    <>
-      {text.slice(0, idx)}
-      <mark>{text.slice(idx, idx + term.length)}</mark>
-      {text.slice(idx + term.length)}
-    </>
-  )
-}
+import { highlight } from '@/components/search-ui'
 
 function FaqEntry({ q, a, term }: { q: string; a: string; term: string }) {
   const [open, setOpen] = useState(false)

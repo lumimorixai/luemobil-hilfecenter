@@ -125,12 +125,49 @@ mark {
   outline: none;
 }
 
+/* --- Tab-Leiste mit übergeordneter Suche --- */
+.lm-tabbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 20px;
+}
+.lm-global-search {
+  position: relative;
+  flex: 0 1 240px;
+  min-width: 180px;
+  margin-left: auto;
+}
+.lm-global-search .lm-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  pointer-events: none;
+}
+.lm-global-search input {
+  width: 100%;
+  padding: 9px 12px 9px 34px;
+  border: 1px solid var(--swl-hairline);
+  border-radius: var(--radius);
+  font-size: 13.5px;
+  font-family: inherit;
+  color: var(--swl-black);
+  background: var(--swl-white);
+  outline: none;
+}
+.lm-global-search input:focus {
+  border-color: var(--swl-orange);
+}
+
 /* --- Tabs --- */
 .lm-tabs {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  padding-top: 20px;
 }
 .lm-tab {
   background: var(--swl-white);
@@ -360,13 +397,19 @@ main.lm-main {
   flex: 1 1 55%;
 }
 .lm-chapter .imgs {
-  flex: 1 1 40%;
+  flex: 0 0 auto;
   display: flex;
   gap: 12px;
+  justify-content: center;
+  align-items: flex-start;
+  flex-wrap: wrap;
 }
 .lm-chapter .imgs img {
-  width: 100%;
+  width: auto;
+  max-width: 180px;
+  max-height: 360px;
   height: auto;
+  object-fit: contain;
   border: 1px solid var(--swl-hairline);
   border-radius: var(--radius);
 }

@@ -306,6 +306,10 @@ export interface BugReport {
   reporter?: string | null;
   images?: (number | Media)[] | null;
   internalNote?: string | null;
+  /**
+   * Wird automatisch gesetzt, sobald der Status auf „Übernommen“ gestellt und gespeichert wird.
+   */
+  convertedTo?: (number | null) | KnownBug;
   updatedAt: string;
   createdAt: string;
 }
@@ -583,6 +587,7 @@ export interface BugReportsSelect<T extends boolean = true> {
   reporter?: T;
   images?: T;
   internalNote?: T;
+  convertedTo?: T;
   updatedAt?: T;
   createdAt?: T;
 }

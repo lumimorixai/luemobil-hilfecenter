@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import React from 'react'
+import { AutoResizeIframe } from '@/components/AutoResizeIframe'
 
 const SOURCE_URL = 'https://www.enrico-peter.de/luebeck'
 
@@ -17,12 +18,11 @@ export default function DisruptionsPage() {
         Live-Übersicht der aktuellen Störungsmeldungen für Bus und Bahn in Lübeck.
       </p>
       <div className="lm-iframe-wrap">
-        <iframe
-          src={SOURCE_URL}
+        {/* Höhe passt sich dem Inhalt an; läuft über den eigenen Proxy
+            (/api/stoerungen-proxy), daher gleiche Origin und Höhenmessung möglich. */}
+        <AutoResizeIframe
+          src="/api/stoerungen-proxy/luebeck"
           title="Aktuelle Störungsmeldungen für Lübeck"
-          loading="lazy"
-          referrerPolicy="no-referrer"
-          sandbox="allow-scripts allow-same-origin allow-popups"
         />
       </div>
       <p className="lm-caption" style={{ marginTop: 10 }}>
