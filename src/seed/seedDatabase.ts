@@ -132,13 +132,21 @@ const ROADMAP_GROUPS: Array<{
 
 /** Ausblick-Blöcke importieren, falls die Collection noch leer ist (eigener Guard). */
 async function seedRoadmap(payload: Payload) {
-  const existing = await payload.count({ collection: 'roadmap' })
+  // Slug per Assertion – unabhängig vom Stand der generierten payload-types.ts.
+  const roadmap = 'roadmap' as unknown as 'media'
+  const existing = await payload.count({ collection: roadmap })
   if (existing.totalDocs > 0) return
   let order = 0
   for (const g of ROADMAP_GROUPS) {
     await payload.create({
-      collection: 'roadmap',
-      data: { order: order++, kicker: g.kicker, heading: g.heading, intro: g.intro, items: g.items },
+      collection: roadmap,
+      data: {
+        order: order++,
+        kicker: g.kicker,
+        heading: g.heading,
+        intro: g.intro,
+        items: g.items,
+      } as unknown as never,
     })
   }
   payload.logger.info(`Ausblick V2: ${ROADMAP_GROUPS.length} Blöcke importiert.`)

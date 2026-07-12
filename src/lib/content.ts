@@ -155,15 +155,25 @@ export type RoadmapGroup = {
   items: RoadmapItem[]
 }
 
+type RoadmapDoc = {
+  kicker?: string | null
+  heading: string
+  intro?: string | null
+  items?: Array<{ title: string; status?: string | null; text?: string | null }> | null
+}
+
 export async function getRoadmapGroups(): Promise<RoadmapGroup[]> {
   const payload = await payloadClient()
+  // Slug per Assertion – macht den Build unabhängig vom Stand der generierten
+  // payload-types.ts (die Collection existiert zur Laufzeit in der Config).
   const res = await payload.find({
-    collection: 'roadmap',
+    collection: 'roadmap' as unknown as 'media',
     limit: 100,
     sort: 'order',
     depth: 0,
   })
-  return res.docs.map((d) => ({
+  const docs = res.docs as unknown as RoadmapDoc[]
+  return docs.map((d) => ({
     kicker: d.kicker ?? '',
     heading: d.heading,
     intro: d.intro ?? '',
