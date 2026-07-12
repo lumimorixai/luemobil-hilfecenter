@@ -1,5 +1,6 @@
 import React from 'react'
 import { payloadClient } from '@/lib/content'
+import { BugReportForm } from '@/components/BugReportForm'
 
 export const dynamic = 'force-dynamic'
 
@@ -25,6 +26,7 @@ export default async function BugsPage() {
         Transparent dokumentiert: Diese Punkte sind bekannt und werden bearbeitet. Sortiert nach
         Schweregrad.
       </p>
+      <BugReportForm />
       {bugs.map((bug) => {
         const images = (bug.images ?? []).filter(
           (img): img is Exclude<typeof img, number> => typeof img === 'object' && img !== null,

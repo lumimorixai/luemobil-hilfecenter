@@ -34,6 +34,13 @@ Fünf Inhalts-Collections + Media + Users. Nach JEDER Feldänderung: `pnpm gener
 - `group`, `order`, `items[]` mit `qid` (`OF-00`…), `status` (offen|beantwortet), `question`, `answer`, `note`
 - Gruppen: Bereits geklärt · A. Störungen & Ausfall-Kommunikation · B. Kundenanfragen-Routing · C. Kundenservice-Leitfaden · D. Erstattung & Stornierung
 
+## bug-reports (Fehlermeldungen von Nutzenden)
+- Öffentliches Formular auf /fehler („＋ Fehler melden") → Server Action `src/app/(frontend)/fehler/actions.ts`
+- Felder wie known-bugs plus: `status` (neu | in-pruefung | uebernommen | abgelehnt), `reporter`, `internalNote`
+- Zugriff: ALLE Operationen nur für angemeldete User; das Formular erstellt über die Local API (Server Action umgeht Access Control bewusst)
+- Schutz: Honeypot-Feld `website`, Längenlimits, max. 3 Bilder à 4 MB (JPG/PNG/WebP)
+- Admin-Gruppe „Meldungen"; Workflow: prüfen → ggf. manuell als known-bug übernehmen → Status setzen
+
 ## media
 - Upload-Collection, `staticDir: 'media'`, nur Bilder, Feld `alt`
 - URLs: `/api/media/file/<dateiname>`
