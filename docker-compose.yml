@@ -1,0 +1,38 @@
+# Produktion auf dem VPS:  docker compose up -d --build
+# Voraussetzung: .env mit DATABASE_URI (postgres://…), PAYLOAD_SECRET, ADMIN_EMAIL, ADMIN_PASSWORD
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:3000:3000' # nur lokal — Caddy macht HTTPS davor
+    environment:
+      DATABASE_URI: postgres://luemobil:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD fehlt in .env}@postgres:5432/luemobil
+      PAYLOAD_SECRET: ${PAYLOAD_SECRET:?PAYLOAD_SECRET fehlt in .env}
+      NEXT_PUBLIC_SERVER_URL: ${NEXT_PUBLIC_SERVER_URL:-http://localhost:3000}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+    volumes:
+      - media:/app/media
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: luemobil
+      POSTGRES_USER: luemobil
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD fehlt in .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U luemobil -d luemobil']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pgdata:
+  media:
