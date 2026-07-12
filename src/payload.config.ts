@@ -27,9 +27,12 @@ const databaseUri = process.env.DATABASE_URI || 'file:./luemobil.db'
 const db = databaseUri.startsWith('postgres')
   ? (await import('@payloadcms/db-postgres')).postgresAdapter({
       pool: { connectionString: databaseUri },
-      // Schema beim Start automatisch anlegen/abgleichen — sonst fehlen im
-      // Produktionsmodus die Tabellen (push ist dort standardmäßig aus).
+      // Für lokale Postgres-Entwicklung; in Produktion ignoriert Payload push.
       push: true,
+      // In Produktion laufen diese Migrationen beim Start automatisch und
+      // legen das Schema an. Nach Collection-Änderungen neue Migration mit
+      // `pnpm payload migrate:create` erzeugen und mitcommitten.
+      prodMigrations: (await import('./migrations')).migrations,
     })
   : (await import('@payloadcms/db-sqlite')).sqliteAdapter({
       client: { url: databaseUri },

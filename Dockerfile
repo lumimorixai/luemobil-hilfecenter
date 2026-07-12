@@ -10,8 +10,10 @@ RUN pnpm install --frozen-lockfile
 
 COPY . .
 ENV DOCKER_BUILD=1
-# Dummy-Werte nur für den Build (zur Laufzeit kommen echte Werte aus docker-compose)
-ENV DATABASE_URI=file:./build-dummy.db
+# Dummy-Werte nur für den Build (zur Laufzeit kommen echte Werte aus docker-compose).
+# Postgres-URL, damit der Postgres-Codepfad inkl. Migrationen mitgebaut wird —
+# der Build verbindet sich NICHT (Schema/Migration laufen erst beim Start).
+ENV DATABASE_URI=postgres://build:build@localhost:5432/build
 ENV PAYLOAD_SECRET=build-dummy-secret
 # Nutzt die eingecheckte src/payload-types.ts (nach Collection-Änderungen lokal
 # mit `pnpm generate:types` aktualisieren und mitcommitten).
