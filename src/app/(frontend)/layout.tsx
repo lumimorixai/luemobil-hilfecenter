@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import React from 'react'
+import React, { Suspense } from 'react'
 import Image from 'next/image'
 import { TabNav } from '@/components/TabNav'
 import '@fontsource-variable/inter'
@@ -28,15 +28,17 @@ export default function FrontendLayout({ children }: { children: React.ReactNode
               <span className="lm-brand-dot" />
               Stadtwerke Lübeck · LüMobil
             </div>
-            <h1>Wie können wir helfen?</h1>
+            <h1>Hilfe &amp; Service für LüMobil</h1>
             <p className="lm-sub">
-              Antworten rund um Verbindungssuche, Abfahrten, Deutschlandticket, Konto und mehr —
-              durchsuchen Sie Hilfeartikel und häufige Fragen.
+              Durchsuchen Sie Hilfeartikel, das App-Handbuch, häufige Fragen und aktuelle
+              Störungen — alles rund um Ihre Mobilitäts-App an einem Ort.
             </p>
           </div>
         </header>
         <div className="lm-container">
-          <TabNav />
+          <Suspense fallback={<div className="lm-tabbar" />}>
+            <TabNav />
+          </Suspense>
         </div>
         <main className="lm-main lm-container">{children}</main>
         <footer className="lm-container lm-footer">
