@@ -1,7 +1,6 @@
 import React from 'react'
 import { getOpenQuestionGroups } from '@/lib/content'
 import { OpenQuestionsSearch } from '@/components/OpenQuestionsSearch'
-import { QuestionForm } from '@/components/QuestionForm'
 
 export const dynamic = 'force-dynamic'
 
@@ -14,9 +13,7 @@ export default async function OpenQuestionsPage() {
       </h2>
       <p style={{ maxWidth: 640, fontSize: 15, lineHeight: 1.6, color: '#3F3B3B' }}>
         Organisatorische und fachliche Fragen rund um LüMobil — mit aktuellem Klärungsstand.
-        Ihre eigene Frage können Sie unten einreichen.
       </p>
-      <QuestionForm />
       <OpenQuestionsSearch groups={groups} />
     </div>
   )

@@ -59,6 +59,8 @@ export const BugReports: CollectionConfig = {
           data: {
             bugId: await nextBugId(req.payload),
             severity: doc.severity,
+            state: 'gemeldet',
+            hidden: false,
             title: doc.title,
             fundort: `Nutzermeldung${doc.reporter ? ` von ${doc.reporter}` : ''}${reportedAt ? ` vom ${reportedAt}` : ''}`,
             description: doc.description,

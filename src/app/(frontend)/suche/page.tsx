@@ -75,7 +75,7 @@ export default async function SearchPage({
     groups = [
       { label: 'Hilfeartikel', hits: articleHits },
       { label: 'Häufige Fragen', hits: faqHits },
-      { label: 'App-Handbuch', hits: manualHits },
+      { label: 'LüMobil Handbuch', hits: manualHits },
       { label: 'Bekannte Fehler', hits: bugHits },
       { label: 'Offene Fragen', hits: openHits },
     ].filter((g) => g.hits.length > 0)

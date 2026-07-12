@@ -12,8 +12,6 @@ services:
       NEXT_PUBLIC_SERVER_URL: ${NEXT_PUBLIC_SERVER_URL:-http://localhost:3000}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
-      # Beim ersten Start automatisch die Inhalte importieren (leere DB vorausgesetzt)
-      SEED_ON_INIT: ${SEED_ON_INIT:-true}
     volumes:
       - media:/app/media
     depends_on:

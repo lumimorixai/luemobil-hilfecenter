@@ -125,20 +125,18 @@ mark {
   outline: none;
 }
 
-/* --- Tab-Leiste mit übergeordneter Suche --- */
+/* --- Tab-Leiste mit übergeordneter Suche (eigene Zeile darüber) --- */
 .lm-tabbar {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 12px;
-  align-items: center;
-  justify-content: space-between;
   padding-top: 20px;
 }
 .lm-global-search {
   position: relative;
-  flex: 0 1 240px;
-  min-width: 180px;
-  margin-left: auto;
+  width: 280px;
+  max-width: 100%;
+  margin-right: auto; /* linksbündig in eigener Zeile */
 }
 .lm-global-search .lm-search-icon {
   position: absolute;
@@ -480,6 +478,18 @@ main.lm-main {
 .lm-badge.beantwortet {
   background: var(--swl-status-green);
 }
+.lm-badge.behoben {
+  background: var(--swl-status-green);
+}
+.lm-badge.gemeldet {
+  background: var(--swl-label-gray);
+}
+
+/* Behobene Fehler dezent abgesetzt */
+.lm-bug.behoben {
+  opacity: 0.72;
+  background: var(--swl-surface-muted);
+}
 .lm-bug-id {
   font-family: ui-monospace, monospace;
   font-size: 12.5px;
@@ -693,6 +703,53 @@ main.lm-main {
   width: 100%;
   height: min(72vh, 900px);
   border: 0;
+}
+
+/* --- Versionshinweis im Kopf --- */
+.lm-version-badge {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 14px;
+  padding: 4px 10px;
+  border: 1px solid var(--swl-orange);
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--swl-orange);
+  white-space: nowrap;
+}
+.lm-version-link {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--swl-orange);
+}
+.lm-version-link:hover {
+  color: #ffa23d;
+  text-decoration: underline;
+}
+
+/* --- Ausblick V2 (Roadmap-Karten) --- */
+.lm-roadmap-card {
+  border: 1px solid var(--swl-hairline);
+  border-top: 3px solid var(--swl-orange);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  background: var(--swl-white);
+}
+.lm-roadmap-card h4 {
+  margin: 10px 0 8px;
+  font-size: 15.5px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+.lm-roadmap-card p {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: #3f3b3b;
 }
 
 /* --- Footer --- */

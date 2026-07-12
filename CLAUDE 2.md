@@ -13,9 +13,7 @@ Hosting: eigener VPS via Docker Compose + Caddy.
 - `pnpm generate:importmap` – nach Hinzufügen von Admin-UI-Komponenten
 
 ## Architektur
-- `src/collections/` – Payload-Collections: Articles, FaqGroups, ManualChapters, KnownBugs, OpenQuestions, BugReports, QuestionSubmissions, Media, Users
-- `src/app/(frontend)/fehler/actions.ts` – Server Action für öffentliche Fehlermeldungen (Validierung, Honeypot, Bild-Limits); die Collection bug-reports ist für die REST-API gesperrt
-- `src/app/(frontend)/fragen/actions.ts` – Server Action für öffentliche Fragen-Einreichungen; Collection question-submissions ist REST-gesperrt. Übernahme (Status „uebernommen“) hängt die Frage an eine Offene-Fragen-Gruppe an
+- `src/collections/` – Payload-Collections: Articles, FaqGroups, ManualChapters, KnownBugs, OpenQuestions, Media, Users
 - `src/payload.config.ts` – zentrale Payload-Konfiguration; DB-Adapter wird per DATABASE_URI gewählt (file: → SQLite, postgres → Postgres)
 - `src/app/(frontend)/` – öffentliche Seiten: / (Hilfe-Center), /artikel/[slug], /handbuch, /fragen, /fehler
 - `src/app/(payload)/` – Payload-Admin & API (generierter Boilerplate — Struktur nicht ändern)
@@ -44,8 +42,6 @@ Hosting: eigener VPS via Docker Compose + Caddy.
 ## Roadmap (nächste Ausbaustufen)
 - Entwurf/Veröffentlicht-Workflow (versions/drafts) für Articles & ManualChapters
 - Serverseitige Volltextsuche (Postgres tsvector) statt Client-Filter
-- Playwright-E2E-Tests (Suche, Tab-Navigation, Artikel öffnen, Fehler melden)
-- Rate-Limiting für das Fehlermelde-Formular (z. B. per Middleware)
-- E-Mail-Benachrichtigung an das Team bei neuer Fehlermeldung (Payload email-Adapter)
+- Playwright-E2E-Tests (Suche, Tab-Navigation, Artikel öffnen)
 - „War das hilfreich?"-Feedback als eigene Collection
 - Rollen: Redakteur vs. Admin in src/collections/Users.ts

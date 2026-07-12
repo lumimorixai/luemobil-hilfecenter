@@ -245,9 +245,9 @@ export interface KnownBug {
   id: number;
   bugId: string;
   /**
-   * „Gemeldet“ und „Offen“ stehen oben (nach Priorität), „Behoben“ erscheint unten.
+   * Behobene Fehler erscheinen öffentlich unten, nach Priorität sortiert.
    */
-  state: 'gemeldet' | 'offen' | 'behoben';
+  state: 'offen' | 'behoben';
   /**
    * Blendet den Fehler öffentlich aus, ohne ihn zu löschen. Jederzeit umkehrbar.
    */
