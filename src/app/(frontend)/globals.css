@@ -638,6 +638,20 @@ main.lm-main {
   overflow: hidden;
 }
 
+/* --- Aktuelle Störungen (externe Einbindung) --- */
+.lm-iframe-wrap {
+  border: 1px solid var(--swl-hairline);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--swl-surface-muted);
+}
+.lm-iframe-wrap iframe {
+  display: block;
+  width: 100%;
+  height: min(72vh, 900px);
+  border: 0;
+}
+
 /* --- Footer --- */
 .lm-footer {
   border-top: 1px solid var(--swl-hairline);
