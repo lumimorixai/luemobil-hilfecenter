@@ -15,6 +15,7 @@ import { FaqGroups } from './collections/FaqGroups'
 import { ManualChapters } from './collections/ManualChapters'
 import { KnownBugs } from './collections/KnownBugs'
 import { OpenQuestions } from './collections/OpenQuestions'
+import { BugReports } from './collections/BugReports'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -36,7 +37,16 @@ export default buildConfig({
     supportedLanguages: { de, en },
     fallbackLanguage: 'de',
   },
-  collections: [Articles, FaqGroups, ManualChapters, KnownBugs, OpenQuestions, Media, Users],
+  collections: [
+    Articles,
+    FaqGroups,
+    ManualChapters,
+    KnownBugs,
+    OpenQuestions,
+    BugReports,
+    Media,
+    Users,
+  ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || 'dev-secret-please-change',
   typescript: {

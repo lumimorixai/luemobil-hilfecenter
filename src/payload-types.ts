@@ -72,6 +72,7 @@ export interface Config {
     'manual-chapters': ManualChapter;
     'known-bugs': KnownBug;
     'open-questions': OpenQuestion;
+    'bug-reports': BugReport;
     media: Media;
     users: User;
     'payload-kv': PayloadKv;
@@ -86,6 +87,7 @@ export interface Config {
     'manual-chapters': ManualChaptersSelect<false> | ManualChaptersSelect<true>;
     'known-bugs': KnownBugsSelect<false> | KnownBugsSelect<true>;
     'open-questions': OpenQuestionsSelect<false> | OpenQuestionsSelect<true>;
+    'bug-reports': BugReportsSelect<false> | BugReportsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
@@ -282,6 +284,32 @@ export interface OpenQuestion {
   createdAt: string;
 }
 /**
+ * Von Nutzenden über das öffentliche Formular gemeldete Fehler. Nach Prüfung ggf. als „Bekannter Fehler“ übernehmen und hier den Status setzen.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "bug-reports".
+ */
+export interface BugReport {
+  id: number;
+  status: 'neu' | 'in-pruefung' | 'uebernommen' | 'abgelehnt';
+  severity: 'hoch' | 'mittel' | 'niedrig';
+  title: string;
+  description: string;
+  steps?:
+    | {
+        text: string;
+        id?: string | null;
+      }[]
+    | null;
+  expected?: string | null;
+  actual?: string | null;
+  reporter?: string | null;
+  images?: (number | Media)[] | null;
+  internalNote?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
@@ -350,6 +378,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'open-questions';
         value: number | OpenQuestion;
+      } | null)
+    | ({
+        relationTo: 'bug-reports';
+        value: number | BugReport;
       } | null)
     | ({
         relationTo: 'media';
@@ -528,6 +560,29 @@ export interface OpenQuestionsSelect<T extends boolean = true> {
         note?: T;
         id?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "bug-reports_select".
+ */
+export interface BugReportsSelect<T extends boolean = true> {
+  status?: T;
+  severity?: T;
+  title?: T;
+  description?: T;
+  steps?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
+  expected?: T;
+  actual?: T;
+  reporter?: T;
+  images?: T;
+  internalNote?: T;
   updatedAt?: T;
   createdAt?: T;
 }
