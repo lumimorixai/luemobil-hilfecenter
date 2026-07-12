@@ -1,6 +1,8 @@
 /* GENERIERTES PAYLOAD-LAYOUT — Struktur nicht verändern */
 import config from '@payload-config'
 import '@payloadcms/next/css'
+import '@fontsource-variable/inter'
+import './custom.css'
 import type { ServerFunctionClient } from 'payload'
 import { handleServerFunctions, RootLayout } from '@payloadcms/next/layouts'
 import React from 'react'

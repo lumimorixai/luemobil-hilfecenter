@@ -1,0 +1,52 @@
+/* ============================================================
+   SWL-Brandmarkierung für das Payload-Admin-Panel.
+   Nur additive Overrides — Inter-Schrift + orange Akzente (#FF8200),
+   passend zum SWL Innovation Design System. Semantische Farben
+   (Erfolg/Warnung/Fehler) bleiben unangetastet.
+   ============================================================ */
+
+/* Inter als Admin-Schrift (self-hosted, kein Google-Fonts-Request) */
+:root {
+  --font-body:
+    'Inter Variable', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --swl-orange: #ff8200;
+  --swl-orange-dark: #c96800;
+}
+
+/* Links im Admin in SWL-Orange */
+.payload__theme-light a:not(.btn),
+.nav a:hover {
+  color: var(--swl-orange);
+}
+
+/* Aktiver Navigationseintrag: orange Markierung */
+.nav .nav-group__toggle:hover,
+.nav__link:hover {
+  color: var(--swl-orange);
+}
+.nav__link--active,
+.nav a[aria-current='page'] {
+  box-shadow: inset 3px 0 0 var(--swl-orange);
+  color: var(--swl-orange);
+}
+
+/* Fokus-Ringe in Orange statt Standard */
+.field-type input:focus,
+.field-type textarea:focus,
+.field-type .rs__control--is-focused {
+  border-color: var(--swl-orange) !important;
+  box-shadow: 0 0 0 1px var(--swl-orange) !important;
+}
+
+/* Login-Karte: dezente orange Oberkante als Markenakzent */
+.template-minimal .template-minimal__wrap,
+.login__wrap,
+.login .template-minimal__wrap {
+  border-top: 3px solid var(--swl-orange);
+}
+
+/* Runde Ecken zurückhaltend (SWL: „Klarheit vor Dekoration“) */
+:root {
+  --style-radius-s: 2px;
+  --style-radius-m: 2px;
+}

@@ -20,7 +20,7 @@ export function ManualSearch({ chapters }: { chapters: ManualChapter[] }) {
 
   return (
     <div>
-      <LocalSearch value={term} onChange={setTerm} placeholder="Im App-Handbuch suchen …" />
+      <LocalSearch value={term} onChange={setTerm} placeholder="Im Handbuch suchen …" />
       {filtered.length === 0 ? (
         <div className="lm-empty">Keine Kapitel gefunden. Versuchen Sie ein anderes Stichwort.</div>
       ) : (

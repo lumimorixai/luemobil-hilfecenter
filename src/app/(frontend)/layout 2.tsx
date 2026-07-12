@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import React, { Suspense } from 'react'
 import Image from 'next/image'
-import Link from 'next/link'
 import { TabNav } from '@/components/TabNav'
 import '@fontsource-variable/inter'
 import './globals.css'
@@ -29,17 +28,11 @@ export default function FrontendLayout({ children }: { children: React.ReactNode
               <span className="lm-brand-dot" />
               Stadtwerke Lübeck · LüMobil
             </div>
-            <h1>
-              Hilfe &amp; Service für LüMobil
-              <span className="lm-version-badge">Version 1</span>
-            </h1>
+            <h1>Hilfe &amp; Service für LüMobil</h1>
             <p className="lm-sub">
-              Durchsuchen Sie Hilfeartikel, das LüMobil Handbuch, häufige Fragen und aktuelle
+              Durchsuchen Sie Hilfeartikel, das App-Handbuch, häufige Fragen und aktuelle
               Störungen — alles rund um Ihre Mobilitäts-App an einem Ort.
             </p>
-            <Link href="/ausblick" className="lm-version-link">
-              Das ist Version 1 — Ausblick auf Version 2 ansehen →
-            </Link>
           </div>
         </header>
         <div className="lm-container">

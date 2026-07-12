@@ -5,12 +5,11 @@ export const KnownBugs: CollectionConfig = {
   labels: { singular: 'Bekannter Fehler', plural: 'Bekannte Fehler' },
   admin: {
     useAsTitle: 'title',
-    defaultColumns: ['bugId', 'severity', 'state', 'hidden', 'title', 'updatedAt'],
+    defaultColumns: ['bugId', 'severity', 'title', 'updatedAt'],
     group: 'Inhalte',
   },
   access: {
-    // Öffentlich lesbar — ausgeblendete Fehler werden für Nicht-Angemeldete gefiltert.
-    read: ({ req }) => (req.user ? true : { hidden: { not_equals: true } }),
+    read: () => true,
   },
   fields: [
     {
@@ -21,34 +20,6 @@ export const KnownBugs: CollectionConfig = {
       unique: true,
       index: true,
       admin: { position: 'sidebar' },
-    },
-    {
-      name: 'state',
-      label: 'Status',
-      type: 'select',
-      required: true,
-      defaultValue: 'offen',
-      options: [
-        { label: 'Gemeldet', value: 'gemeldet' },
-        { label: 'Offen', value: 'offen' },
-        { label: 'Behoben', value: 'behoben' },
-      ],
-      admin: {
-        position: 'sidebar',
-        description:
-          '„Gemeldet“ und „Offen“ stehen oben (nach Priorität), „Behoben“ erscheint unten.',
-      },
-    },
-    {
-      name: 'hidden',
-      label: 'Ausgeblendet (nicht öffentlich)',
-      type: 'checkbox',
-      defaultValue: false,
-      index: true,
-      admin: {
-        position: 'sidebar',
-        description: 'Blendet den Fehler öffentlich aus, ohne ihn zu löschen. Jederzeit umkehrbar.',
-      },
     },
     {
       name: 'severity',

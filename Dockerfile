@@ -23,10 +23,8 @@ RUN addgroup -S nodejs && adduser -S nextjs -G nodejs
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
-# Seed-Grundlage & Skript mitnehmen (Erstimport auf dem Server)
+# Legacy-Inhalte für den automatischen Erstimport (onInit / SEED_ON_INIT)
 COPY --from=builder /app/legacy ./legacy
-COPY --from=builder /app/src ./src
-COPY --from=builder /app/node_modules/tsx ./node_modules/tsx
 
 RUN mkdir -p media && chown -R nextjs:nodejs /app
 USER nextjs

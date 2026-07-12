@@ -8,7 +8,6 @@ import { de } from '@payloadcms/translations/languages/de'
 import { en } from '@payloadcms/translations/languages/en'
 import sharp from 'sharp'
 
-import { seedDatabase } from './seed/seedDatabase'
 import { Users } from './collections/Users'
 import { Media } from './collections/Media'
 import { Articles } from './collections/Articles'
@@ -33,17 +32,6 @@ export default buildConfig({
     user: Users.slug,
     meta: {
       titleSuffix: ' · LüMobil Hilfecenter',
-      icons: [{ rel: 'icon', type: 'image/png', url: '/swl-innovation-mark.png' }],
-    },
-    components: {
-      graphics: {
-        Logo: '/components/admin/Logo.tsx#Logo',
-        Icon: '/components/admin/Icon.tsx#Icon',
-      },
-      beforeNavLinks: ['/components/admin/JiraExportLink.tsx#JiraExportLink'],
-    },
-    importMap: {
-      baseDir: path.resolve(dirname),
     },
   },
   i18n: {
@@ -68,14 +56,4 @@ export default buildConfig({
   },
   db,
   sharp,
-  // Automatischer Erstimport beim Container-Start (nur wenn SEED_ON_INIT=true
-  // und die Datenbank noch leer ist). Steuerung über docker-compose.
-  onInit: async (payload) => {
-    if (process.env.SEED_ON_INIT !== 'true') return
-    try {
-      await seedDatabase(payload)
-    } catch (err) {
-      payload.logger.error(`Automatischer Seed fehlgeschlagen: ${(err as Error).message}`)
-    }
-  },
 })

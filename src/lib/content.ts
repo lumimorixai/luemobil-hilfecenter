@@ -94,6 +94,7 @@ export async function getManualChapters(): Promise<ManualChapter[]> {
 export type BugData = {
   bugId: string
   severity: 'hoch' | 'mittel' | 'niedrig'
+  state: 'gemeldet' | 'offen' | 'behoben'
   title: string
   fundort: string
   description: string
@@ -109,11 +110,20 @@ const BUG_ORDER: Record<string, number> = { hoch: 0, mittel: 1, niedrig: 2 }
 
 export async function getBugs(): Promise<BugData[]> {
   const payload = await payloadClient()
-  const res = await payload.find({ collection: 'known-bugs', limit: 200, depth: 1 })
+  const res = await payload.find({
+    collection: 'known-bugs',
+    limit: 200,
+    depth: 1,
+    where: { hidden: { not_equals: true } }, // ausgeblendete Fehler nicht öffentlich zeigen
+  })
   return res.docs
     .map((d) => ({
       bugId: d.bugId,
       severity: d.severity,
+      state: (['gemeldet', 'offen', 'behoben'].includes(d.state) ? d.state : 'offen') as
+        | 'gemeldet'
+        | 'offen'
+        | 'behoben',
       title: d.title,
       fundort: d.fundort ?? '',
       description: d.description ?? '',
@@ -125,7 +135,11 @@ export async function getBugs(): Promise<BugData[]> {
       noImageNote: d.noImageNote ?? '',
     }))
     .sort(
-      (a, b) => (BUG_ORDER[a.severity] ?? 9) - (BUG_ORDER[b.severity] ?? 9) || a.bugId.localeCompare(b.bugId),
+      (a, b) =>
+        // 1) offene vor behobenen, 2) nach Priorität, 3) nach Fehler-ID
+        (a.state === 'behoben' ? 1 : 0) - (b.state === 'behoben' ? 1 : 0) ||
+        (BUG_ORDER[a.severity] ?? 9) - (BUG_ORDER[b.severity] ?? 9) ||
+        a.bugId.localeCompare(b.bugId),
     )
 }
 
