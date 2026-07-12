@@ -143,6 +143,38 @@ export async function getBugs(): Promise<BugData[]> {
     )
 }
 
+export type RoadmapItem = {
+  title: string
+  status: string
+  text: string
+}
+export type RoadmapGroup = {
+  kicker: string
+  heading: string
+  intro: string
+  items: RoadmapItem[]
+}
+
+export async function getRoadmapGroups(): Promise<RoadmapGroup[]> {
+  const payload = await payloadClient()
+  const res = await payload.find({
+    collection: 'roadmap',
+    limit: 100,
+    sort: 'order',
+    depth: 0,
+  })
+  return res.docs.map((d) => ({
+    kicker: d.kicker ?? '',
+    heading: d.heading,
+    intro: d.intro ?? '',
+    items: (d.items ?? []).map((i) => ({
+      title: i.title,
+      status: i.status ?? 'geplant',
+      text: i.text ?? '',
+    })),
+  }))
+}
+
 export type OpenQuestionItem = {
   qid: string
   status: 'offen' | 'beantwortet'

@@ -74,6 +74,7 @@ export interface Config {
     'open-questions': OpenQuestion;
     'bug-reports': BugReport;
     'question-submissions': QuestionSubmission;
+    roadmap: Roadmap;
     media: Media;
     users: User;
     'payload-kv': PayloadKv;
@@ -90,6 +91,7 @@ export interface Config {
     'open-questions': OpenQuestionsSelect<false> | OpenQuestionsSelect<true>;
     'bug-reports': BugReportsSelect<false> | BugReportsSelect<true>;
     'question-submissions': QuestionSubmissionsSelect<false> | QuestionSubmissionsSelect<true>;
+    roadmap: RoadmapSelect<false> | RoadmapSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
@@ -353,6 +355,32 @@ export interface QuestionSubmission {
   createdAt: string;
 }
 /**
+ * Inhalte der Seite „Ausblick auf Version 2“. Blöcke lassen sich hinzufügen, sortieren und mit Punkten füllen.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "roadmap".
+ */
+export interface Roadmap {
+  id: number;
+  /**
+   * Kleinere Zahl = weiter oben.
+   */
+  order?: number | null;
+  kicker?: string | null;
+  heading: string;
+  intro?: string | null;
+  items?:
+    | {
+        title: string;
+        status: 'geplant' | 'in Prüfung' | 'in Vorbereitung';
+        text?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
@@ -429,6 +457,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'question-submissions';
         value: number | QuestionSubmission;
+      } | null)
+    | ({
+        relationTo: 'roadmap';
+        value: number | Roadmap;
       } | null)
     | ({
         relationTo: 'media';
@@ -650,6 +682,26 @@ export interface QuestionSubmissionsSelect<T extends boolean = true> {
   internalNote?: T;
   convertedTo?: T;
   publishedQid?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "roadmap_select".
+ */
+export interface RoadmapSelect<T extends boolean = true> {
+  order?: T;
+  kicker?: T;
+  heading?: T;
+  intro?: T;
+  items?:
+    | T
+    | {
+        title?: T;
+        status?: T;
+        text?: T;
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }
