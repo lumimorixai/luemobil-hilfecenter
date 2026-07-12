@@ -1,7 +1,9 @@
 # ---- Build-Stage ----
 FROM node:22-alpine AS builder
 WORKDIR /app
-RUN corepack enable pnpm
+# pnpm-Version exakt pinnen (passend zum Lockfile) — verhindert, dass corepack
+# eine neuere pnpm-Version mit strengerer Supply-Chain-Policy zieht.
+RUN corepack enable && corepack prepare pnpm@10.28.0 --activate
 
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
