@@ -752,6 +752,38 @@ main.lm-main {
   color: #3f3b3b;
 }
 
+/* --- Test-Checklisten --- */
+.lm-checklist {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+.lm-checklist li {
+  position: relative;
+  padding-left: 26px;
+  margin-bottom: 9px;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: #3f3b3b;
+}
+.lm-checklist li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: var(--swl-orange);
+  font-weight: 800;
+}
+.lm-checklist li strong {
+  color: var(--swl-black);
+}
+.lm-test-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 6px 0 4px;
+}
+
 /* --- Footer --- */
 .lm-footer {
   border-top: 1px solid var(--swl-hairline);

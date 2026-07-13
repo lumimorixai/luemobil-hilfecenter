@@ -10,6 +10,7 @@ const TABS = [
   { href: '/handbuch', label: 'LüMobil Handbuch' },
   { href: '/fragen', label: 'Offene Fragen' },
   { href: '/fehler', label: 'Bekannte Fehler' },
+  { href: '/testen', label: 'Testen & Mitmachen' },
 ]
 
 export function TabNav() {
