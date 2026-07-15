@@ -2,6 +2,7 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 import { buildConfig } from 'payload'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
+import { nodemailerAdapter } from '@payloadcms/email-nodemailer'
 import { de } from '@payloadcms/translations/languages/de'
 import { en } from '@payloadcms/translations/languages/en'
 import sharp from 'sharp'
@@ -74,6 +75,27 @@ export default buildConfig({
     Users,
   ],
   editor: lexicalEditor(),
+  // E-Mail-Versand per SMTP (nur aktiv, wenn SMTP_HOST gesetzt ist — sonst
+  // schreibt Payload Mails in die Konsole, praktisch für die Entwicklung).
+  email: process.env.SMTP_HOST
+    ? nodemailerAdapter({
+        defaultFromName: process.env.EMAIL_FROM_NAME || 'LüMobil Hilfecenter',
+        defaultFromAddress: process.env.EMAIL_FROM_ADDRESS || 'no-reply@swl-innovation.de',
+        // Verbindung nicht bei jeder Payload-Initialisierung prüfen (das erzeugt
+        // sonst bei jedem Seitenaufruf Log-Rauschen). Ein fehlerhafter SMTP-Login
+        // wird beim tatsächlichen Versand erkannt und in notifyEditors geloggt.
+        skipVerify: true,
+        transportOptions: {
+          host: process.env.SMTP_HOST,
+          port: Number(process.env.SMTP_PORT || 587),
+          secure: process.env.SMTP_SECURE === 'true',
+          auth:
+            process.env.SMTP_USER || process.env.SMTP_PASS
+              ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
+              : undefined,
+        },
+      })
+    : undefined,
   secret: process.env.PAYLOAD_SECRET || 'dev-secret-please-change',
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),

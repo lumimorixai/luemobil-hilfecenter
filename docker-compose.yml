@@ -14,6 +14,23 @@ services:
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
       # Beim ersten Start automatisch die Inhalte importieren (leere DB vorausgesetzt)
       SEED_ON_INIT: ${SEED_ON_INIT:-true}
+      # Suchmaschinen während der Testphase aussperren
+      SITE_NOINDEX: ${SITE_NOINDEX:-true}
+      # E-Mail-Benachrichtigung an Redakteur:innen (ohne SMTP_HOST deaktiviert)
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      EMAIL_FROM_ADDRESS: ${EMAIL_FROM_ADDRESS:-no-reply@swl-innovation.de}
+      EMAIL_FROM_NAME: ${EMAIL_FROM_NAME:-LüMobil Hilfecenter}
+      # Jira-Anbindung (ohne die vier Pflichtwerte inaktiv)
+      JIRA_BASE_URL: ${JIRA_BASE_URL:-}
+      JIRA_EMAIL: ${JIRA_EMAIL:-}
+      JIRA_API_TOKEN: ${JIRA_API_TOKEN:-}
+      JIRA_PROJECT_KEY: ${JIRA_PROJECT_KEY:-}
+      JIRA_ISSUE_TYPE: ${JIRA_ISSUE_TYPE:-Bug}
+      JIRA_SET_PRIORITY: ${JIRA_SET_PRIORITY:-false}
     volumes:
       - media:/app/media
     depends_on:

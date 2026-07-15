@@ -1,4 +1,9 @@
 import type { CollectionConfig, Payload } from 'payload'
+import { notifyEditors, adminUrl } from '../lib/notify'
+
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+}
 
 /** Nächste freie Frage-ID im Format OF-16 über alle Offene-Fragen-Gruppen. */
 async function nextOpenQuestionId(payload: Payload): Promise<string> {
@@ -60,6 +65,22 @@ export const QuestionSubmissions: CollectionConfig = {
   },
   hooks: {
     afterChange: [
+      // Benachrichtigung bei neu eingereichter Frage
+      async ({ doc, req, operation }) => {
+        if (operation === 'create') {
+          const url = adminUrl('question-submissions', doc.id)
+          await notifyEditors(req.payload, {
+            subject: 'Neue Frage eingereicht',
+            text: `Es ist eine neue Frage eingegangen.\n\nFrage: ${doc.question}\nEingereicht von: ${doc.reporter || '—'}\nKontakt: ${doc.contact || '—'}\n\nIm Admin öffnen: ${url}`,
+            html: `<p>Es ist eine neue Frage eingegangen.</p>
+<p><strong>Frage:</strong><br>${escapeHtml(doc.question || '—').replace(/\n/g, '<br>')}</p>
+<p><strong>Eingereicht von:</strong> ${escapeHtml(doc.reporter || '—')}<br>
+<strong>Kontakt:</strong> ${escapeHtml(doc.contact || '—')}</p>
+<p><a href="${url}">Im Admin-Panel öffnen</a></p>`,
+          })
+        }
+        return doc
+      },
       async ({ doc, req }) => {
         if (doc.status !== 'uebernommen' || doc.convertedTo) return doc
 

@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { createJiraIssue, jiraConfigured, mapPriority } from '../lib/jira'
 
 export const KnownBugs: CollectionConfig = {
   slug: 'known-bugs',
@@ -96,5 +97,89 @@ export const KnownBugs: CollectionConfig = {
       defaultValue: false,
       admin: { position: 'sidebar' },
     },
+    {
+      name: 'jiraKey',
+      label: 'Jira-Ticket',
+      type: 'text',
+      index: true,
+      admin: {
+        position: 'sidebar',
+        readOnly: true,
+        description:
+          'Wird automatisch gefüllt, sobald der Status auf „Gemeldet“ steht und Jira konfiguriert ist. Verhindert doppelte Tickets.',
+      },
+    },
+    {
+      name: 'jiraUrl',
+      label: 'Jira-Link',
+      type: 'text',
+      admin: {
+        position: 'sidebar',
+        readOnly: true,
+        description: 'Direktlink zum angelegten Jira-Vorgang.',
+      },
+    },
   ],
+  hooks: {
+    afterChange: [
+      async ({ doc, req, context }) => {
+        // Nur ein Ticket erzeugen: benötigt Status „gemeldet", noch keinen Jira-Key,
+        // konfigurierte Zugangsdaten und keine erneute Auslösung durch unser eigenes Update.
+        if (context?.skipJira) return doc
+        if (doc.state !== 'gemeldet') return doc
+        if (doc.jiraKey) return doc
+        if (!jiraConfigured()) return doc
+
+        try {
+          const lines: string[] = []
+          lines.push(`Fehler-ID: ${doc.bugId}`)
+          if (doc.severity) lines.push(`Schweregrad: ${doc.severity}`)
+          if (doc.fundort) lines.push(`Fundort: ${doc.fundort}`)
+          lines.push('')
+          if (doc.description) {
+            lines.push('Beschreibung:', doc.description, '')
+          }
+          if (Array.isArray(doc.steps) && doc.steps.length) {
+            lines.push('Schritte zur Reproduktion:')
+            doc.steps.forEach((s: { text?: string }, i: number) => {
+              if (s?.text) lines.push(`${i + 1}. ${s.text}`)
+            })
+            lines.push('')
+          }
+          if (doc.expected) lines.push('Erwartetes Verhalten:', doc.expected, '')
+          if (doc.actual) lines.push('Tatsächliches Verhalten:', doc.actual, '')
+          lines.push(
+            `Quelle: LüMobil Hilfecenter (${process.env.NEXT_PUBLIC_SERVER_URL || ''}/admin/collections/known-bugs/${doc.id})`,
+          )
+
+          const { key, url } = await createJiraIssue({
+            summary: `[${doc.bugId}] ${doc.title}`,
+            description: lines.join('\n'),
+            priorityName: doc.severity ? mapPriority(doc.severity) : undefined,
+            labels: ['luemobil', 'hilfecenter'],
+          })
+
+          await req.payload.update({
+            collection: 'known-bugs',
+            id: doc.id,
+            data: { jiraKey: key, jiraUrl: url },
+            // Endlosschleife verhindern: dieses Update löst den Hook erneut aus.
+            context: { skipJira: true },
+            overrideAccess: true,
+          })
+
+          req.payload.logger.info(`Jira-Ticket ${key} für Fehler ${doc.bugId} angelegt.`)
+          return { ...doc, jiraKey: key, jiraUrl: url }
+        } catch (err) {
+          // Fehler beim Jira-Aufruf darf das Speichern des Datensatzes nicht verhindern.
+          req.payload.logger.error(
+            `Jira-Ticket für Fehler ${doc.bugId} konnte nicht angelegt werden: ${
+              err instanceof Error ? err.message : String(err)
+            }`,
+          )
+          return doc
+        }
+      },
+    ],
+  },
 }

@@ -1,4 +1,14 @@
 import type { CollectionConfig } from 'payload'
+import { notifyEditors, adminUrl } from '../lib/notify'
+
+/** Einfaches HTML-Escaping für benutzergenerierte Texte in E-Mails. */
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+}
 
 /** Nächste freie Fehler-ID im Format LUEMOB-016 ermitteln. */
 async function nextBugId(payload: import('payload').Payload): Promise<string> {
@@ -47,6 +57,23 @@ export const BugReports: CollectionConfig = {
      * (einmalig; die Verknüpfung steht danach in `convertedTo`).
      */
     afterChange: [
+      // Benachrichtigung bei neu eingegangener Fehlermeldung
+      async ({ doc, req, operation }) => {
+        if (operation === 'create') {
+          const url = adminUrl('bug-reports', doc.id)
+          await notifyEditors(req.payload, {
+            subject: `Neue Fehlermeldung: ${doc.title}`,
+            text: `Es ist eine neue Fehlermeldung eingegangen.\n\nTitel: ${doc.title}\nSchweregrad: ${doc.severity}\nGemeldet von: ${doc.reporter || '—'}\n\nBeschreibung:\n${doc.description || '—'}\n\nIm Admin öffnen: ${url}`,
+            html: `<p>Es ist eine neue Fehlermeldung eingegangen.</p>
+<p><strong>Titel:</strong> ${escapeHtml(doc.title)}<br>
+<strong>Schweregrad:</strong> ${doc.severity}<br>
+<strong>Gemeldet von:</strong> ${escapeHtml(doc.reporter || '—')}</p>
+<p><strong>Beschreibung:</strong><br>${escapeHtml(doc.description || '—').replace(/\n/g, '<br>')}</p>
+<p><a href="${url}">Im Admin-Panel öffnen</a></p>`,
+          })
+        }
+        return doc
+      },
       async ({ doc, req }) => {
         if (doc.status !== 'uebernommen' || doc.convertedTo) return doc
 

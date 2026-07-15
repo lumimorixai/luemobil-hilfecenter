@@ -1,7 +1,7 @@
 # Caddy als Reverse Proxy mit automatischem HTTPS (Let's Encrypt).
 # Auf dem VPS nach /etc/caddy/Caddyfile kopieren und Domain anpassen,
 # dann:  sudo systemctl reload caddy
-hilfe.example.de {
+luemobil.swl-innovation.de {
     reverse_proxy 127.0.0.1:3000
 
     header {
@@ -10,4 +10,16 @@ hilfe.example.de {
         X-Frame-Options "SAMEORIGIN"
         Referrer-Policy "strict-origin-when-cross-origin"
     }
+
+    # ------------------------------------------------------------------
+    # TESTPHASE: Passwortschutz für die gesamte Seite (Basic Auth).
+    # Verhindert Zugriff durch Unbefugte UND das Crawlen durch Suchmaschinen.
+    # Zum Aktivieren die folgenden Zeilen einkommentieren und ein Passwort-Hash
+    # hinterlegen. Hash erzeugen mit:  caddy hash-password
+    # (gibt einen bcrypt-Hash aus, den ihr unten einsetzt).
+    # Zum echten Launch einfach wieder auskommentieren.
+    # ------------------------------------------------------------------
+    # basic_auth {
+    #     tester JDJhJDE0J...HIER_DEN_BCRYPT_HASH_EINSETZEN...
+    # }
 }
