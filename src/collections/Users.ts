@@ -14,5 +14,15 @@ export const Users: CollectionConfig = {
       label: 'Name',
       type: 'text',
     },
+    {
+      name: 'notifyOnSubmissions',
+      label: 'E-Mail-Benachrichtigung bei neuen Meldungen',
+      type: 'checkbox',
+      defaultValue: true,
+      admin: {
+        description:
+          'Bei neuen Fehlermeldungen und eingereichten Fragen eine E-Mail erhalten. Kann jederzeit deaktiviert werden.',
+      },
+    },
   ],
 }

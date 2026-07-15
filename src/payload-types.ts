@@ -271,6 +271,14 @@ export interface KnownBug {
   noImageNote?: string | null;
   reverse?: boolean | null;
   builtin?: boolean | null;
+  /**
+   * Wird automatisch gefüllt, sobald der Status auf „Gemeldet“ steht und Jira konfiguriert ist. Verhindert doppelte Tickets.
+   */
+  jiraKey?: string | null;
+  /**
+   * Direktlink zum angelegten Jira-Vorgang.
+   */
+  jiraUrl?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -387,6 +395,10 @@ export interface Roadmap {
 export interface User {
   id: number;
   name?: string | null;
+  /**
+   * Bei neuen Fehlermeldungen und eingereichten Fragen eine E-Mail erhalten. Kann jederzeit deaktiviert werden.
+   */
+  notifyOnSubmissions?: boolean | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -621,6 +633,8 @@ export interface KnownBugsSelect<T extends boolean = true> {
   noImageNote?: T;
   reverse?: T;
   builtin?: T;
+  jiraKey?: T;
+  jiraUrl?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -729,6 +743,7 @@ export interface MediaSelect<T extends boolean = true> {
  */
 export interface UsersSelect<T extends boolean = true> {
   name?: T;
+  notifyOnSubmissions?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
