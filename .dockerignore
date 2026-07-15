@@ -1,0 +1,46 @@
+# Nur die für den Build nötigen Quelldateien in den Docker-Kontext lassen.
+# Verhindert insbesondere, dass lokale Dubletten (z. B. "payload-types 2.ts")
+# oder Build-Reste den Typecheck im Image stören.
+
+# Abhängigkeiten & Build-Artefakte (werden im Image frisch erzeugt)
+node_modules
+.next
+out
+
+# Git & Editor & Projekt-Metadaten
+.git
+.gitignore
+.vscode
+.idea
+.claude
+
+# Secrets & lokale Umgebung (Laufzeit-Env kommt aus docker-compose)
+.env
+.env.*
+!.env.example
+
+# Lokale Datenbank & Uploads (Prod nutzt Postgres bzw. das media-Volume)
+*.db
+*.db-*
+media
+
+# Build-Metadaten
+tsconfig.tsbuildinfo
+next-env.d.ts
+
+# Betriebssystem-Müll
+.DS_Store
+**/.DS_Store
+Thumbs.db
+
+# Dubletten aus Kopier-/Sync-Vorgängen: "package 2.json", "payload-types 2.ts", …
+**/* [0-9].*
+**/*\ copy.*
+**/*\ copy\ *.*
+
+# Docker-eigene Dateien
+Dockerfile
+.dockerignore
+
+# Dokumentation (für den Build nicht nötig)
+*.md
