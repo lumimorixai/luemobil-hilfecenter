@@ -92,9 +92,9 @@ export function HelpCenter({
           type="text"
           value={term}
           onChange={(e) => setTerm(e.target.value)}
-          placeholder="Frage oder Stichwort eingeben, z. B. „Deutschlandticket“ …"
+          placeholder="In Hilfeartikeln & häufigen Fragen suchen …"
           autoComplete="off"
-          aria-label="Hilfe durchsuchen"
+          aria-label="In Hilfeartikeln und häufigen Fragen suchen"
         />
       </div>
 
