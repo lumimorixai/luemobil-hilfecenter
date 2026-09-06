@@ -1,8 +1,11 @@
 import type { Metadata } from 'next'
 import React, { Suspense } from 'react'
 import Link from 'next/link'
+import { headers } from 'next/headers'
+import { redirect } from 'next/navigation'
 import { TabNav } from '@/components/TabNav'
 import { HeroSearch } from '@/components/HeroSearch'
+import { getCockpitSession, isSupport, supportRole } from '@/lib/auth/guard'
 import '@fontsource-variable/inter'
 import './globals.css'
 
@@ -12,7 +15,22 @@ export const metadata: Metadata = {
     'Antworten rund um Verbindungssuche, Abfahrten, Deutschlandticket, Konto und mehr — Hilfeartikel und häufige Fragen zur LüMobil-App.',
 }
 
-export default function FrontendLayout({ children }: { children: React.ReactNode }) {
+export default async function FrontendLayout({ children }: { children: React.ReactNode }) {
+  const session = await getCockpitSession()
+  const support = isSupport(session)
+
+  // Site-weiter Keycloak-Schutz (statt Basic Auth), aktiv per SITE_KEYCLOAK_AUTH.
+  // Eine Rolle (support) schaltet die gesamte Seite frei.
+  if (process.env.SITE_KEYCLOAK_AUTH === 'true') {
+    if (!session) {
+      const path = (await headers()).get('x-pathname') || '/'
+      redirect(`/api/auth/login?next=${encodeURIComponent(path)}`)
+    }
+    if (!support) return <NoAccessSite />
+  }
+
+  // Cockpit-Reiter nur einblenden, wenn eine Support-Session besteht.
+  const showCockpit = support
   return (
     <html lang="de">
       <body>
@@ -83,7 +101,7 @@ export default function FrontendLayout({ children }: { children: React.ReactNode
         </header>
         <div className="lm-container">
           <Suspense fallback={<div className="lm-tabbar" />}>
-            <TabNav />
+            <TabNav showCockpit={showCockpit} />
           </Suspense>
         </div>
         <main className="lm-main lm-container">{children}</main>
@@ -94,6 +112,26 @@ export default function FrontendLayout({ children }: { children: React.ReactNode
             <a href="mailto:mobil@swhl.de">mobil@swhl.de</a>
           </span>
         </footer>
+      </body>
+    </html>
+  )
+}
+
+/** Angemeldet, aber ohne Rolle „support" — kein Zugriff auf die (Test-)Seite. */
+function NoAccessSite() {
+  return (
+    <html lang="de">
+      <body>
+        <div className="lm-topbar" aria-hidden="true" />
+        <main className="lm-container" style={{ maxWidth: 560, padding: '64px 24px' }}>
+          <div className="lm-short" style={{ marginBottom: 20 }}>
+            <strong>Kein Zugriff.</strong> Für diesen Bereich ist die Rolle{' '}
+            <code>{supportRole()}</code> erforderlich. Ihr Konto hat diese Rolle nicht.
+          </div>
+          <a className="lm-mini" href="/api/auth/logout">
+            Abmelden
+          </a>
+        </main>
       </body>
     </html>
   )

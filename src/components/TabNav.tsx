@@ -13,7 +13,7 @@ const TABS = [
   { href: '/testen', label: 'Testen & Mitmachen' },
 ]
 
-export function TabNav() {
+export function TabNav({ showCockpit = false }: { showCockpit?: boolean }) {
   const pathname = usePathname()
 
   return (
@@ -30,6 +30,22 @@ export function TabNav() {
             </Link>
           )
         })}
+        {/* Interne Support-Reiter, nur bei bestehender Support-Session. */}
+        {showCockpit && (
+          <>
+            <Link
+              href="/kundencheck"
+              className={`lm-tab lm-tab--support lm-tab--support-first${
+                pathname.startsWith('/kundencheck') ? ' active' : ''
+              }`}
+            >
+              Kundencheck
+            </Link>
+            <Link href="/cockpit" className="lm-tab lm-tab--support">
+              Migrations-Cockpit
+            </Link>
+          </>
+        )}
       </nav>
     </div>
   )

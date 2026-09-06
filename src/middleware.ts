@@ -56,9 +56,27 @@ function hasValidBasicAuth(req: NextRequest): boolean {
   return safeEqual(user, expectedUser) && safeEqual(pass, expectedPass)
 }
 
+/**
+ * Der Cockpit-Bereich hat einen eigenen, stärkeren Schutz (Keycloak-OIDC +
+ * Support-Rolle) und wird deshalb von der pauschalen Basic Auth ausgenommen —
+ * sonst müssten Support-Mitarbeitende sich doppelt anmelden.
+ */
+function isCockpitPath(pathname: string): boolean {
+  return (
+    pathname === '/cockpit' ||
+    pathname.startsWith('/cockpit/') ||
+    pathname.startsWith('/api/cockpit') ||
+    pathname.startsWith('/api/auth')
+  )
+}
+
 export function middleware(req: NextRequest) {
-  // 1. Zugriffsschutz für die gesamte Seite (Testphase).
-  if (process.env.SITE_BASIC_AUTH === 'true' && !hasValidBasicAuth(req)) {
+  // 1. Zugriffsschutz für die gesamte Seite (Testphase) — außer Cockpit.
+  if (
+    process.env.SITE_BASIC_AUTH === 'true' &&
+    !isCockpitPath(req.nextUrl.pathname) &&
+    !hasValidBasicAuth(req)
+  ) {
     return new NextResponse('Authentifizierung erforderlich.', {
       status: 401,
       headers: {
@@ -70,8 +88,13 @@ export function middleware(req: NextRequest) {
     })
   }
 
-  // 2. noindex-Header.
-  const res = NextResponse.next()
+  // 2. Aktuellen Pfad als Request-Header durchreichen (für den Keycloak-Gate-
+  //    Rücksprung im Frontend-Layout).
+  const requestHeaders = new Headers(req.headers)
+  requestHeaders.set('x-pathname', req.nextUrl.pathname)
+
+  // 3. noindex-Header.
+  const res = NextResponse.next({ request: { headers: requestHeaders } })
   const noindexAll = process.env.SITE_NOINDEX === 'true'
   const isAdmin = req.nextUrl.pathname.startsWith('/admin')
   if (noindexAll || isAdmin) {
