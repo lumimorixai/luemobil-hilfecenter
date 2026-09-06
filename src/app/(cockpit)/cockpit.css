@@ -1,0 +1,389 @@
+/* ============================================================
+   Migrations-Cockpit — Styles
+   SWL Innovation Design System: nur Token-Farben, Inter, 2px-Radius,
+   Hairlines, keine Verläufe/Schatten. Ampelfarben nur für Status.
+   Layout/Informationsarchitektur nach Mockup, Optik = SWL-CI.
+   ============================================================ */
+
+:root {
+  --cx-maxw: 1120px;
+}
+
+/* Cockpit hat eine leicht abgesetzte Fläche, Karten darauf in Weiß. */
+body {
+  background: var(--swl-surface-muted);
+}
+
+.cx-wrap {
+  max-width: var(--cx-maxw);
+  margin: 0 auto;
+  padding: 0 24px 72px;
+}
+
+/* --- Kopfzeile --- */
+.cx-header {
+  background: var(--swl-white);
+  border-bottom: 1px solid var(--swl-hairline);
+}
+.cx-header-in {
+  max-width: var(--cx-maxw);
+  margin: 0 auto;
+  padding: 14px 24px;
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.cx-brand {
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.cx-brand span {
+  font-weight: 600;
+  color: var(--swl-label-gray);
+  margin-left: 8px;
+  font-size: 0.72em;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.cx-stamp {
+  color: var(--swl-label-gray);
+  font-size: 12.5px;
+}
+.cx-env {
+  margin-left: auto;
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: var(--radius);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  border: 1px solid var(--swl-hairline);
+  background: var(--swl-surface-muted);
+}
+.cx-env--dev {
+  color: var(--swl-label-gray);
+  border-color: var(--swl-hairline);
+}
+.cx-env--test {
+  color: var(--swl-orange);
+  border-color: var(--swl-orange);
+}
+.cx-env--live {
+  color: var(--swl-status-green);
+  border-color: var(--swl-status-green);
+}
+.cx-back {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--swl-label-gray);
+}
+.cx-back:hover {
+  color: var(--swl-orange);
+}
+.cx-logout {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--swl-orange);
+}
+
+/* --- Abschnittsüberschriften --- */
+.cx-h2 {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--swl-label-gray);
+  margin: 34px 0 14px;
+}
+.cx-h2 span {
+  color: var(--swl-hairline);
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* --- Karten --- */
+.cx-card {
+  background: var(--swl-white);
+  border: 1px solid var(--swl-hairline);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+}
+.cx-card-h {
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0 0 2px;
+}
+.cx-card-hint {
+  color: var(--swl-label-gray);
+  font-size: 12.5px;
+  margin-bottom: 12px;
+}
+
+/* Kundencheck-Styles liegen in src/components/cockpit/kundencheck.css
+   (mit der Komponente geladen, damit sie auch als Tab auf der Startseite wirkt). */
+
+/* --- KPI --- */
+.cx-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+.cx-kpis--3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+.cx-minikpis {
+  display: flex;
+  gap: 12px;
+  margin-top: 4px;
+}
+.cx-mini {
+  flex: 1;
+  border: 1px solid var(--swl-hairline);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+}
+.cx-kpi {
+  background: var(--swl-white);
+  border: 1px solid var(--swl-hairline);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+}
+.cx-kpi-n {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.cx-kpi-n em {
+  font-style: normal;
+  font-size: 0.5em;
+  font-weight: 600;
+  color: var(--swl-label-gray);
+  margin-left: 4px;
+}
+.cx-kpi-l {
+  color: var(--swl-label-gray);
+  font-size: 13px;
+  margin-top: 2px;
+}
+.cx-kpi-t {
+  font-size: 12.5px;
+  margin-top: 6px;
+  font-weight: 600;
+}
+.cx-kpi-t.up {
+  color: var(--swl-status-green);
+}
+.cx-kpi-t.down {
+  color: var(--swl-pink);
+}
+.cx-kpi-t.flat {
+  color: var(--swl-label-gray);
+}
+.cx-bar {
+  height: 8px;
+  border-radius: var(--radius);
+  background: var(--swl-gray-bg);
+  overflow: hidden;
+  margin-top: 8px;
+}
+.cx-bar i {
+  display: block;
+  height: 100%;
+  background: var(--swl-orange);
+}
+
+/* --- Charts --- */
+.cx-charts {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: 12px;
+}
+.cx-charts--even {
+  grid-template-columns: 1fr 1fr;
+}
+.cx-chart {
+  margin-top: 4px;
+}
+.cx-legend {
+  display: flex;
+  gap: 16px;
+  font-size: 12.5px;
+  color: var(--swl-label-gray);
+  margin-bottom: 6px;
+}
+.cx-swatch {
+  display: inline-block;
+  width: 14px;
+  height: 3px;
+  border-radius: 1px;
+  margin-right: 6px;
+  vertical-align: 3px;
+}
+.cx-axis {
+  font-family: 'Inter Variable', 'Inter', sans-serif;
+  font-size: 10px;
+  fill: var(--swl-label-gray);
+}
+.cx-endlabel {
+  font-family: 'Inter Variable', 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  fill: var(--swl-black);
+}
+.cx-tt-title {
+  font-size: 10px;
+  font-weight: 700;
+  fill: var(--swl-black);
+}
+.cx-tt-label {
+  font-size: 10px;
+  fill: var(--swl-label-gray);
+}
+.cx-tt-value {
+  font-size: 10px;
+  font-weight: 700;
+  fill: var(--swl-black);
+}
+
+/* --- Tabelle + Seite --- */
+.cx-split {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: 12px;
+}
+.cx-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.cx-table th {
+  text-align: left;
+  color: var(--swl-label-gray);
+  font-weight: 600;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--swl-hairline);
+}
+.cx-table td {
+  padding: 7px 10px;
+  border-bottom: 1px solid #ededed;
+  vertical-align: top;
+}
+.cx-mono {
+  font-family: ui-monospace, monospace;
+  font-size: 12.5px;
+}
+.cx-pill {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: var(--radius);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--swl-white);
+}
+.cx-pill.red {
+  background: var(--swl-pink);
+}
+.cx-pill.amber {
+  background: var(--swl-yellow);
+  color: var(--swl-black);
+}
+.cx-toplist {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.cx-toplist li {
+  padding: 9px 0;
+  border-bottom: 1px solid #ededed;
+}
+.cx-toplist li:last-child {
+  border: none;
+}
+.cx-toplist-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-family: ui-monospace, monospace;
+  font-size: 13px;
+}
+.cx-toplist-row b {
+  font-weight: 700;
+}
+.cx-toplist-exp {
+  color: var(--swl-label-gray);
+  font-size: 12.5px;
+  margin-top: 2px;
+  line-height: 1.4;
+}
+.cx-sec {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--swl-hairline);
+  border-left: 3px solid var(--swl-yellow);
+  border-radius: var(--radius);
+  background: var(--swl-surface-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.cx-sec b {
+  display: block;
+  margin-bottom: 2px;
+}
+
+/* --- Footer / Zustände --- */
+.cx-footer {
+  color: var(--swl-label-gray);
+  font-size: 12px;
+  line-height: 1.5;
+  margin-top: 40px;
+  border-top: 1px solid var(--swl-hairline);
+  padding-top: 14px;
+}
+.cx-unavailable,
+.cx-empty {
+  border: 1px dashed var(--swl-hairline);
+  border-radius: var(--radius);
+  padding: 20px;
+  text-align: center;
+  color: var(--swl-label-gray);
+  font-size: 14px;
+}
+.cx-noaccess {
+  max-width: 520px;
+  margin: 60px auto;
+  background: var(--swl-white);
+  border: 1px solid var(--swl-hairline);
+  border-top: 3px solid var(--swl-pink);
+  border-radius: var(--radius);
+  padding: 28px;
+}
+.cx-noaccess h1 {
+  font-size: 22px;
+  font-weight: 800;
+  margin: 0 0 10px;
+}
+.cx-noaccess p {
+  color: #3f3b3b;
+  line-height: 1.55;
+  margin: 0 0 18px;
+}
+.cx-noaccess code {
+  font-family: ui-monospace, monospace;
+  background: var(--swl-surface-muted);
+  padding: 1px 5px;
+  border-radius: var(--radius);
+}
+
+@media (max-width: 900px) {
+  .cx-kpis,
+  .cx-kpis--3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .cx-charts,
+  .cx-split {
+    grid-template-columns: 1fr;
+  }
+}
