@@ -1,0 +1,184 @@
+/* ============================================================
+   SWL Innovation Login-Theme (überschreibt das klassische keycloak-Theme)
+   Nur SWL-Tokens, Inter (self-hosted), 2px-Radius, keine Schatten.
+   ============================================================ */
+
+@font-face {
+  font-family: 'InterSWL';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('../fonts/inter.woff2') format('woff2');
+}
+
+:root {
+  --swl-orange: #ff8200;
+  --swl-orange-dark: #c96800;
+  --swl-black: #000000;
+  --swl-white: #ffffff;
+  --swl-surface: #f8f8f8;
+  --swl-hairline: #cfcfcf;
+  --swl-label: #7a7474;
+  --swl-pink: #f73e5e;
+  --radius: 2px;
+}
+
+/* Grundfläche + Schrift */
+html,
+body,
+.login-pf,
+.login-pf body {
+  background: var(--swl-surface) !important;
+  color: var(--swl-black) !important;
+  font-family: 'InterSWL', 'Inter', system-ui, -apple-system, sans-serif !important;
+}
+.login-pf-page {
+  background: transparent !important;
+  padding-top: 40px;
+}
+
+/* SWL-Signatur-Verlaufsleiste ganz oben */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  z-index: 1000;
+  background: linear-gradient(
+    90deg,
+    #ff8200,
+    #ff3d59,
+    #ff00aa,
+    #b945c1,
+    #8579d2,
+    #43bbe8,
+    #00ffff
+  );
+}
+
+/* Kopf / Realm-Name (Realm „Display name" in Keycloak sinnvoll setzen) */
+#kc-header,
+#kc-header-wrapper {
+  color: var(--swl-black) !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.01em !important;
+  font-size: 22px !important;
+  text-transform: none !important; /* Anzeigename gemischt lassen, nicht GROSS */
+  text-shadow: none !important;
+  padding: 8px 0 !important;
+}
+
+/* Karte: weiß, Hairline, 3px orange Oberkante, KEIN Schatten */
+.card-pf {
+  background: var(--swl-white) !important;
+  border: 1px solid var(--swl-hairline) !important;
+  border-top: 3px solid var(--swl-orange) !important;
+  border-radius: var(--radius) !important;
+  box-shadow: none !important;
+  padding: 32px !important;
+}
+
+/* Überschrift „Bei Ihrem Konto anmelden" */
+#kc-page-title {
+  font-weight: 800 !important;
+  letter-spacing: -0.01em !important;
+  color: var(--swl-black) !important;
+}
+
+/* Labels + Eingabefelder */
+label,
+.control-label,
+.pf-c-form__label,
+.pf-c-form__label-text {
+  font-weight: 600 !important;
+  color: var(--swl-black) !important;
+}
+input.form-control,
+.pf-c-form-control,
+input[type='text'],
+input[type='email'],
+input[type='password'] {
+  border: 1px solid var(--swl-hairline) !important;
+  border-radius: var(--radius) !important;
+  box-shadow: none !important;
+  padding: 11px 14px !important;
+  height: auto !important;
+  font-size: 14px !important;
+  color: var(--swl-black) !important;
+  background: var(--swl-white) !important;
+}
+input.form-control:focus,
+.pf-c-form-control:focus,
+input[type='text']:focus,
+input[type='email']:focus,
+input[type='password']:focus {
+  border-color: var(--swl-orange) !important;
+  box-shadow: none !important;
+  outline: 2px solid rgba(255, 130, 0, 0.18) !important;
+  outline-offset: 1px !important;
+}
+
+/* Primär-Button „Anmelden": schwarz (wie in der App) */
+.btn-primary,
+input#kc-login,
+button[type='submit'],
+.pf-c-button.pf-m-primary {
+  background: var(--swl-black) !important;
+  border: 1px solid var(--swl-black) !important;
+  border-radius: var(--radius) !important;
+  color: var(--swl-white) !important;
+  font-weight: 600 !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  padding: 12px 20px !important;
+}
+.btn-primary:hover,
+input#kc-login:hover,
+button[type='submit']:hover,
+.pf-c-button.pf-m-primary:hover {
+  background: #3f3b3b !important;
+  border-color: #3f3b3b !important;
+}
+
+/* Sekundäre Buttons/Icon-Buttons (z. B. Passwort anzeigen) neutral */
+.pf-c-button.pf-m-control {
+  border: 1px solid var(--swl-hairline) !important;
+  border-radius: var(--radius) !important;
+  box-shadow: none !important;
+}
+
+/* Links + Checkbox-Akzent */
+a {
+  color: var(--swl-orange) !important;
+}
+a:hover {
+  color: var(--swl-orange-dark) !important;
+}
+input[type='checkbox'] {
+  accent-color: var(--swl-orange);
+}
+
+/* Fehlermeldungen: SWL-Pink-Rahmen, neutrale Fläche */
+.alert-error,
+.pf-c-alert.pf-m-danger,
+#input-error,
+.kc-feedback-text {
+  border-radius: var(--radius) !important;
+  color: #7a2620 !important;
+}
+.alert-error,
+.pf-c-alert.pf-m-danger {
+  border: 1px solid var(--swl-pink) !important;
+  background: var(--swl-white) !important;
+  box-shadow: none !important;
+}
+
+/* Sprachauswahl dezent */
+#kc-locale ul,
+.pf-c-dropdown__menu {
+  border: 1px solid var(--swl-hairline) !important;
+  border-radius: var(--radius) !important;
+  box-shadow: none !important;
+}
