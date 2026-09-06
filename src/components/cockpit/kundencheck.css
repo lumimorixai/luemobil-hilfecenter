@@ -1,0 +1,223 @@
+/* ============================================================
+   Kundencheck — Styles der Komponente (mit der Komponente geladen,
+   damit sie sowohl im Cockpit als auch als Tab auf der Startseite wirkt).
+   SWL-Design-System: nur Token-Farben, Inter, 2px-Radius, Hairlines.
+   Statusfarben (grün/gelb/pink) nur für Status.
+   ============================================================ */
+
+.cx-check {
+  background: var(--swl-white);
+  border: 1px solid var(--swl-hairline);
+  border-top: 3px solid var(--swl-orange);
+  border-radius: var(--radius);
+  padding: 22px 24px;
+  margin-top: 26px;
+}
+.cx-check-title {
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  margin: 0 0 4px;
+}
+.cx-check-sub {
+  color: var(--swl-label-gray);
+  margin: 0 0 16px;
+  max-width: 62ch;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.cx-searchrow {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.cx-input {
+  flex: 1;
+  min-width: 240px;
+  padding: 11px 14px;
+  border: 1px solid var(--swl-hairline);
+  border-radius: var(--radius);
+  font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  font-size: 14px;
+  color: var(--swl-black);
+  background: var(--swl-white);
+  outline: none;
+}
+.cx-input:focus {
+  border-color: var(--swl-orange);
+}
+.cx-btn {
+  padding: 11px 22px;
+  border: 1px solid var(--swl-black);
+  border-radius: var(--radius);
+  background: var(--swl-black);
+  color: var(--swl-white);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+.cx-btn:hover {
+  background: #3f3b3b;
+}
+.cx-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.cx-demo {
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--swl-label-gray);
+}
+.cx-demo-btn {
+  background: none;
+  border: none;
+  color: var(--swl-orange);
+  cursor: pointer;
+  font: inherit;
+  font-family: ui-monospace, monospace;
+  text-decoration: underline;
+  padding: 0 2px;
+}
+.cx-demo-btn:hover {
+  color: var(--swl-orange-dark);
+}
+
+/* --- Prüfstrecke --- */
+.cx-pipeline {
+  margin-top: 22px;
+  border-top: 1px solid var(--swl-hairline);
+  padding-top: 20px;
+}
+.cx-steps {
+  display: flex;
+  gap: 0;
+  flex-wrap: wrap;
+}
+.cx-step {
+  flex: 1;
+  min-width: 200px;
+  padding: 0 18px 0 0;
+}
+.cx-step + .cx-step {
+  padding-left: 18px;
+  border-left: 1px solid var(--swl-hairline);
+}
+.cx-step-who {
+  font-size: 12px;
+  color: var(--swl-label-gray);
+  margin-bottom: 6px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.cx-step-state {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 14px;
+}
+.cx-dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  flex: none;
+}
+.cx-dot--ok {
+  background: var(--swl-status-green);
+}
+.cx-dot--warn {
+  background: var(--swl-yellow);
+}
+.cx-dot--no {
+  background: var(--swl-pink);
+}
+.cx-dot--off {
+  background: var(--swl-hairline);
+}
+.cx-step-detail {
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--swl-label-gray);
+  line-height: 1.45;
+}
+.cx-verdict {
+  margin-top: 18px;
+  padding: 13px 16px;
+  border: 1px solid var(--swl-hairline);
+  border-left-width: 3px;
+  border-radius: var(--radius);
+  background: var(--swl-surface-muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.cx-verdict--ok {
+  border-left-color: var(--swl-status-green);
+}
+.cx-verdict--warn {
+  border-left-color: var(--swl-yellow);
+}
+.cx-verdict--no {
+  border-left-color: var(--swl-pink);
+}
+
+/* Keycloak-Block + Ereignisliste nebeneinander */
+.cx-check-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.cx-evlist {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+}
+.cx-ev {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px solid #ededed;
+  font-size: 13px;
+}
+.cx-ev:last-child {
+  border-bottom: none;
+}
+.cx-ev-time {
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+  color: var(--swl-label-gray);
+  flex: none;
+  min-width: 118px;
+}
+.cx-ev-label {
+  flex: 1;
+}
+.cx-ev-client {
+  font-family: ui-monospace, monospace;
+  font-size: 11.5px;
+  color: var(--swl-label-gray);
+}
+.cx-ev-empty {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--swl-label-gray);
+}
+
+@media (max-width: 900px) {
+  .cx-check-cols {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .cx-step {
+    min-width: 100%;
+    padding: 0 0 14px 0;
+  }
+  .cx-step + .cx-step {
+    border-left: none;
+    border-top: 1px solid var(--swl-hairline);
+    padding: 14px 0 0 0;
+  }
+}

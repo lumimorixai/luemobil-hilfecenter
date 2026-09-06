@@ -75,6 +75,7 @@ export interface Config {
     'bug-reports': BugReport;
     'question-submissions': QuestionSubmission;
     roadmap: Roadmap;
+    'cockpit-daily': CockpitDaily;
     media: Media;
     users: User;
     'payload-kv': PayloadKv;
@@ -92,6 +93,7 @@ export interface Config {
     'bug-reports': BugReportsSelect<false> | BugReportsSelect<true>;
     'question-submissions': QuestionSubmissionsSelect<false> | QuestionSubmissionsSelect<true>;
     roadmap: RoadmapSelect<false> | RoadmapSelect<true>;
+    'cockpit-daily': CockpitDailySelect<false> | CockpitDailySelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
@@ -389,6 +391,25 @@ export interface Roadmap {
   createdAt: string;
 }
 /**
+ * Automatisch befüllte Tages-Aggregate für die Migrations-Zeitreihe.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "cockpit-daily".
+ */
+export interface CockpitDaily {
+  id: number;
+  /**
+   * Format JJJJ-MM-TT.
+   */
+  datum: string;
+  logins: number;
+  loginErrors: number;
+  newUsers: number;
+  registrations: number;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
@@ -473,6 +494,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'roadmap';
         value: number | Roadmap;
+      } | null)
+    | ({
+        relationTo: 'cockpit-daily';
+        value: number | CockpitDaily;
       } | null)
     | ({
         relationTo: 'media';
@@ -716,6 +741,19 @@ export interface RoadmapSelect<T extends boolean = true> {
         text?: T;
         id?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "cockpit-daily_select".
+ */
+export interface CockpitDailySelect<T extends boolean = true> {
+  datum?: T;
+  logins?: T;
+  loginErrors?: T;
+  newUsers?: T;
+  registrations?: T;
   updatedAt?: T;
   createdAt?: T;
 }
