@@ -281,6 +281,25 @@ mark {
   border-bottom-color: var(--swl-orange);
   box-shadow: none;
 }
+/* Interne Support-Reiter: rechts abgesetzt, Orange-Marker */
+.lm-tab--support {
+  color: var(--swl-orange);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+/* Erster Support-Reiter schiebt die Gruppe nach rechts. */
+.lm-tab--support-first {
+  margin-left: auto;
+}
+.lm-tab--support::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--swl-orange);
+  flex: none;
+}
 
 main.lm-main {
   padding: 28px 0 72px;

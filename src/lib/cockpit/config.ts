@@ -1,0 +1,78 @@
+/**
+ * Zentrale Konfiguration des Migrations-Cockpits. Alle Werte kommen aus
+ * Umgebungsvariablen — nichts wird hartkodiert. Secrets (Client-Secret,
+ * Abo-Token) werden ausschließlich hier serverseitig gelesen und dürfen nie
+ * ins Frontend, in Logs oder in Fehlermeldungen gelangen.
+ *
+ * Solange `COCKPIT_MOCK=true` gesetzt ist, laufen Keycloak- und Aboonline-
+ * Zugriffe gegen eingebaute Mock-Daten (Entwicklung ohne echte Systeme).
+ */
+
+export type CockpitEnv = 'dev' | 'test' | 'live'
+
+/** Mock-Modus: keine echten externen Systeme, feste Demo-Daten. */
+export function isMock(): boolean {
+  return process.env.COCKPIT_MOCK === 'true'
+}
+
+/** Umgebungs-Kennung für das Badge im Kopf (Dev/Test/Live). */
+export function cockpitEnv(): CockpitEnv {
+  const raw = (process.env.COCKPIT_ENV || '').toLowerCase()
+  if (raw === 'live' || raw === 'prod' || raw === 'production') return 'live'
+  if (raw === 'test' || raw === 'stage' || raw === 'staging') return 'test'
+  return 'dev'
+}
+
+/** Anzeigename der Umgebung. */
+export function cockpitEnvLabel(): string {
+  return { dev: 'Dev-System', test: 'Test-System', live: 'Live-System' }[cockpitEnv()]
+}
+
+/** Keycloak-Basis-URL ohne abschließenden Schrägstrich. */
+export function keycloakUrl(): string {
+  return (process.env.KEYCLOAK_URL || '').replace(/\/$/, '')
+}
+
+/** Daten-Realm (Kunden): Quelle für Admin-API (Nutzer, Events). */
+export function keycloakRealm(): string {
+  return process.env.KEYCLOAK_REALM || 'mpluebeck'
+}
+
+/**
+ * Login-Realm (Mitarbeitende) für den OIDC-Login. Ist er nicht gesetzt, wird der
+ * Daten-Realm verwendet (Einzel-Realm-Betrieb, abwärtskompatibel).
+ */
+export function authRealm(): string {
+  return process.env.KEYCLOAK_AUTH_REALM || keycloakRealm()
+}
+
+/** Login-Client (im Login-Realm). Fällt auf den Cockpit-Client zurück. */
+export function oidcClientId(): string {
+  return process.env.OIDC_CLIENT_ID || process.env.COCKPIT_CLIENT_ID || ''
+}
+export function oidcClientSecret(): string {
+  return process.env.OIDC_CLIENT_SECRET || process.env.COCKPIT_CLIENT_SECRET || ''
+}
+
+/** Nenner für den Migrationsfortschritt (Gesamtkundenzahl). */
+export function kundenGesamt(): number {
+  const n = Number(process.env.COCKPIT_KUNDEN_GESAMT)
+  return Number.isFinite(n) && n > 0 ? n : 0
+}
+
+/** Aboonline-Webservice-Basis ohne abschließenden Schrägstrich. */
+export function aboWsUrl(): string {
+  return (process.env.ABO_WS_URL || '').replace(/\/$/, '')
+}
+
+/**
+ * Prüft, ob die echten Keycloak-Zugangsdaten vollständig konfiguriert sind.
+ * Im Mock-Modus irrelevant.
+ */
+export function keycloakConfigured(): boolean {
+  return Boolean(
+    process.env.KEYCLOAK_URL &&
+      process.env.COCKPIT_CLIENT_ID &&
+      process.env.COCKPIT_CLIENT_SECRET,
+  )
+}
