@@ -194,6 +194,30 @@ export type Operations = {
   mock: boolean
 }
 
+/** Verfügbarkeit eines Dienstes im Beobachtungsfenster (aus health-checks). */
+export type AvailabilitySvc = {
+  key: 'keycloak' | 'login' | 'database'
+  label: string
+  /** Uptime in Prozent (0–100), eine Nachkommastelle. */
+  uptimePct: number
+  /** false = im Fenster nie konfiguriert (grau, aus der Wertung). */
+  configured: boolean
+  /** Chronologische Segmente (alt → neu): true=ok, false=Störung, null=keine Daten. */
+  segments: (boolean | null)[]
+  /** Anzahl konfigurierter Messpunkte im Fenster. */
+  samples: number
+}
+
+/** Verfügbarkeits-Historie (Statuspage-Streifen) über ein Zeitfenster. */
+export type Availability = {
+  /** Fenster-Beschriftung, z. B. „letzte 24 Stunden". */
+  windowLabel: string
+  services: AvailabilitySvc[]
+  /** Zeitpunkt des letzten Checks (formatiert) oder null. */
+  lastCheck: string | null
+  mock: boolean
+}
+
 /** Aggregierte Fehlerart mit Kurzerklärung. */
 export type ErrorTypeAgg = {
   error: string

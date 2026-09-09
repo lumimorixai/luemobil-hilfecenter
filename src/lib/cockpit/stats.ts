@@ -21,6 +21,8 @@ import { explainError } from './errors'
 import { mockIntradayHourly, mockIntradayMinutely, mockSeries } from './mockData'
 import type {
   Anomaly,
+  Availability,
+  AvailabilitySvc,
   CockpitStats,
   CountPoint,
   DailyPoint,
@@ -314,4 +316,81 @@ export async function getDayEvents(day = todayIso()): Promise<DayEvents> {
     .sort((a, b) => b.count - a.count)
 
   return { day, rows, byType, anomalies, mock: isMock() }
+}
+
+// ============================================================
+// Verfügbarkeits-Historie (Statuspage-Streifen, letzte 24 h)
+// ============================================================
+
+const AVAIL_SEGMENTS = 60
+const AVAIL_DEFS: { key: AvailabilitySvc['key']; label: string }[] = [
+  { key: 'keycloak', label: 'Keycloak' },
+  { key: 'login', label: 'Login (Testkunde)' },
+  { key: 'database', label: 'Datenbank' },
+]
+
+/** Liest die persistierten Health-Checks der letzten 24 h und verdichtet sie je
+ *  Dienst zu einem Verfügbarkeitsstreifen (60 Segmente, alt → neu) + Uptime-%. */
+export async function getAvailability(): Promise<Availability> {
+  if (isMock()) {
+    return {
+      windowLabel: 'letzte 24 Stunden',
+      lastCheck: new Date().toLocaleString('de-DE'),
+      mock: true,
+      services: AVAIL_DEFS.map((d, di) => {
+        // Je Serie deterministisch ein, zwei kurze Störungen für eine lebendige Demo.
+        const segments = Array.from({ length: AVAIL_SEGMENTS }, (_, i) =>
+          !((di === 1 && (i === 31 || i === 32)) || (di === 0 && i === 47)),
+        )
+        const okCount = segments.filter((s) => s).length
+        return {
+          key: d.key,
+          label: d.label,
+          configured: true,
+          segments,
+          samples: AVAIL_SEGMENTS,
+          uptimePct: Math.round((okCount / AVAIL_SEGMENTS) * 1000) / 10,
+        }
+      }),
+    }
+  }
+
+  const payload = await payloadClient()
+  const since = new Date(Date.now() - 24 * 3600_000).toISOString()
+  const found = await payload.find({
+    collection: 'health-checks',
+    where: { checkedAt: { greater_than: since } },
+    sort: 'checkedAt',
+    limit: 2000,
+    depth: 0,
+    overrideAccess: true,
+  })
+  const docs = found.docs as unknown as {
+    checkedAt: string
+    status?: Record<string, { ok?: boolean; configured?: boolean }>
+  }[]
+  const lastCheck = docs.length ? new Date(docs[docs.length - 1].checkedAt).toLocaleString('de-DE') : null
+
+  const services: AvailabilitySvc[] = AVAIL_DEFS.map((d) => {
+    const samples = docs
+      .map((doc) => doc.status?.[d.key])
+      .filter((s): s is { ok?: boolean; configured?: boolean } => Boolean(s))
+    const configuredSamples = samples.filter((s) => s.configured !== false)
+    const okCount = configuredSamples.filter((s) => s.ok).length
+    const configured = configuredSamples.length > 0
+    const uptimePct = configured ? Math.round((okCount / configuredSamples.length) * 1000) / 10 : 0
+
+    const segments: (boolean | null)[] = []
+    for (let b = 0; b < AVAIL_SEGMENTS; b++) {
+      const from = Math.floor((b * samples.length) / AVAIL_SEGMENTS)
+      const to = Math.max(from + 1, Math.floor(((b + 1) * samples.length) / AVAIL_SEGMENTS))
+      const slice = samples.slice(from, to).filter((s) => s.configured !== false)
+      if (samples.length === 0 || slice.length === 0) segments.push(null)
+      else segments.push(slice.every((s) => s.ok))
+    }
+
+    return { key: d.key, label: d.label, configured, segments, samples: configuredSamples.length, uptimePct }
+  })
+
+  return { windowLabel: 'letzte 24 Stunden', services, lastCheck, mock: false }
 }

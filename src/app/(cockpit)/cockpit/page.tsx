@@ -1,9 +1,17 @@
 import { redirect } from 'next/navigation'
 import { getCockpitSession, isSupport } from '@/lib/auth/guard'
 import { cockpitEnv, cockpitEnvLabel, keycloakRealm } from '@/lib/cockpit/config'
-import { getDayEvents, getIntraday, getNewUsers, getOperations, getStats } from '@/lib/cockpit/stats'
+import {
+  getAvailability,
+  getDayEvents,
+  getIntraday,
+  getNewUsers,
+  getOperations,
+  getStats,
+} from '@/lib/cockpit/stats'
 import { shortDe } from '@/lib/cockpit/date'
 import type {
+  Availability,
   CockpitStats,
   DayEvents,
   Intraday,
@@ -19,6 +27,7 @@ import {
   NewUsersChart,
   Sparkline,
 } from '@/components/cockpit/charts'
+import { AvailabilityStrip } from '@/components/cockpit/Availability'
 import { Kundencheck } from '@/components/cockpit/Kundencheck'
 import { LiveStatus } from '@/components/cockpit/LiveStatus'
 
@@ -64,6 +73,12 @@ export default async function CockpitPage() {
   } catch {
     newUsers = null
   }
+  let availability: Availability | null = null
+  try {
+    availability = await getAvailability()
+  } catch {
+    availability = null
+  }
 
   const stamp = new Date().toLocaleString('de-DE', {
     day: '2-digit',
@@ -102,6 +117,12 @@ export default async function CockpitPage() {
         {/* KPI */}
         <h2 className="cx-h2">Letzte 24 Stunden</h2>
         {stats ? <KpiRow stats={stats} /> : <Unavailable />}
+
+        {/* Verfügbarkeit (Statuspage-Streifen) */}
+        <h2 className="cx-h2">
+          Verfügbarkeit <span>· letzte 24 Stunden</span>
+        </h2>
+        {availability ? <AvailabilityStrip data={availability} /> : <Unavailable />}
 
         {/* Keycloak-Kennzahlen: Nutzer & Aktivität */}
         <h2 className="cx-h2">
