@@ -10,12 +10,11 @@ import {
   getErrorEvents,
   getEventsSince,
   getLoginsByClient,
-  getMigratedCount,
   getSupportMetrics,
   getUserCreationTimestamps,
   usersCount,
 } from '../keycloak'
-import { isMock, kundenGesamt } from './config'
+import { isMock } from './config'
 import { lastDays, todayIso } from './date'
 import { explainError } from './errors'
 import { mockIntradayHourly, mockIntradayMinutely, mockSeries } from './mockData'
@@ -35,9 +34,6 @@ import type {
   NewUsers,
   Operations,
 } from './types'
-
-/** Standard-Nenner im Mock, wenn COCKPIT_KUNDEN_GESAMT nicht gesetzt ist (≈18 %). */
-const MOCK_KUNDEN_GESAMT = 7133
 
 async function readSeries(): Promise<DailyPoint[]> {
   const days = lastDays(14)
@@ -86,54 +82,31 @@ export async function getStats(): Promise<CockpitStats> {
   const today = series[series.length - 1]
   const yesterday = series[series.length - 2]
 
-  const [totalUsers, totalMigrated] = await Promise.all([usersCount(), getMigratedCount()])
-  const denom = kundenGesamt() || (isMock() ? MOCK_KUNDEN_GESAMT : 0)
+  const [totalUsers, newUsers24hArr] = await Promise.all([
+    usersCount(),
+    getUserCreationTimestamps(Date.now() - 24 * 60 * 60 * 1000),
+  ])
+  const newUsers24h = newUsers24hArr.length
 
   const successfulLogins = today?.logins ?? 0
   const failedLogins = today?.loginErrors ?? 0
   const attempts = successfulLogins + failedLogins
   const errorRatePct = attempts > 0 ? Math.round((failedLogins / attempts) * 1000) / 10 : 0
-  const progressPct = denom > 0 ? Math.round((totalMigrated / denom) * 100) : 0
 
   // Trend der erfolgreichen Logins ggü. Vortag (in Prozent).
   const prev = yesterday?.logins ?? 0
   const loginTrendPct =
     prev > 0 ? Math.round(((successfulLogins - prev) / prev) * 100) : null
 
-  // Kumulierte Migrationskurve, die am letzten Tag auf totalMigrated endet.
-  const sumNew = series.reduce((s, p) => s + p.newUsers, 0)
-  let running = totalMigrated - sumNew
-  const cumulativeMigrated = series.map((p) => {
-    running += p.newUsers
-    return { datum: p.datum, total: running }
-  })
-
-  // Migrationen vs. Neuregistrierungen je Tag
-  // (newUsers = an dem Tag angelegte föderierte = migrierte Nutzer).
-  const migrationSeries = series.map((p) => ({
-    datum: p.datum,
-    migrated: p.newUsers,
-    registered: p.registrations,
-  }))
-
-  const newRegistered = today?.registrations ?? 0
-  const newMigrated = today?.newUsers ?? 0
-
   return {
     kpis: {
       successfulLogins,
       failedLogins,
       errorRatePct,
-      newMigrated,
-      totalMigrated,
+      newUsers24h,
       totalUsers,
-      progressPct,
-      kundenGesamt: denom,
     },
     series,
-    cumulativeMigrated,
-    migrationSeries,
-    newRegistered,
     loginTrendPct,
     mock: isMock(),
   }

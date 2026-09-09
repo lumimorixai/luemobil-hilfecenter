@@ -9,7 +9,6 @@ import {
   getOperations,
   getStats,
 } from '@/lib/cockpit/stats'
-import { shortDe } from '@/lib/cockpit/date'
 import type {
   Availability,
   CockpitStats,
@@ -21,7 +20,6 @@ import type {
 } from '@/lib/cockpit/types'
 import {
   ChartCard,
-  CumulativeChart,
   DualLineChart,
   LoginsChart,
   NewUsersChart,
@@ -130,11 +128,7 @@ export default async function CockpitPage() {
           Keycloak <span>· Nutzer &amp; Aktivität</span>
         </h2>
         {intraday && stats ? (
-          <KeycloakStats
-            totalMigrated={stats.kpis.totalMigrated}
-            totalUsers={stats.kpis.totalUsers}
-            m={intraday.metrics}
-          />
+          <KeycloakStats totalUsers={stats.kpis.totalUsers} m={intraday.metrics} />
         ) : (
           <Unavailable />
         )}
@@ -144,7 +138,7 @@ export default async function CockpitPage() {
           Neue Nutzer <span>· Stunde / 24 h / 7 Tage / 30 Tage</span>
         </h2>
         {newUsers ? (
-          <ChartCard title="Neu angelegte Nutzer" hint="Neuzugänge je Zeitraum (Migration beim Erstlogin + Registrierung)">
+          <ChartCard title="Neu angelegte Nutzer" hint="Neu angelegte Konten je Zeitraum">
             <NewUsersChart data={newUsers} />
           </ChartCard>
         ) : (
@@ -179,57 +173,9 @@ export default async function CockpitPage() {
           Zeitreihen <span>· 14 Tage</span>
         </h2>
         {stats ? (
-          <div className="cx-charts">
-            <ChartCard title="Logins und Fehler pro Tag" hint="Quelle: Keycloak-Events LOGIN und LOGIN_ERROR">
-              <LoginsChart series={stats.series} />
-            </ChartCard>
-            <ChartCard
-              title="Migrierte Kunden, kumuliert"
-              hint="Föderierte (migrierte) Nutzer im Realm, kumuliert"
-            >
-              <CumulativeChart points={stats.cumulativeMigrated} />
-            </ChartCard>
-          </div>
-        ) : (
-          <Unavailable />
-        )}
-
-        {/* Migration vs. Registrierung */}
-        <h2 className="cx-h2">
-          Migration &amp; Registrierung <span>· 14 Tage</span>
-        </h2>
-        {stats ? (
-          <div className="cx-charts">
-            <ChartCard
-              title="Migrationen vs. Neuregistrierungen"
-              hint="Migriert = föderierte Neuzugänge · Neu registriert = REGISTER-Events"
-            >
-              <DualLineChart
-                points={stats.migrationSeries.map((p) => ({
-                  label: shortDe(p.datum),
-                  a: p.migrated,
-                  b: p.registered,
-                }))}
-                labelA="Migriert"
-                labelB="Neu registriert"
-                maxTicks={7}
-              />
-            </ChartCard>
-            <div className="cx-card">
-              <h3 className="cx-card-h">Heute</h3>
-              <div className="cx-card-hint">Neuzugänge nach Herkunft</div>
-              <div className="cx-minikpis">
-                <div className="cx-mini">
-                  <div className="cx-kpi-n">{de(stats.kpis.newMigrated)}</div>
-                  <div className="cx-kpi-l">Migriert (Aboonline)</div>
-                </div>
-                <div className="cx-mini">
-                  <div className="cx-kpi-n">{de(stats.newRegistered)}</div>
-                  <div className="cx-kpi-l">Neu registriert</div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <ChartCard title="Logins und Fehler pro Tag" hint="Quelle: Keycloak-Events LOGIN und LOGIN_ERROR">
+            <LoginsChart series={stats.series} />
+          </ChartCard>
         ) : (
           <Unavailable />
         )}
@@ -295,7 +241,7 @@ function KpiRow({ stats }: { stats: CockpitStats }) {
     maximumFractionDigits: 1,
   })
   return (
-    <div className="cx-kpis">
+    <div className="cx-kpis cx-kpis--3">
       <div className="cx-kpi">
         <div className="cx-kpi-n">{de(k.successfulLogins)}</div>
         <div className="cx-kpi-l">Erfolgreiche Logins</div>
@@ -314,39 +260,18 @@ function KpiRow({ stats }: { stats: CockpitStats }) {
         <Sparkline values={stats.series.map((p) => p.loginErrors)} color="#000000" />
       </div>
       <div className="cx-kpi">
-        <div className="cx-kpi-n">{de(k.newMigrated)}</div>
-        <div className="cx-kpi-l">Neu migrierte Kunden</div>
-        <div className="cx-kpi-t flat">gesamt {de(k.totalMigrated)}</div>
-      </div>
-      <div className="cx-kpi">
-        <div className="cx-kpi-n">
-          {k.progressPct}
-          <em>%</em>
-        </div>
-        <div className="cx-kpi-l">Migrationsfortschritt</div>
-        <div className="cx-bar" role="img" aria-label={`${k.progressPct} Prozent migriert`}>
-          <i style={{ width: `${Math.min(100, k.progressPct)}%` }} />
-        </div>
+        <div className="cx-kpi-n">{de(k.newUsers24h)}</div>
+        <div className="cx-kpi-l">Neue Nutzer (24 h)</div>
+        <div className="cx-kpi-t flat">neu angelegte Konten</div>
+        <Sparkline values={stats.series.map((p) => p.newUsers)} />
       </div>
     </div>
   )
 }
 
-function KeycloakStats({
-  totalMigrated,
-  totalUsers,
-  m,
-}: {
-  totalMigrated: number
-  totalUsers: number
-  m: Keycloak24hMetrics
-}) {
+function KeycloakStats({ totalUsers, m }: { totalUsers: number; m: Keycloak24hMetrics }) {
   return (
-    <div className="cx-kpis">
-      <div className="cx-kpi">
-        <div className="cx-kpi-n">{de(totalMigrated)}</div>
-        <div className="cx-kpi-l">Migriert (gesamt, föderiert)</div>
-      </div>
+    <div className="cx-kpis cx-kpis--3">
       <div className="cx-kpi">
         <div className="cx-kpi-n">{de(totalUsers)}</div>
         <div className="cx-kpi-l">Nutzer gesamt (Realm)</div>

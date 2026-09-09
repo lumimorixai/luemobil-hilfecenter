@@ -27,7 +27,7 @@ const s = StyleSheet.create({
   h2: { fontSize: 11, marginTop: 16, marginBottom: 6, fontFamily: 'Helvetica-Bold' },
   hint: { fontSize: 8, color: MUTED, marginBottom: 6 },
   kpis: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 },
-  kpi: { width: '31.6%', borderWidth: 1, borderColor: HAIR, padding: 8 },
+  kpi: { width: '48%', borderWidth: 1, borderColor: HAIR, padding: 8 },
   kpiN: { fontSize: 16, fontFamily: 'Helvetica-Bold' },
   kpiL: { fontSize: 7.5, color: MUTED, marginTop: 2 },
   legend: { flexDirection: 'row', gap: 14, marginBottom: 4 },
@@ -188,14 +188,6 @@ export function ReportPdf({ data }: { data: ReportData }) {
           <View style={s.kpi}>
             <Text style={s.kpiN}>{de(k.totalUsers)}</Text>
             <Text style={s.kpiL}>Nutzer gesamt (Realm)</Text>
-          </View>
-          <View style={s.kpi}>
-            <Text style={s.kpiN}>{de(k.totalMigrated)}</Text>
-            <Text style={s.kpiL}>Migriert gesamt (föderiert)</Text>
-          </View>
-          <View style={s.kpi}>
-            <Text style={[s.kpiN, { color: ORANGE }]}>{k.progressPct} %</Text>
-            <Text style={s.kpiL}>Migrationsfortschritt</Text>
           </View>
         </View>
 

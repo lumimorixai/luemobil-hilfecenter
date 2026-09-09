@@ -33,7 +33,7 @@ export async function runCustomerCheck(email: string): Promise<Diagnosis> {
   const keycloak: DiagnosisStep = kcUser
     ? {
         state: 'ok',
-        label: 'Migriert',
+        label: 'Konto vorhanden',
         detail:
           `Kundennr. ${kcUser.kundennummer ?? '—'}` +
           (kcUser.createdAt ? ` · angelegt am ${deDate(kcUser.createdAt)}` : ''),
@@ -62,14 +62,14 @@ export async function runCustomerCheck(email: string): Promise<Diagnosis> {
     ? {
         kind: 'ok',
         text:
-          'Das Konto ist migriert. Die Anmeldung erfolgt mit der E-Mail-Adresse und dem bisherigen ' +
-          'Aboonline-Passwort. Bei Problemen hilft die Passwort-vergessen-Strecke in der App.',
+          'Ein Konto ist in Keycloak vorhanden. Die Anmeldung erfolgt mit der E-Mail-Adresse und dem ' +
+          'bisherigen Passwort. Bei Problemen hilft die Passwort-vergessen-Strecke in der App.',
       }
     : {
         kind: 'warn',
         text:
-          'Noch nicht migriert. Die Anmeldung in der App mit E-Mail und Aboonline-Passwort genügt – die ' +
-          'Übernahme geschieht beim ersten Login automatisch. Schlägt die Anmeldung fehl, besteht ' +
+          'Kein Konto in Keycloak. Die Anmeldung in der App mit E-Mail und Aboonline-Passwort legt das ' +
+          'Konto beim ersten Login automatisch an. Schlägt die Anmeldung fehl, besteht ' +
           'möglicherweise kein Abo-Konto (Schreibweise der E-Mail prüfen oder an den Abo-Service verweisen).',
       }
 

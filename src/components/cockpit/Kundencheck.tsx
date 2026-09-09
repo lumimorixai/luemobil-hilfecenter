@@ -62,8 +62,8 @@ export function Kundencheck() {
     <section className="cx-check">
       <h2 className="cx-check-title">Kundencheck</h2>
       <p className="cx-check-sub">
-        Prüft, ob eine E-Mail-Adresse in Keycloak migriert ist, zeigt die letzten Ereignisse – und
-        was dem Kunden konkret zu sagen ist.
+        Prüft, ob zu einer E-Mail-Adresse ein Konto in Keycloak vorhanden ist, zeigt die letzten
+        Ereignisse – und was dem Kunden konkret zu sagen ist.
       </p>
 
       <form className="cx-searchrow" onSubmit={onSubmit}>
