@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server'
 import { createHash, timingSafeEqual } from 'node:crypto'
 import { payloadClient } from '@/lib/content'
 import { runHealthAlert } from '@/lib/cockpit/alert'
-import { sendReport } from '@/lib/cockpit/reportSend'
 import { aggregateToday, backfill } from '@/lib/cockpit/aggregate'
 import type { ReportPeriod } from '@/lib/cockpit/report'
 
@@ -63,6 +62,8 @@ export async function POST(req: Request) {
         if (!period || !PERIODS.includes(period)) {
           return NextResponse.json({ error: 'bad_period' }, { status: 400 })
         }
+        // PDF-Renderer (pdfkit/fontkit) nur bei Bedarf laden.
+        const { sendReport } = await import('@/lib/cockpit/reportSend')
         const result = await sendReport(payload, period)
         return NextResponse.json({ ok: result.sent, job, period, to: result.to, reason: result.reason })
       }
