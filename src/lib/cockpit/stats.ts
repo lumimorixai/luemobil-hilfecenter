@@ -413,14 +413,16 @@ export async function getAvailability(): Promise<Availability> {
       const from = windowStart + b * bucketMs
       const to = from + bucketMs
       const inBucket = configuredSamples.filter((s) => s.t >= from && s.t < to)
+      const dn = inBucket.filter((s) => !s.ok).length
       let state: AvailabilitySegment['state']
       if (inBucket.length === 0) state = 'none'
-      else if (inBucket.every((s) => s.ok)) state = 'ok'
+      else if (dn === 0) state = 'ok'
       else {
         state = 'down'
         outages++
       }
-      segments.push({ state, label: segLabel(from, to) })
+      const downMinutes = inBucket.length ? Math.round((dn / inBucket.length) * AVAIL_BUCKET_MIN) : 0
+      segments.push({ state, label: segLabel(from, to), samples: inBucket.length, downSamples: dn, downMinutes })
     }
 
     return {
