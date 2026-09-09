@@ -26,8 +26,6 @@ export type ReportData = {
     errorRatePct: number
     newUsers: number
     totalUsers: number
-    totalMigrated: number
-    progressPct: number
   }
   loginSeries: SeriesPoint[]
   loginSeriesTitle: string
@@ -146,8 +144,6 @@ export async function getReport(period: ReportPeriod): Promise<ReportData> {
       errorRatePct,
       newUsers: newUsersTotal,
       totalUsers: stats?.kpis.totalUsers ?? 0,
-      totalMigrated: stats?.kpis.totalMigrated ?? 0,
-      progressPct: stats?.kpis.progressPct ?? 0,
     },
     loginSeries,
     loginSeriesTitle,

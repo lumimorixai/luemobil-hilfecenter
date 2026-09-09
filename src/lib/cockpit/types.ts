@@ -111,15 +111,10 @@ export type CockpitKpis = {
   failedLogins: number
   /** Fehlerquote in Prozent (0–100), eine Nachkommastelle. */
   errorRatePct: number
-  newMigrated: number
-  /** Migrierte (föderierte) Nutzer gesamt. */
-  totalMigrated: number
-  /** Alle Realm-Nutzer gesamt (migriert + lokal + registriert). */
+  /** Neu angelegte Nutzer in den letzten 24 Stunden. */
+  newUsers24h: number
+  /** Alle Realm-Nutzer gesamt. */
   totalUsers: number
-  /** Migrationsfortschritt in Prozent (0–100), ganzzahlig gerundet. */
-  progressPct: number
-  /** Nenner für den Fortschritt (0 = nicht konfiguriert). */
-  kundenGesamt: number
 }
 
 /** KPIs + Zeitreihen für die Cockpit-Startseite. */
@@ -127,12 +122,6 @@ export type CockpitStats = {
   kpis: CockpitKpis
   /** Tageswerte der letzten 14 Tage (aufsteigend nach Datum). */
   series: DailyPoint[]
-  /** Kumulierte migrierte Kunden je Tag (aufsteigend, deckungsgleich zu series). */
-  cumulativeMigrated: { datum: string; total: number }[]
-  /** Migrationen vs. Neuregistrierungen je Tag (14 Tage). */
-  migrationSeries: { datum: string; migrated: number; registered: number }[]
-  /** Neu registrierte Kunden heute (Selbstregistrierung). */
-  newRegistered: number
   /** Veränderung der erfolgreichen Logins ggü. Vortag in Prozent (null = kein Vortag). */
   loginTrendPct: number | null
   /** true, wenn diese Werte aus Mock-Daten stammen. */

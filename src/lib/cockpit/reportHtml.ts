@@ -34,7 +34,7 @@ function bar(pct: number, color: string): string {
 
 function kpiCell(n: string, label: string, color = INK): string {
   return (
-    `<td width="33%" style="border:1px solid ${HAIR};padding:10px 12px;vertical-align:top">` +
+    `<td width="50%" style="border:1px solid ${HAIR};padding:10px 12px;vertical-align:top">` +
     `<div style="font-size:22px;font-weight:800;color:${color};line-height:1.1">${n}</div>` +
     `<div style="font-size:11px;color:${MUTED};margin-top:3px">${esc(label)}</div>` +
     `</td>`
@@ -92,12 +92,10 @@ export function buildReportHtml(data: ReportData): string {
       <tr>
         ${kpiCell(de(k.logins), 'Erfolgreiche Logins (Zeitraum)')}
         ${kpiCell(de(k.errors), 'Fehlgeschlagen · ' + rate + ' %', k.errors > 0 ? PINK : INK)}
-        ${kpiCell(de(k.newUsers), 'Neue Nutzer (Zeitraum)', ORANGE)}
       </tr>
       <tr>
+        ${kpiCell(de(k.newUsers), 'Neue Nutzer (Zeitraum)', ORANGE)}
         ${kpiCell(de(k.totalUsers), 'Nutzer gesamt (Realm)')}
-        ${kpiCell(de(k.totalMigrated), 'Migriert gesamt (föderiert)')}
-        ${kpiCell(k.progressPct + ' %', 'Migrationsfortschritt', ORANGE)}
       </tr>
     </table>
 

@@ -23,6 +23,10 @@ RUN pnpm build
 FROM node:22-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
+# Zeitzonendaten, damit serverseitige Zeiten in lokaler Zeit (Europe/Berlin,
+# inkl. Sommer-/Winterzeit) statt UTC dargestellt werden.
+RUN apk add --no-cache tzdata
+ENV TZ=Europe/Berlin
 
 RUN addgroup -S nodejs && adduser -S nextjs -G nodejs
 

@@ -8,18 +8,17 @@ const nextConfig = {
   // Assets ins Standalone-Image getract wird — sonst schlägt der Report-Versand
   // im Container fehl (pdfkit lädt Standard-Schriften wie Helvetica.cjs sowie
   // fontkit-Daten erst zur Laufzeit; die `**` überbrücken die pnpm-.pnpm-Ebene).
+  // Am pnpm-Pfad verankerte Globs (kein führendes ** über ganz node_modules,
+  // sonst wird „Collecting build traces" extrem langsam). Erfasst die dynamisch
+  // nachgeladenen Assets: pdfkit-Standardschriften + fontkit-Shaper-Daten.
   outputFileTracingIncludes: {
     '/api/cockpit/report': [
-      './node_modules/**/pdfkit/js/**/*',
-      './node_modules/**/@react-pdf/**/*',
-      './node_modules/**/fontkit/**/*',
-      './node_modules/**/yoga-layout/**/*',
+      './node_modules/.pnpm/pdfkit@*/node_modules/pdfkit/js/**',
+      './node_modules/.pnpm/fontkit@*/node_modules/fontkit/**',
     ],
     '/api/cockpit/cron': [
-      './node_modules/**/pdfkit/js/**/*',
-      './node_modules/**/@react-pdf/**/*',
-      './node_modules/**/fontkit/**/*',
-      './node_modules/**/yoga-layout/**/*',
+      './node_modules/.pnpm/pdfkit@*/node_modules/pdfkit/js/**',
+      './node_modules/.pnpm/fontkit@*/node_modules/fontkit/**',
     ],
   },
   experimental: {
