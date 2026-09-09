@@ -68,6 +68,19 @@ export function synthClientSecret(): string {
   return process.env.SYNTH_LOGIN_CLIENT_SECRET || process.env.COCKPIT_CLIENT_SECRET || ''
 }
 
+/**
+ * Client-IDs, deren Events NICHT als echte Nutzeraktivität zählen: der
+ * Cockpit-/Service-Account-Client und der synthetische Login-Client. Deren
+ * (minütliche) Test-LOGINs würden sonst Logins, Fehler und Client-Statistik
+ * verfälschen.
+ */
+export function monitoringClientIds(): string[] {
+  const ids = [process.env.COCKPIT_CLIENT_ID, process.env.SYNTH_LOGIN_CLIENT_ID, synthClientId()]
+    .map((s) => (s || '').trim())
+    .filter(Boolean)
+  return Array.from(new Set(ids))
+}
+
 /** Nenner für den Migrationsfortschritt (Gesamtkundenzahl). */
 export function kundenGesamt(): number {
   const n = Number(process.env.COCKPIT_KUNDEN_GESAMT)
