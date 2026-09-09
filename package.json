@@ -15,6 +15,7 @@
     "seed": "tsx --env-file=.env src/seed/seed.ts",
     "job:cockpit": "tsx --env-file=.env src/jobs/aggregateDaily.ts",
     "job:health": "tsx --env-file=.env src/jobs/healthAlert.ts",
+    "job:report": "tsx --env-file=.env src/jobs/report.ts",
     "typecheck": "tsc --noEmit",
     "lint": "next lint"
   },
@@ -26,6 +27,7 @@
     "@payloadcms/next": "3.86.0",
     "@payloadcms/richtext-lexical": "3.86.0",
     "@payloadcms/translations": "3.86.0",
+    "@react-pdf/renderer": "^4.9.0",
     "graphql": "^16.11.0",
     "next": "15.4.11",
     "payload": "3.86.0",
