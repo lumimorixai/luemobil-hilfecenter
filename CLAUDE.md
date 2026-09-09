@@ -11,6 +11,8 @@ Hosting: eigener VPS via Docker Compose + Caddy.
 - `pnpm seed` – Legacy-Inhalte importieren (idempotent, bricht bei vorhandenen Daten ab)
 - `pnpm generate:types` – nach JEDER Collection-Änderung ausführen (aktualisiert src/payload-types.ts)
 - `pnpm generate:importmap` – nach Hinzufügen von Admin-UI-Komponenten
+- `pnpm job:health` – Systemstatus-Check + Störungs-Alerting (minütlich per Cron)
+- `pnpm job:report <hour|day|week|month>` – grafischen Cockpit-Report (HTML-Mail + PDF) an ALERT_EMAIL senden (per Cron oder Button im Cockpit)
 
 ## Architektur
 - `src/collections/` – Payload-Collections: Articles, FaqGroups, ManualChapters, KnownBugs, OpenQuestions, BugReports, QuestionSubmissions, Media, Users

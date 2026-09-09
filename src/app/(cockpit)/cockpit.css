@@ -761,3 +761,59 @@ body {
     gap: 1px;
   }
 }
+
+/* ============================================================
+   Report-Buttons (manueller Versand)
+   ============================================================ */
+.cx-reportbtns {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-top: 12px;
+}
+.cx-reportbtn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  padding: 12px 14px;
+  background: var(--swl-white);
+  border: 1px solid var(--swl-hairline);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  transition: border-color 0.12s;
+}
+.cx-reportbtn:hover:not(:disabled) {
+  border-color: var(--swl-orange);
+}
+.cx-reportbtn:disabled {
+  opacity: 0.65;
+  cursor: default;
+}
+.cx-reportbtn.ok {
+  border-color: var(--swl-status-green);
+}
+.cx-reportbtn.err {
+  border-color: var(--swl-pink);
+}
+.cx-reportbtn-l {
+  font-size: 15px;
+  font-weight: 700;
+}
+.cx-reportbtn-s {
+  font-size: 11px;
+  color: var(--swl-label-gray);
+}
+.cx-reportbtn.ok .cx-reportbtn-s {
+  color: var(--swl-status-green);
+}
+.cx-reportbtn.err .cx-reportbtn-s {
+  color: var(--swl-pink);
+}
+@media (max-width: 560px) {
+  .cx-reportbtns {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

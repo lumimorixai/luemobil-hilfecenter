@@ -30,6 +30,7 @@ import {
 import { AvailabilityStrip } from '@/components/cockpit/Availability'
 import { Kundencheck } from '@/components/cockpit/Kundencheck'
 import { LiveStatus } from '@/components/cockpit/LiveStatus'
+import { ReportButtons } from '@/components/cockpit/ReportButtons'
 
 export const dynamic = 'force-dynamic'
 
@@ -244,6 +245,12 @@ export default async function CockpitPage() {
           Fehlgeschlagene Anmeldungen <span>· heute</span>
         </h2>
         {day ? <ErrorSection day={day} /> : <Unavailable />}
+
+        {/* Reports */}
+        <h2 className="cx-h2">
+          Reports <span>· Mail + PDF an die Alert-Adresse</span>
+        </h2>
+        <ReportButtons />
 
         <footer className="cx-footer">
           Datenquellen: Keycloak Admin API (Events, Users) und Aboonline-Webservice (AccountCheck).

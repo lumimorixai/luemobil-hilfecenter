@@ -12,95 +12,13 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import type { CountPoint, DailyPoint, NewUsers } from '@/lib/cockpit/types'
 import { shortDe } from '@/lib/cockpit/date'
+import { axisTicks, de, niceMax, smoothPath } from '@/lib/cockpit/chartMath'
 
 const ORANGE = '#ff8200'
 const INK = '#000000'
 const HAIR = '#cfcfcf'
 const GRID = '#e7e7e7'
 const MUTED = '#7a7474'
-
-function de(n: number): string {
-  return n.toLocaleString('de-DE')
-}
-
-/** Erzeugt „schöne" Achsen-Obergrenze (aufgerundet auf 1-2-5-Stufen). */
-function niceMax(v: number): number {
-  if (v <= 0) return 10
-  const pow = Math.pow(10, Math.floor(Math.log10(v)))
-  const n = v / pow
-  const step = n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10
-  return step * pow
-}
-
-/**
- * Gleichmäßig verteilte X-Achsen-Ticks inkl. erstem und letztem Punkt – ohne
- * Überlappung am Rand (löst das Label-Gedränge bei 30 Tagen). Platziert exakt
- * `maxTicks` Positionen von 0…n-1; der letzte Tick fällt per Rundung auf n-1,
- * daher nie eine Dublette dicht am Rand.
- */
-function axisTicks(n: number, maxTicks: number): number[] {
-  if (n <= 1) return n === 1 ? [0] : []
-  if (n <= maxTicks) return Array.from({ length: n }, (_, i) => i)
-  const stride = (n - 1) / (maxTicks - 1)
-  const idx = Array.from({ length: maxTicks }, (_, k) => Math.round(k * stride))
-  const uniq = Array.from(new Set(idx)).sort((a, b) => a - b)
-  if (uniq[uniq.length - 1] !== n - 1) uniq.push(n - 1)
-  return uniq
-}
-
-/**
- * Weiche Linie durch die Punkte per monotoner Kubik (Fritsch–Carlson).
- * Anders als Catmull-Rom schwingt sie nie über die Datenpunkte hinaus – der
- * Verlauf bleibt zwischen benachbarten Werten und taucht daher nicht unter 0
- * (kein „negatives" Aussehen). SWL-konform: kein Verlauf, kein Schatten.
- */
-function smoothPath(pts: { x: number; y: number }[]): string {
-  const n = pts.length
-  if (n === 0) return ''
-  if (n < 3) {
-    return pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ')
-  }
-  // Sekantensteigungen zwischen den Punkten
-  const dx: number[] = []
-  const slope: number[] = []
-  for (let i = 0; i < n - 1; i++) {
-    const h = pts[i + 1].x - pts[i].x
-    dx.push(h)
-    slope.push(h === 0 ? 0 : (pts[i + 1].y - pts[i].y) / h)
-  }
-  // Tangenten: an Extrema 0 setzen, sonst Mittel der Nachbarsekanten
-  const m: number[] = new Array(n)
-  m[0] = slope[0]
-  m[n - 1] = slope[n - 2]
-  for (let i = 1; i < n - 1; i++) {
-    m[i] = slope[i - 1] * slope[i] <= 0 ? 0 : (slope[i - 1] + slope[i]) / 2
-  }
-  // Fritsch–Carlson-Begrenzung erzwingt Monotonie (kein Overshoot)
-  for (let i = 0; i < n - 1; i++) {
-    if (slope[i] === 0) {
-      m[i] = 0
-      m[i + 1] = 0
-      continue
-    }
-    const a = m[i] / slope[i]
-    const b = m[i + 1] / slope[i]
-    const s = a * a + b * b
-    if (s > 9) {
-      const tau = 3 / Math.sqrt(s)
-      m[i] = tau * a * slope[i]
-      m[i + 1] = tau * b * slope[i]
-    }
-  }
-  let d = `M${pts[0].x.toFixed(1)},${pts[0].y.toFixed(1)}`
-  for (let i = 0; i < n - 1; i++) {
-    const c1x = pts[i].x + dx[i] / 3
-    const c1y = pts[i].y + (m[i] * dx[i]) / 3
-    const c2x = pts[i + 1].x - dx[i] / 3
-    const c2y = pts[i + 1].y - (m[i + 1] * dx[i]) / 3
-    d += ` C${c1x.toFixed(1)},${c1y.toFixed(1)} ${c2x.toFixed(1)},${c2y.toFixed(1)} ${pts[i + 1].x.toFixed(1)},${pts[i + 1].y.toFixed(1)}`
-  }
-  return d
-}
 
 /** Hover-Punkt mit weißem Ring (hebt den Messpunkt sauber vom Verlauf ab). */
 function Dot({ cx, cy, fill }: { cx: number; cy: number; fill: string }) {
