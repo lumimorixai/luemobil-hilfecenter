@@ -9,7 +9,7 @@
  * Alle Zugangsdaten kommen aus Umgebungsvariablen (src/lib/cockpit/config.ts).
  * Solange COCKPIT_MOCK=true gesetzt ist, liefern alle Funktionen Mock-Daten.
  */
-import { isMock, keycloakRealm, keycloakUrl } from './cockpit/config'
+import { isMock, keycloakRealm, keycloakUrl, monitoringClientIds } from './cockpit/config'
 import type { KcEvent, KcUser } from './cockpit/types'
 import { isoDate } from './cockpit/date'
 import {
@@ -197,7 +197,13 @@ async function fetchEvents(
   const res = await adminFetch(`/events?${params.toString()}`)
   if (!res.ok) throw new Error(`Keycloak-Events fehlgeschlagen (HTTP ${res.status})`)
   const raw = (await res.json()) as KcRawEvent[]
-  return raw.map(mapEvent).sort((a, b) => a.time.localeCompare(b.time))
+  // Events des Cockpit-/Monitoring-Clients ausblenden (synthetischer Minuten-
+  // Login), damit sie Logins/Fehler/Client-Statistik nicht verfälschen.
+  const excluded = new Set(monitoringClientIds())
+  return raw
+    .map(mapEvent)
+    .filter((e) => !e.clientId || !excluded.has(e.clientId))
+    .sort((a, b) => a.time.localeCompare(b.time))
 }
 
 const LOGIN_TYPES = ['LOGIN', 'LOGIN_ERROR']
