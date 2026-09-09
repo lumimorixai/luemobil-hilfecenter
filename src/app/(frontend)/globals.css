@@ -115,6 +115,21 @@ mark {
   background: var(--swl-orange);
   display: inline-block;
 }
+/* Dezenter „Intern anmelden"-Button oben rechts im Header */
+.lm-brand-login {
+  margin-left: auto;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: var(--radius);
+  color: #ededeb;
+  padding: 5px 12px;
+  font-size: 11px;
+  transition: border-color 0.12s ease, color 0.12s ease;
+}
+.lm-brand-login:hover {
+  border-color: var(--swl-orange);
+  color: var(--swl-white);
+  text-decoration: none;
+}
 .lm-header h1 {
   margin: 0 0 14px;
   font-size: clamp(36px, 4.8vw, 52px);
@@ -929,6 +944,16 @@ main.lm-main {
   font-size: 11px;
   color: var(--swl-label-gray);
   line-height: 1.5;
+}
+
+/* --- Interner Login-Link im Footer (dezent) --- */
+.lm-intern-link {
+  color: var(--swl-label-gray);
+  text-decoration: underline;
+  white-space: nowrap;
+}
+.lm-intern-link:hover {
+  color: var(--swl-orange);
 }
 
 /* --- Leere Treffer --- */

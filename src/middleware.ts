@@ -57,24 +57,28 @@ function hasValidBasicAuth(req: NextRequest): boolean {
 }
 
 /**
- * Der Cockpit-Bereich hat einen eigenen, stärkeren Schutz (Keycloak-OIDC +
- * Support-Rolle) und wird deshalb von der pauschalen Basic Auth ausgenommen —
+ * Interne Bereiche haben einen eigenen, stärkeren Schutz (Keycloak-OIDC +
+ * Support-Rolle) und werden deshalb von der pauschalen Basic Auth ausgenommen —
  * sonst müssten Support-Mitarbeitende sich doppelt anmelden.
  */
-function isCockpitPath(pathname: string): boolean {
+function isInternalPath(pathname: string): boolean {
   return (
     pathname === '/cockpit' ||
     pathname.startsWith('/cockpit/') ||
+    pathname === '/kundencheck' ||
+    pathname.startsWith('/kundencheck/') ||
+    pathname === '/ansprechpartner' ||
+    pathname.startsWith('/ansprechpartner/') ||
     pathname.startsWith('/api/cockpit') ||
     pathname.startsWith('/api/auth')
   )
 }
 
 export function middleware(req: NextRequest) {
-  // 1. Zugriffsschutz für die gesamte Seite (Testphase) — außer Cockpit.
+  // 1. Zugriffsschutz für die gesamte Seite (Testphase) — außer interne Bereiche.
   if (
     process.env.SITE_BASIC_AUTH === 'true' &&
-    !isCockpitPath(req.nextUrl.pathname) &&
+    !isInternalPath(req.nextUrl.pathname) &&
     !hasValidBasicAuth(req)
   ) {
     return new NextResponse('Authentifizierung erforderlich.', {
