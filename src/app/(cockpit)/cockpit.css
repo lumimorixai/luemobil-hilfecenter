@@ -88,6 +88,69 @@ body {
   color: var(--swl-orange);
 }
 
+/* --- Live-Statusleiste (Ampel) --- */
+.cx-header-status {
+  border-top: 1px solid var(--swl-hairline);
+  padding-top: 10px;
+  padding-bottom: 12px;
+}
+.cx-statusbar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.cx-status {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+.cx-status-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.cx-status-ms {
+  font-style: normal;
+  font-weight: 400;
+  font-size: 11px;
+  color: var(--swl-label-gray);
+}
+.cx-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  color: var(--swl-label-gray);
+}
+.cx-live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--swl-status-green);
+  animation: cx-pulse 1.8s ease-in-out infinite;
+}
+@keyframes cx-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+/* --- Sparkline in KPI-Kacheln --- */
+.cx-spark {
+  display: block;
+  margin-top: 8px;
+}
+
 /* --- Abschnittsüberschriften --- */
 .cx-h2 {
   font-size: 15px;
@@ -206,6 +269,108 @@ body {
 }
 .cx-chart {
   margin-top: 4px;
+}
+
+/* Kartenkopf mit Vergrößern-Button */
+.cx-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.cx-expand {
+  flex: none;
+  border: 1px solid var(--swl-hairline);
+  border-radius: var(--radius);
+  background: var(--swl-white);
+  color: var(--swl-label-gray);
+  cursor: pointer;
+  font-size: 15px;
+  line-height: 1;
+  padding: 5px 9px;
+  transition: border-color 0.12s ease, color 0.12s ease;
+}
+.cx-expand:hover {
+  border-color: var(--swl-orange);
+  color: var(--swl-orange);
+}
+
+/* Vergrößern-Modal */
+.cx-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.cx-modal-box {
+  background: var(--swl-white);
+  border: 1px solid var(--swl-hairline);
+  border-top: 3px solid var(--swl-orange);
+  border-radius: var(--radius);
+  width: min(1100px, 96vw);
+  max-height: 90vh;
+  overflow: auto;
+  padding: 20px 24px 24px;
+}
+.cx-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.cx-modal-close {
+  border: 1px solid var(--swl-hairline);
+  border-radius: var(--radius);
+  background: var(--swl-white);
+  color: var(--swl-label-gray);
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1;
+  padding: 2px 10px;
+}
+.cx-modal-close:hover {
+  border-color: var(--swl-orange);
+  color: var(--swl-orange);
+}
+.cx-modal-chart {
+  margin-top: 12px;
+}
+
+/* Bereichs-Umschalter (Neue Nutzer) */
+.cx-range {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 4px 0 8px;
+}
+.cx-range-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--swl-hairline);
+  border-radius: var(--radius);
+  background: var(--swl-white);
+  color: var(--swl-black);
+  font: inherit;
+  font-size: 12.5px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: border-color 0.12s ease, color 0.12s ease;
+}
+.cx-range-btn:hover {
+  border-color: var(--swl-orange);
+}
+.cx-range-btn.active {
+  border-color: var(--swl-orange);
+  color: var(--swl-orange);
+}
+.cx-range-total {
+  font-weight: 700;
+  color: var(--swl-black);
 }
 .cx-legend {
   display: flex;

@@ -13,8 +13,6 @@ import { useState, type FormEvent } from 'react'
 import type { Diagnosis } from '@/lib/cockpit/types'
 import './kundencheck.css'
 
-const DEMOS = ['anna.albers@example.de', 'bernd.behn@example.de', 'carla.claas@example.de']
-
 export function Kundencheck() {
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
@@ -60,11 +58,6 @@ export function Kundencheck() {
     run(email)
   }
 
-  function demo(m: string) {
-    setEmail(m)
-    run(m)
-  }
-
   return (
     <section className="cx-check">
       <h2 className="cx-check-title">Kundencheck</h2>
@@ -88,18 +81,6 @@ export function Kundencheck() {
           {loading ? 'Prüfe …' : 'Prüfen'}
         </button>
       </form>
-
-      <div className="cx-demo">
-        Demo:{' '}
-        {DEMOS.map((m, i) => (
-          <span key={m}>
-            {i > 0 && ' · '}
-            <button type="button" className="cx-demo-btn" onClick={() => demo(m)}>
-              {m.split('@')[0]}@…
-            </button>
-          </span>
-        ))}
-      </div>
 
       {error && <div className="cx-verdict cx-verdict--no">{error}</div>}
 
