@@ -22,6 +22,7 @@ import { mockIntradayHourly, mockIntradayMinutely, mockSeries } from './mockData
 import type {
   Anomaly,
   Availability,
+  AvailabilitySegment,
   AvailabilitySvc,
   CockpitStats,
   CountPoint,
@@ -322,75 +323,125 @@ export async function getDayEvents(day = todayIso()): Promise<DayEvents> {
 // Verfügbarkeits-Historie (Statuspage-Streifen, letzte 24 h)
 // ============================================================
 
-const AVAIL_SEGMENTS = 60
+const AVAIL_SEGMENTS = 48 // 24 h / 48 = je 30 Minuten pro Segment
+const AVAIL_WINDOW_MS = 24 * 3600_000
+const AVAIL_BUCKET_MIN = AVAIL_WINDOW_MS / AVAIL_SEGMENTS / 60_000
 const AVAIL_DEFS: { key: AvailabilitySvc['key']; label: string }[] = [
   { key: 'keycloak', label: 'Keycloak' },
   { key: 'login', label: 'Login (Testkunde)' },
   { key: 'database', label: 'Datenbank' },
 ]
 
-/** Liest die persistierten Health-Checks der letzten 24 h und verdichtet sie je
- *  Dienst zu einem Verfügbarkeitsstreifen (60 Segmente, alt → neu) + Uptime-%. */
+function hhmm(ms: number): string {
+  return new Date(ms).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })
+}
+
+/** Beschriftung „HH:MM–HH:MM Uhr" für ein Zeit-Segment. */
+function segLabel(from: number, to: number): string {
+  return `${hhmm(from)}–${hhmm(to)} Uhr`
+}
+
+/**
+ * Liest die persistierten Health-Checks der letzten 24 h und verdichtet sie je
+ * Dienst zu einem Verfügbarkeitsstreifen mit festem Zeitraster (je Segment
+ * AVAIL_BUCKET_MIN Minuten). Ein Segment ist „down", sobald darin mindestens ein
+ * Fehlversuch liegt, „none" ohne Messung. Zusätzlich: Uptime-%, Zahl der
+ * Störfenster und Zeitpunkt der letzten Störung.
+ */
 export async function getAvailability(): Promise<Availability> {
+  const nowMs = Date.now()
+  const windowStart = nowMs - AVAIL_WINDOW_MS
+  const bucketMs = AVAIL_WINDOW_MS / AVAIL_SEGMENTS
+
+  type Sample = { t: number; ok: boolean; configured: boolean }
+  // Roh-Messpunkte je Dienst einsammeln (Mock erzeugt, sonst aus health-checks).
+  let perSvc: Record<string, Sample[]>
+  let lastCheck: string | null
+
   if (isMock()) {
-    return {
-      windowLabel: 'letzte 24 Stunden',
-      lastCheck: new Date().toLocaleString('de-DE'),
-      mock: true,
-      services: AVAIL_DEFS.map((d, di) => {
-        // Je Serie deterministisch ein, zwei kurze Störungen für eine lebendige Demo.
-        const segments = Array.from({ length: AVAIL_SEGMENTS }, (_, i) =>
-          !((di === 1 && (i === 31 || i === 32)) || (di === 0 && i === 47)),
-        )
-        const okCount = segments.filter((s) => s).length
-        return {
-          key: d.key,
-          label: d.label,
-          configured: true,
-          segments,
-          samples: AVAIL_SEGMENTS,
-          uptimePct: Math.round((okCount / AVAIL_SEGMENTS) * 1000) / 10,
-        }
-      }),
+    // Alle 5 Minuten ein Check; je Serie deterministisch ein, zwei Störfenster.
+    const stepMs = 5 * 60_000
+    perSvc = { keycloak: [], login: [], database: [] }
+    for (let t = windowStart; t <= nowMs; t += stepMs) {
+      const frac = (t - windowStart) / AVAIL_WINDOW_MS
+      perSvc.keycloak.push({ t, ok: !(frac > 0.62 && frac < 0.65), configured: true })
+      perSvc.login.push({ t, ok: !(frac > 0.3 && frac < 0.33), configured: true })
+      perSvc.database.push({ t, ok: true, configured: true })
+    }
+    lastCheck = new Date(nowMs).toLocaleString('de-DE')
+  } else {
+    const payload = await payloadClient()
+    const found = await payload.find({
+      collection: 'health-checks',
+      where: { checkedAt: { greater_than: new Date(windowStart).toISOString() } },
+      sort: 'checkedAt',
+      limit: 5000,
+      depth: 0,
+      overrideAccess: true,
+    })
+    const docs = found.docs as unknown as {
+      checkedAt: string
+      status?: Record<string, { ok?: boolean; configured?: boolean }>
+    }[]
+    lastCheck = docs.length ? new Date(docs[docs.length - 1].checkedAt).toLocaleString('de-DE') : null
+    perSvc = { keycloak: [], login: [], database: [] }
+    for (const doc of docs) {
+      const t = new Date(doc.checkedAt).getTime()
+      for (const d of AVAIL_DEFS) {
+        const s = doc.status?.[d.key]
+        if (!s) continue
+        perSvc[d.key].push({ t, ok: Boolean(s.ok), configured: s.configured !== false })
+      }
     }
   }
 
-  const payload = await payloadClient()
-  const since = new Date(Date.now() - 24 * 3600_000).toISOString()
-  const found = await payload.find({
-    collection: 'health-checks',
-    where: { checkedAt: { greater_than: since } },
-    sort: 'checkedAt',
-    limit: 2000,
-    depth: 0,
-    overrideAccess: true,
-  })
-  const docs = found.docs as unknown as {
-    checkedAt: string
-    status?: Record<string, { ok?: boolean; configured?: boolean }>
-  }[]
-  const lastCheck = docs.length ? new Date(docs[docs.length - 1].checkedAt).toLocaleString('de-DE') : null
-
   const services: AvailabilitySvc[] = AVAIL_DEFS.map((d) => {
-    const samples = docs
-      .map((doc) => doc.status?.[d.key])
-      .filter((s): s is { ok?: boolean; configured?: boolean } => Boolean(s))
-    const configuredSamples = samples.filter((s) => s.configured !== false)
-    const okCount = configuredSamples.filter((s) => s.ok).length
-    const configured = configuredSamples.length > 0
-    const uptimePct = configured ? Math.round((okCount / configuredSamples.length) * 1000) / 10 : 0
+    const all = perSvc[d.key] ?? []
+    const configuredSamples = all.filter((s) => s.configured)
+    const samples = configuredSamples.length
+    const downSamples = configuredSamples.filter((s) => !s.ok).length
+    const configured = samples > 0
+    const uptimePct = configured ? Math.round(((samples - downSamples) / samples) * 1000) / 10 : 0
+    const last = all.length ? all[all.length - 1] : null
+    const current: 'ok' | 'down' | 'none' = !last || !last.configured ? 'none' : last.ok ? 'ok' : 'down'
+    const lastDown = [...configuredSamples].reverse().find((s) => !s.ok)
+    const lastOutage = lastDown ? new Date(lastDown.t).toLocaleString('de-DE') : null
 
-    const segments: (boolean | null)[] = []
+    const segments: AvailabilitySegment[] = []
+    let outages = 0
     for (let b = 0; b < AVAIL_SEGMENTS; b++) {
-      const from = Math.floor((b * samples.length) / AVAIL_SEGMENTS)
-      const to = Math.max(from + 1, Math.floor(((b + 1) * samples.length) / AVAIL_SEGMENTS))
-      const slice = samples.slice(from, to).filter((s) => s.configured !== false)
-      if (samples.length === 0 || slice.length === 0) segments.push(null)
-      else segments.push(slice.every((s) => s.ok))
+      const from = windowStart + b * bucketMs
+      const to = from + bucketMs
+      const inBucket = configuredSamples.filter((s) => s.t >= from && s.t < to)
+      let state: AvailabilitySegment['state']
+      if (inBucket.length === 0) state = 'none'
+      else if (inBucket.every((s) => s.ok)) state = 'ok'
+      else {
+        state = 'down'
+        outages++
+      }
+      segments.push({ state, label: segLabel(from, to) })
     }
 
-    return { key: d.key, label: d.label, configured, segments, samples: configuredSamples.length, uptimePct }
+    return {
+      key: d.key,
+      label: d.label,
+      current,
+      configured,
+      segments,
+      samples,
+      downSamples,
+      outages,
+      lastOutage,
+      uptimePct,
+    }
   })
 
-  return { windowLabel: 'letzte 24 Stunden', services, lastCheck, mock: false }
+  return {
+    windowLabel: 'letzte 24 Stunden',
+    bucketMinutes: AVAIL_BUCKET_MIN,
+    services,
+    lastCheck,
+    mock: isMock(),
+  }
 }

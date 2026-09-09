@@ -194,24 +194,42 @@ export type Operations = {
   mock: boolean
 }
 
+/** Ein Zeit-Segment des Verfügbarkeitsstreifens (fester Zeitraum). */
+export type AvailabilitySegment = {
+  /** ok = Dienst antwortete · down = ≥1 Fehlversuch · none = keine Messung. */
+  state: 'ok' | 'down' | 'none'
+  /** Zeitspanne des Segments, z. B. „14:00–14:24 Uhr". */
+  label: string
+}
+
 /** Verfügbarkeit eines Dienstes im Beobachtungsfenster (aus health-checks). */
 export type AvailabilitySvc = {
   key: 'keycloak' | 'login' | 'database'
   label: string
+  /** Aktueller Zustand aus dem jüngsten Check. */
+  current: 'ok' | 'down' | 'none'
   /** Uptime in Prozent (0–100), eine Nachkommastelle. */
   uptimePct: number
   /** false = im Fenster nie konfiguriert (grau, aus der Wertung). */
   configured: boolean
-  /** Chronologische Segmente (alt → neu): true=ok, false=Störung, null=keine Daten. */
-  segments: (boolean | null)[]
-  /** Anzahl konfigurierter Messpunkte im Fenster. */
+  /** Zeit-Segmente (alt → neu), fester Raster von bucketMinutes. */
+  segments: AvailabilitySegment[]
+  /** Konfigurierte Messpunkte im Fenster (Nenner der Uptime). */
   samples: number
+  /** Davon fehlgeschlagen. */
+  downSamples: number
+  /** Anzahl Störungs-Zeitfenster (Segmente mit Fehler). */
+  outages: number
+  /** Zeitpunkt der letzten Störung (formatiert) oder null. */
+  lastOutage: string | null
 }
 
 /** Verfügbarkeits-Historie (Statuspage-Streifen) über ein Zeitfenster. */
 export type Availability = {
   /** Fenster-Beschriftung, z. B. „letzte 24 Stunden". */
   windowLabel: string
+  /** Dauer eines Segments in Minuten (für die Erklärung). */
+  bucketMinutes: number
   services: AvailabilitySvc[]
   /** Zeitpunkt des letzten Checks (formatiert) oder null. */
   lastCheck: string | null
