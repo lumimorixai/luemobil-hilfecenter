@@ -61,7 +61,7 @@ export function AvailabilityStrip({ data }: { data: Availability }) {
                 <i
                   key={i}
                   className={`cx-seg cx-seg--${seg.state}`}
-                  title={`${seg.label}: ${STATE_TEXT[seg.state]}`}
+                  data-tip={`${seg.label} · ${STATE_TEXT[seg.state]}`}
                 />
               ))}
             </div>
