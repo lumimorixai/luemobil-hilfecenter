@@ -12,6 +12,13 @@ function pct(v: number): string {
 
 const STATE_TEXT = { ok: 'verfügbar', down: 'Störung', none: 'keine Daten' } as const
 
+function segTip(seg: { state: 'ok' | 'down' | 'none'; label: string; samples: number; downSamples: number; downMinutes: number }): string {
+  if (seg.state === 'down') {
+    return `${seg.label} · Störung · ~${seg.downMinutes} Min. betroffen (${seg.downSamples}/${seg.samples} Checks fehlgeschlagen)`
+  }
+  return `${seg.label} · ${STATE_TEXT[seg.state]}`
+}
+
 function StateBadge({ svc }: { svc: AvailabilitySvc }) {
   const label = !svc.configured ? 'nicht konfiguriert' : STATE_TEXT[svc.current]
   const cls = !svc.configured ? 'none' : svc.current
@@ -61,7 +68,7 @@ export function AvailabilityStrip({ data }: { data: Availability }) {
                 <i
                   key={i}
                   className={`cx-seg cx-seg--${seg.state}`}
-                  data-tip={`${seg.label} · ${STATE_TEXT[seg.state]}`}
+                  data-tip={segTip(seg)}
                 />
               ))}
             </div>

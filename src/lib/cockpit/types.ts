@@ -200,6 +200,12 @@ export type AvailabilitySegment = {
   state: 'ok' | 'down' | 'none'
   /** Zeitspanne des Segments, z. B. „14:00–14:24 Uhr". */
   label: string
+  /** Checks im Segment gesamt. */
+  samples: number
+  /** Davon fehlgeschlagen (nur relevant bei state=down). */
+  downSamples: number
+  /** Geschätzte Störminuten im Segment (Anteil fehlgeschlagener Checks × Segmentdauer). */
+  downMinutes: number
 }
 
 /** Verfügbarkeit eines Dienstes im Beobachtungsfenster (aus health-checks). */
