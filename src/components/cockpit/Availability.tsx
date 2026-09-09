@@ -19,14 +19,16 @@ function segTip(seg: { state: 'ok' | 'down' | 'none'; label: string; samples: nu
   return `${seg.label} · ${STATE_TEXT[seg.state]}`
 }
 
-function StateBadge({ svc }: { svc: AvailabilitySvc }) {
-  const label = !svc.configured ? 'nicht konfiguriert' : STATE_TEXT[svc.current]
-  const cls = !svc.configured ? 'none' : svc.current
+function StateBadge({ svc, noData }: { svc: AvailabilitySvc; noData: boolean }) {
+  const label = noData ? 'keine Daten' : !svc.configured ? 'nicht konfiguriert' : STATE_TEXT[svc.current]
+  const cls = noData || !svc.configured ? 'none' : svc.current
   return <span className={`cx-avail-state cx-avail-state--${cls}`}>{label}</span>
 }
 
 export function AvailabilityStrip({ data }: { data: Availability }) {
   const bucket = data.bucketMinutes % 60 === 0 ? `${data.bucketMinutes / 60} h` : `${data.bucketMinutes} Min.`
+  // Kein einziger Health-Check im Fenster → alle Dienste „keine Daten" (Cron?).
+  const noData = !data.lastCheck
 
   return (
     <div className="cx-card">
@@ -52,7 +54,7 @@ export function AvailabilityStrip({ data }: { data: Availability }) {
           <div className="cx-avail-row" key={s.key}>
             <div className="cx-avail-meta">
               <span className="cx-avail-label">{s.label}</span>
-              <StateBadge svc={s} />
+              <StateBadge svc={s} noData={noData} />
             </div>
 
             <div
@@ -86,9 +88,17 @@ export function AvailabilityStrip({ data }: { data: Availability }) {
                 </span>
                 {s.lastOutage && <span>zuletzt gestört: {s.lastOutage} Uhr</span>}
               </div>
-            ) : (
+            ) : noData ? (
+              <div className="cx-avail-facts">
+                <span>Noch keine Messdaten im Zeitfenster – läuft der Health-Cron (<code>job=health</code>)?</span>
+              </div>
+            ) : s.key === 'login' ? (
               <div className="cx-avail-facts">
                 <span>Kein synthetischer Check aktiv – siehe <code>SYNTH_LOGIN_*</code>.</span>
+              </div>
+            ) : (
+              <div className="cx-avail-facts">
+                <span>Für diesen Dienst liegen im Zeitfenster keine Messdaten vor.</span>
               </div>
             )}
           </div>
