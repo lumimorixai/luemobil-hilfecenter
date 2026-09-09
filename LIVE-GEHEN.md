@@ -201,6 +201,143 @@ der `.env` einfach gehalten hast.
 
 ---
 
+## 9. Migrations-Cockpit aktivieren (interner Bereich)
+
+Das **Migrations-Cockpit** (`/cockpit`) ist ein interner Monitoring-Bereich für
+den Support: Kundencheck, Login-/Fehler-Kennzahlen, neue Nutzer, Verfügbarkeit
+sowie automatische Störungs-Benachrichtigungen und grafische Reports (Mail +
+PDF). Die öffentliche Hilfe-Center-Seite bleibt frei zugänglich — nur `/cockpit`
+und `/kundencheck` liegen hinter dem **Keycloak-Login** mit der Rolle `support`.
+
+> Ohne die folgenden Werte startet die Seite trotzdem normal; nur der interne
+> Cockpit-Bereich bleibt inaktiv. Du kannst diesen Abschnitt also auch später
+> nachziehen.
+
+### 9a. Zwei Zufalls-Secrets erzeugen
+
+Auf dem Server (Werte **nicht** notieren müssen — sie kommen direkt in die `.env`):
+
+```bash
+openssl rand -hex 32   # für SESSION_SECRET
+openssl rand -hex 32   # für CRON_SECRET
+```
+
+### 9b. `.env` ergänzen
+
+In `/opt/luemobil/.env` diese Zeilen hinzufügen und die `<Platzhalter>` durch
+deine Werte ersetzen (Passwörter/Secrets **nur** hier auf dem Server, nie ins
+Git). `DOMAIN` = deine echte Adresse, z. B. `https://hilfe.deine-domain.de`.
+
+```
+# Cockpit gegen echtes Keycloak statt Demo-Daten
+COCKPIT_MOCK=false
+COCKPIT_ENV=live
+
+# Öffentliche Seite bleibt frei; /cockpit ist immer Keycloak-geschützt
+SITE_KEYCLOAK_AUTH=false
+
+# Basis-URLs (beide auf die echte Domain)
+NEXT_PUBLIC_SERVER_URL=<DOMAIN>
+APP_BASE_URL=<DOMAIN>
+
+# Keycloak: Host + Realms
+KEYCLOAK_URL=<https://auth.deine-domain.de>
+KEYCLOAK_REALM=mpluebeck          # Kunden-Realm (Datenquelle)
+KEYCLOAK_AUTH_REALM=swl-intern    # Mitarbeiter-Realm (Login)
+COCKPIT_SUPPORT_ROLE=support
+
+# Login-Client (im Mitarbeiter-Realm)
+OIDC_CLIENT_ID=<login-client>
+OIDC_CLIENT_SECRET=<geheim>
+
+# Service-Account-Client (im Kunden-Realm) für Users/Events
+COCKPIT_CLIENT_ID=<service-client>
+COCKPIT_CLIENT_SECRET=<geheim>
+
+# Synthetischer Testkunde für die Login-Ampel (optional)
+SYNTH_LOGIN_USER=<test-kunde>
+SYNTH_LOGIN_PASSWORD=<geheim>
+
+# Migrationsfortschritt: Gesamtkundenzahl als Nenner
+COCKPIT_KUNDEN_GESAMT=<zahl>
+
+# Störungs-Benachrichtigung UND Reports gehen an diese Adresse
+ALERT_EMAIL=<team@deine-domain.de>
+ALERT_FAIL_THRESHOLD=2
+
+# Sitzungs- und Cron-Secrets aus Schritt 9a
+SESSION_SECRET=<openssl-wert-1>
+CRON_SECRET=<openssl-wert-2>
+```
+
+Voraussetzung für E-Mail/Report-Versand ist ein konfigurierter SMTP-Zugang
+(`SMTP_HOST`, `SMTP_USER`, `SMTP_PASS` — siehe Abschnitt E-Mail in `.env.example`).
+
+Danach neu bauen; die Datenbank-Migrationen (u. a. die Verfügbarkeits-Historie)
+laufen **automatisch** beim Start:
+
+```bash
+docker compose up -d --build
+docker compose logs -f app
+```
+
+### 9c. Keycloak einrichten (einmalig, nur Konfiguration)
+
+Im Keycloak-Admin:
+
+- **Login-Client** (Realm `swl-intern`): gültige **Redirect-URI**
+  `<DOMAIN>/api/auth/callback` und Post-Logout-URL `<DOMAIN>/` eintragen.
+- **Service-Account-Client** (Realm `mpluebeck`): unter *Service account roles*
+  die `realm-management`-Rollen **`view-users`** und **`view-events`** zuweisen.
+- **Rolle `support`** den berechtigten Mitarbeitenden geben (nur sie sehen das
+  Cockpit).
+- **Events aktivieren** (Realm-Settings → Events): Login-, Register-, Passwort-
+  und Verify-Events einschalten, damit die Kennzahlen Daten haben.
+- **Login-Theme** (optional, SWL-Optik): den Ordner `keycloak-theme/swl` bzw.
+  das gebaute JAR in den Keycloak-`providers`-/`themes`-Ordner legen und im
+  Realm `swl-intern` unter *Realm settings → Themes → Login theme* `swl` wählen.
+  Andere Realms bleiben unberührt.
+
+### 9d. Automatische Jobs per Cron (Host)
+
+Im Produktions-Image laufen die Jobs **nicht** als Kommandozeilen-Skript,
+sondern als abgesicherter HTTP-Endpunkt, den der Server-Cron per `curl`
+anstößt. `crontab -e` öffnen und einfügen (`DOMAIN` und Secret ersetzen):
+
+```cron
+SEC=<CRON_SECRET>
+* * * * *  curl -fsS -X POST -H "x-cron-secret: $SEC" "<DOMAIN>/api/cockpit/cron?job=health"    >/dev/null
+* * * * *  curl -fsS -X POST -H "x-cron-secret: $SEC" "<DOMAIN>/api/cockpit/cron?job=aggregate" >/dev/null
+0 * * * *  curl -fsS -X POST -H "x-cron-secret: $SEC" "<DOMAIN>/api/cockpit/cron?job=report&period=hour"  >/dev/null
+30 6 * * * curl -fsS -X POST -H "x-cron-secret: $SEC" "<DOMAIN>/api/cockpit/cron?job=report&period=day"   >/dev/null
+30 6 * * 1 curl -fsS -X POST -H "x-cron-secret: $SEC" "<DOMAIN>/api/cockpit/cron?job=report&period=week"  >/dev/null
+30 6 1 * * curl -fsS -X POST -H "x-cron-secret: $SEC" "<DOMAIN>/api/cockpit/cron?job=report&period=month" >/dev/null
+```
+
+- `job=health` — prüft Keycloak/Login/Datenbank, füllt die Verfügbarkeits-
+  Historie und mailt Störungen/Entwarnungen an `ALERT_EMAIL`.
+- `job=aggregate` — hält die 14-Tage-Zeitreihe aktuell.
+- `job=report&period=…` — verschickt den grafischen Report (Mail + PDF).
+
+Die Reports lassen sich außerdem jederzeit **manuell** über die Buttons im
+Cockpit auslösen.
+
+### 9e. Prüfen
+
+- Öffentliche Seite lädt normal unter `<DOMAIN>`.
+- „Intern anmelden" (Kopf-/Fußzeile) führt zum Keycloak-Login; nach Anmeldung
+  mit `support`-Rolle erscheint `/cockpit`.
+- Cron-Endpunkt testen:
+  ```bash
+  curl -i -X POST -H "x-cron-secret: <CRON_SECRET>" "<DOMAIN>/api/cockpit/cron?job=health"
+  ```
+  Erwartet: `{"ok":true,...}`. `401` = falsches Secret, `503` = `CRON_SECRET`
+  fehlt in der `.env`.
+- Report-Button im Cockpit auslösen → Mail mit PDF-Anhang trifft bei
+  `ALERT_EMAIL` ein.
+
+---
+
 ## Später: Updates einspielen
 
 Wenn du Änderungen am Projekt gemacht hast (neuer Code), auf dem Server:
