@@ -14,6 +14,7 @@
     "generate:importmap": "payload generate:importmap",
     "seed": "tsx --env-file=.env src/seed/seed.ts",
     "job:cockpit": "tsx --env-file=.env src/jobs/aggregateDaily.ts",
+    "job:health": "tsx --env-file=.env src/jobs/healthAlert.ts",
     "typecheck": "tsc --noEmit",
     "lint": "next lint"
   },
