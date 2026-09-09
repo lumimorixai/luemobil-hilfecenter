@@ -10,7 +10,7 @@
  * Identität zusätzlich über Legende + gestrichelte Linie, nicht nur Farbe.
  */
 import { useEffect, useState, type ReactNode } from 'react'
-import type { CountPoint, DailyPoint, NewUsers } from '@/lib/cockpit/types'
+import type { CountPoint, DailyPoint, IntradayPoint, NewUsers } from '@/lib/cockpit/types'
 import { shortDe } from '@/lib/cockpit/date'
 import { axisTicks, de, niceMax, smoothPath } from '@/lib/cockpit/chartMath'
 
@@ -421,6 +421,52 @@ export function NewUsersChart({ data }: { data: NewUsers }) {
         ))}
       </div>
       <BarChart points={data[range]} maxTicks={7} />
+    </div>
+  )
+}
+
+// ============================================================
+// Logins & Fehler mit Umschalter: pro Tag (14 T) ↔ pro Stunde (24 h)
+// ============================================================
+
+export function LoginsRangeChart({
+  daily,
+  hourly,
+}: {
+  daily: DailyPoint[]
+  hourly: IntradayPoint[] | null
+}) {
+  const [range, setRange] = useState<'day' | 'hour'>('day')
+  const hasHourly = !!hourly && hourly.length > 0
+  const showHour = range === 'hour' && hasHourly
+  return (
+    <div>
+      <div className="cx-range">
+        <button
+          type="button"
+          className={`cx-range-btn${!showHour ? ' active' : ''}`}
+          onClick={() => setRange('day')}
+        >
+          Pro Tag<span className="cx-range-total">14 Tage</span>
+        </button>
+        {hasHourly && (
+          <button
+            type="button"
+            className={`cx-range-btn${showHour ? ' active' : ''}`}
+            onClick={() => setRange('hour')}
+          >
+            Pro Stunde<span className="cx-range-total">24 h</span>
+          </button>
+        )}
+      </div>
+      {showHour ? (
+        <DualLineChart
+          points={hourly!.map((p) => ({ label: p.label, a: p.logins, b: p.loginErrors }))}
+          maxTicks={7}
+        />
+      ) : (
+        <LoginsChart series={daily} />
+      )}
     </div>
   )
 }

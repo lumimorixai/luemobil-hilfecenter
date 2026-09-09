@@ -3,6 +3,7 @@ import { getCockpitSession, isSupport } from '@/lib/auth/guard'
 import { cockpitEnv, cockpitEnvLabel, keycloakRealm } from '@/lib/cockpit/config'
 import {
   getAvailability,
+  getCronStatus,
   getDayEvents,
   getIntraday,
   getNewUsers,
@@ -21,7 +22,7 @@ import type {
 import {
   ChartCard,
   DualLineChart,
-  LoginsChart,
+  LoginsRangeChart,
   NewUsersChart,
   Sparkline,
 } from '@/components/cockpit/charts'
@@ -77,6 +78,12 @@ export default async function CockpitPage() {
     availability = await getAvailability()
   } catch {
     availability = null
+  }
+  let cron: { lastHealth: string | null; lastAggregate: string | null } | null = null
+  try {
+    cron = await getCronStatus()
+  } catch {
+    cron = null
   }
 
   const stamp = new Date().toLocaleString('de-DE', {
@@ -170,11 +177,11 @@ export default async function CockpitPage() {
 
         {/* Zeitreihen */}
         <h2 className="cx-h2">
-          Zeitreihen <span>· 14 Tage</span>
+          Zeitreihen <span>· Tag / Stunde</span>
         </h2>
         {stats ? (
-          <ChartCard title="Logins und Fehler pro Tag" hint="Quelle: Keycloak-Events LOGIN und LOGIN_ERROR">
-            <LoginsChart series={stats.series} />
+          <ChartCard title="Logins und Fehler" hint="Quelle: Keycloak-Events LOGIN und LOGIN_ERROR · Umschaltbar Tag/Stunde">
+            <LoginsRangeChart daily={stats.series} hourly={intraday?.hourly ?? null} />
           </ChartCard>
         ) : (
           <Unavailable />
@@ -198,9 +205,21 @@ export default async function CockpitPage() {
         </h2>
         <ReportButtons />
 
+        <div className="cx-cronbar">
+          <span className="cx-cronbar-t">Letzte Job-Läufe</span>
+          <span>
+            Health-Check: <b>{cron?.lastHealth ?? 'noch nie'}</b>
+            {cron?.lastHealth ? ' Uhr' : ''}
+          </span>
+          <span>
+            Aggregation: <b>{cron?.lastAggregate ?? 'noch nie'}</b>
+            {cron?.lastAggregate ? ' Uhr' : ''}
+          </span>
+        </div>
+
         <footer className="cx-footer">
-          Datenquellen: Keycloak Admin API (Events, Users) und Aboonline-Webservice (AccountCheck).
-          Zugriff nur für Support-Rollen; Kundencheck-Abfragen werden nicht protokolliert.
+          Datenquelle: Keycloak Admin API (Events, Users). Zugriff nur für Support-Rollen;
+          Kundencheck-Abfragen werden nicht protokolliert.
           {stats?.mock || day?.mock ? ' · Mock-Daten (Entwicklung)' : ''}
         </footer>
       </main>
