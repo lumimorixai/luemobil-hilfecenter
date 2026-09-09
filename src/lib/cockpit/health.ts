@@ -103,5 +103,21 @@ export async function getHealth(): Promise<Health> {
     checkDatabase(),
     checkLogin(),
   ])
-  return { keycloak, database, login, mock: false }
+
+  // Test-Schalter: HEALTH_FORCE_FAIL=keycloak,login,database erzwingt Störungen
+  // (nur für Alert-Tests; berührt keine echten Dienste).
+  const forced = (process.env.HEALTH_FORCE_FAIL || '').split(',').map((s) => s.trim()).filter(Boolean)
+  const forceFail = (s: ServiceHealth): ServiceHealth => ({
+    ok: false,
+    ms: s.ms,
+    configured: true,
+    note: 'Testmodus: erzwungene Störung',
+  })
+
+  return {
+    keycloak: forced.includes('keycloak') ? forceFail(keycloak) : keycloak,
+    database: forced.includes('database') ? forceFail(database) : database,
+    login: forced.includes('login') ? forceFail(login) : login,
+    mock: false,
+  }
 }

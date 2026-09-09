@@ -76,6 +76,7 @@ export interface Config {
     'question-submissions': QuestionSubmission;
     roadmap: Roadmap;
     'cockpit-daily': CockpitDaily;
+    'health-checks': HealthCheck;
     media: Media;
     users: User;
     'payload-kv': PayloadKv;
@@ -94,6 +95,7 @@ export interface Config {
     'question-submissions': QuestionSubmissionsSelect<false> | QuestionSubmissionsSelect<true>;
     roadmap: RoadmapSelect<false> | RoadmapSelect<true>;
     'cockpit-daily': CockpitDailySelect<false> | CockpitDailySelect<true>;
+    'health-checks': HealthChecksSelect<false> | HealthChecksSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
@@ -410,6 +412,45 @@ export interface CockpitDaily {
   createdAt: string;
 }
 /**
+ * Minütliche Systemstatus-Checks (Ampel, Alerting, Verfügbarkeit).
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "health-checks".
+ */
+export interface HealthCheck {
+  id: number;
+  checkedAt: string;
+  status?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  failCounts?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  alertedDown?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
@@ -498,6 +539,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'cockpit-daily';
         value: number | CockpitDaily;
+      } | null)
+    | ({
+        relationTo: 'health-checks';
+        value: number | HealthCheck;
       } | null)
     | ({
         relationTo: 'media';
@@ -754,6 +799,18 @@ export interface CockpitDailySelect<T extends boolean = true> {
   loginErrors?: T;
   newUsers?: T;
   registrations?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "health-checks_select".
+ */
+export interface HealthChecksSelect<T extends boolean = true> {
+  checkedAt?: T;
+  status?: T;
+  failCounts?: T;
+  alertedDown?: T;
   updatedAt?: T;
   createdAt?: T;
 }

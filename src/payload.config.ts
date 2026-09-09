@@ -19,6 +19,7 @@ import { BugReports } from './collections/BugReports'
 import { QuestionSubmissions } from './collections/QuestionSubmissions'
 import { RoadmapGroups } from './collections/RoadmapGroups'
 import { CockpitDaily } from './collections/CockpitDaily'
+import { HealthChecks } from './collections/HealthChecks'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -73,6 +74,7 @@ export default buildConfig({
     QuestionSubmissions,
     RoadmapGroups,
     CockpitDaily,
+    HealthChecks,
     Media,
     Users,
   ],

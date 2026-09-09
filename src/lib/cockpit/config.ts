@@ -74,6 +74,17 @@ export function kundenGesamt(): number {
   return Number.isFinite(n) && n > 0 ? n : 0
 }
 
+/** Empfänger der Störungs-Benachrichtigungen (leer = kein Mail-Alerting). */
+export function alertEmail(): string {
+  return process.env.ALERT_EMAIL || ''
+}
+
+/** Wie viele Fehlversuche in Folge, bevor alarmiert wird (Standard 2). */
+export function alertThreshold(): number {
+  const n = Number(process.env.ALERT_FAIL_THRESHOLD)
+  return Number.isFinite(n) && n >= 1 ? n : 2
+}
+
 /** Aboonline-Webservice-Basis ohne abschließenden Schrägstrich. */
 export function aboWsUrl(): string {
   return (process.env.ABO_WS_URL || '').replace(/\/$/, '')
