@@ -420,3 +420,26 @@ export async function getAvailability(): Promise<Availability> {
     mock: isMock(),
   }
 }
+
+// --- Cron-/Job-Status --------------------------------------------------------
+
+/**
+ * Letzte Ausführungszeitpunkte der minütlichen Jobs, abgeleitet aus den Daten,
+ * die sie hinterlassen: job=health schreibt health-checks (checkedAt),
+ * job=aggregate aktualisiert cockpit-daily (updatedAt). Für die Fußzeile.
+ */
+export async function getCronStatus(): Promise<{ lastHealth: string | null; lastAggregate: string | null }> {
+  const fmt = (v?: string | null) => (v ? new Date(v).toLocaleString('de-DE') : null)
+  try {
+    const payload = await payloadClient()
+    const [h, a] = await Promise.all([
+      payload.find({ collection: 'health-checks', sort: '-checkedAt', limit: 1, depth: 0, overrideAccess: true }),
+      payload.find({ collection: 'cockpit-daily', sort: '-updatedAt', limit: 1, depth: 0, overrideAccess: true }),
+    ])
+    const hDoc = h.docs[0] as unknown as { checkedAt?: string } | undefined
+    const aDoc = a.docs[0] as unknown as { updatedAt?: string } | undefined
+    return { lastHealth: fmt(hDoc?.checkedAt), lastAggregate: fmt(aDoc?.updatedAt) }
+  } catch {
+    return { lastHealth: null, lastAggregate: null }
+  }
+}
