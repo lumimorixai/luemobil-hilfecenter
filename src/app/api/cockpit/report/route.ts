@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import { requireSupport } from '@/lib/auth/guard'
 import { payloadClient } from '@/lib/content'
-import { sendReport } from '@/lib/cockpit/reportSend'
 import type { ReportPeriod } from '@/lib/cockpit/report'
 
 export const runtime = 'nodejs'
@@ -26,6 +25,7 @@ export async function POST(req: Request) {
 
   try {
     const payload = await payloadClient()
+    const { sendReport } = await import('@/lib/cockpit/reportSend')
     const result = await sendReport(payload, period as ReportPeriod)
     if (!result.sent) {
       return NextResponse.json({ ok: false, reason: result.reason ?? 'nicht versendet' }, { status: 200 })
