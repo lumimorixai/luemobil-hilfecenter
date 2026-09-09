@@ -152,6 +152,41 @@ export type SupportMetrics = {
 /** Logins je Client (App-Fläche). */
 export type ClientLogin = { clientId: string; count: number }
 
+/** Ein Zeit-Bucket mit Zähler (für den Neue-Nutzer-Graph). */
+export type CountPoint = { label: string; count: number }
+
+/** Neu angelegte Nutzer je Zeitfenster (Buckets + Gesamtsumme). */
+export type NewUsers = {
+  hour: CountPoint[]
+  day: CountPoint[]
+  week: CountPoint[]
+  month: CountPoint[]
+  totals: { hour: number; day: number; week: number; month: number }
+  mock: boolean
+}
+
+/** Zustand eines einzelnen Dienstes für die Status-Ampel. */
+export type ServiceHealth = {
+  /** true = erreichbar/ok. */
+  ok: boolean
+  /** Antwortzeit in ms (null = nicht gemessen). */
+  ms: number | null
+  /** false = nicht konfiguriert (Ampel grau). */
+  configured: boolean
+  /** Kurzhinweis (z. B. Fehlergrund). */
+  note?: string
+}
+
+/** Systemstatus (Live-Ampel). */
+export type Health = {
+  keycloak: ServiceHealth
+  database: ServiceHealth
+  aboonline: ServiceHealth
+  /** Synthetischer Login (Testuser) — Ende-zu-Ende-Prüfung. */
+  login: ServiceHealth
+  mock: boolean
+}
+
 /** Betriebs-/Support-Kennzahlen (Live aus der Event-API). */
 export type Operations = {
   support24h: SupportMetrics

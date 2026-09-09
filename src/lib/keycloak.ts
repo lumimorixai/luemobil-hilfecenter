@@ -21,6 +21,7 @@ import {
   mockLoginsByClient,
   mockRecentUserEvents,
   mockSupportMetrics,
+  mockUserCreationTimestamps,
 } from './cockpit/mockData'
 
 const TIMEOUT_MS = 15_000
@@ -131,6 +132,31 @@ async function countUsers(pred: (u: KcRawUser) => boolean): Promise<number> {
 export async function getMigratedCount(): Promise<number> {
   if (isMock()) return MOCK_MIGRATED_COUNT
   return countUsers((u) => Boolean(u.federationLink))
+}
+
+/**
+ * Zeitstempel (ms) neu angelegter Nutzer seit `sinceMs`. Für den Neue-Nutzer-Graph.
+ * Hinweis: paginiert den Nutzerbestand (kein Datumsfilter in der API) — für sehr
+ * große Realms sollte das perspektivisch der Tages-Job vorberechnen.
+ */
+export async function getUserCreationTimestamps(sinceMs: number): Promise<number[]> {
+  if (isMock()) return mockUserCreationTimestamps(sinceMs)
+  const PAGE = 100
+  const MAX_PAGES = 500
+  const out: number[] = []
+  let first = 0
+  for (let page = 0; page < MAX_PAGES; page++) {
+    const res = await adminFetch(`/users?first=${first}&max=${PAGE}&briefRepresentation=true`)
+    if (!res.ok) throw new Error(`Keycloak-Nutzerliste fehlgeschlagen (HTTP ${res.status})`)
+    const users = (await res.json()) as KcRawUser[]
+    if (users.length === 0) break
+    for (const u of users) {
+      if (u.createdTimestamp && u.createdTimestamp >= sinceMs) out.push(u.createdTimestamp)
+    }
+    first += users.length
+    if (users.length < PAGE) break
+  }
+  return out
 }
 
 // --- Events ------------------------------------------------------------------

@@ -126,6 +126,23 @@ export function mockSupportMetrics(fromMs: number, toMs: number) {
   }
 }
 
+/** Mock: Zeitstempel neu angelegter Nutzer seit `sinceMs` (dichter zu „heute"). */
+export function mockUserCreationTimestamps(sinceMs: number): number[] {
+  const now = Date.now()
+  const out: number[] = []
+  // Letzte 30 Tage, leicht steigende Tagesmenge.
+  for (let d = 29; d >= 0; d--) {
+    const dayStart = now - d * DAY_MS
+    const perDay = 6 + ((30 - d) % 7)
+    for (let i = 0; i < perDay; i++) {
+      out.push(dayStart + Math.floor(((i + 0.5) / perDay) * DAY_MS))
+    }
+  }
+  // Ein paar in der letzten Stunde für die Feinansicht.
+  out.push(now - 6 * 60 * 1000, now - 22 * 60 * 1000, now - 47 * 60 * 1000)
+  return out.filter((t) => t >= sinceMs && t <= now)
+}
+
 /** Mock: Logins je Client, skaliert mit der Fensterlänge (Tage). */
 export function mockLoginsByClient(fromMs: number, toMs: number): { clientId: string; count: number }[] {
   const days = Math.max(1, Math.round((toMs - fromMs) / DAY_MS))

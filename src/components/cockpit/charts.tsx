@@ -9,8 +9,8 @@
  * daher Logins = Orange (--swl-orange), Fehler = Schwarz (gestrichelt);
  * Identität zusätzlich über Legende + gestrichelte Linie, nicht nur Farbe.
  */
-import { useState } from 'react'
-import type { DailyPoint } from '@/lib/cockpit/types'
+import { useEffect, useState, type ReactNode } from 'react'
+import type { CountPoint, DailyPoint, NewUsers } from '@/lib/cockpit/types'
 import { shortDe } from '@/lib/cockpit/date'
 
 const ORANGE = '#ff8200'
@@ -317,6 +317,198 @@ export function DualLineChart({
         ]} />}
       </svg>
     </div>
+  )
+}
+
+// ============================================================
+// Balken-Diagramm (Zähler je Bucket) — für „Neue Nutzer"
+// ============================================================
+
+function BarChart({ points, maxTicks = 6 }: { points: CountPoint[]; maxTicks?: number }) {
+  const [hover, setHover] = useState<number | null>(null)
+
+  const W = 640
+  const H = 240
+  const padL = 40
+  const padR = 16
+  const padT = 16
+  const padB = 32
+  const plotW = W - padL - padR
+  const plotH = H - padT - padB
+
+  const n = points.length
+  const maxY = niceMax(Math.max(1, ...points.map((d) => d.count)))
+  const slot = plotW / n
+  const barW = Math.max(3, slot * 0.6)
+  const cx = (i: number) => padL + slot * i + slot / 2
+  const y = (v: number) => padT + plotH - (v / maxY) * plotH
+
+  const gridVals = [0, maxY / 2, maxY]
+  const step = Math.max(1, Math.floor((n - 1) / (maxTicks - 1)))
+  const tickIdx = Array.from({ length: n }, (_, i) => i).filter((i) => i % step === 0 || i === n - 1)
+  const hi = hover != null ? points[hover] : null
+
+  return (
+    <div className="cx-chart">
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label="Neue Nutzer je Zeitraum">
+        {gridVals.map((v, i) => (
+          <g key={i}>
+            <line x1={padL} y1={y(v)} x2={W - padR} y2={y(v)} stroke={i === 0 ? HAIR : GRID} />
+            <text x={padL - 8} y={y(v) + 3} textAnchor="end" className="cx-axis">{de(Math.round(v))}</text>
+          </g>
+        ))}
+        {points.map((d, i) => (
+          <rect
+            key={i}
+            x={cx(i) - barW / 2}
+            y={y(d.count)}
+            width={barW}
+            height={Math.max(0, padT + plotH - y(d.count))}
+            rx={2}
+            fill={ORANGE}
+            opacity={hover == null || hover === i ? 1 : 0.5}
+          />
+        ))}
+        {tickIdx.map((i) => (
+          <text
+            key={i}
+            x={cx(i)}
+            y={H - 12}
+            textAnchor={i === 0 ? 'start' : i === n - 1 ? 'end' : 'middle'}
+            className="cx-axis"
+          >
+            {points[i].label}
+          </text>
+        ))}
+        {points.map((_, i) => (
+          <rect
+            key={i}
+            x={padL + slot * i}
+            y={padT}
+            width={slot}
+            height={plotH}
+            fill="transparent"
+            onMouseEnter={() => setHover(i)}
+            onMouseLeave={() => setHover((h) => (h === i ? null : h))}
+          />
+        ))}
+        {hi && (
+          <Tooltip
+            xPos={cx(hover!)}
+            W={W}
+            title={hi.label}
+            rows={[{ label: 'Neue Nutzer', value: de(hi.count), color: ORANGE }]}
+          />
+        )}
+      </svg>
+    </div>
+  )
+}
+
+const NEWUSER_RANGES = [
+  { key: 'hour', label: 'Letzte Stunde' },
+  { key: 'day', label: '24 Stunden' },
+  { key: 'week', label: '7 Tage' },
+  { key: 'month', label: '30 Tage' },
+] as const
+
+export function NewUsersChart({ data }: { data: NewUsers }) {
+  const [range, setRange] = useState<'hour' | 'day' | 'week' | 'month'>('day')
+  return (
+    <div>
+      <div className="cx-range">
+        {NEWUSER_RANGES.map((r) => (
+          <button
+            key={r.key}
+            type="button"
+            className={`cx-range-btn${range === r.key ? ' active' : ''}`}
+            onClick={() => setRange(r.key)}
+          >
+            {r.label}
+            <span className="cx-range-total">{de(data.totals[r.key])}</span>
+          </button>
+        ))}
+      </div>
+      <BarChart points={data[range]} maxTicks={7} />
+    </div>
+  )
+}
+
+// ============================================================
+// ChartCard: Karte mit Titel + „Vergrößern" (Modal)
+// ============================================================
+
+export function ChartCard({
+  title,
+  hint,
+  children,
+}: {
+  title: string
+  hint?: string
+  children: ReactNode
+}) {
+  const [open, setOpen] = useState(false)
+
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [open])
+
+  return (
+    <div className="cx-card">
+      <div className="cx-card-head">
+        <div>
+          <h3 className="cx-card-h">{title}</h3>
+          {hint && <div className="cx-card-hint">{hint}</div>}
+        </div>
+        <button className="cx-expand" type="button" onClick={() => setOpen(true)} aria-label="Vergrößern" title="Vergrößern">
+          ⤢
+        </button>
+      </div>
+      {children}
+
+      {open && (
+        <div className="cx-modal" role="dialog" aria-modal="true" onClick={() => setOpen(false)}>
+          <div className="cx-modal-box" onClick={(e) => e.stopPropagation()}>
+            <div className="cx-modal-head">
+              <h3 className="cx-card-h">{title}</h3>
+              <button className="cx-modal-close" type="button" onClick={() => setOpen(false)} aria-label="Schließen">
+                ×
+              </button>
+            </div>
+            {hint && <div className="cx-card-hint">{hint}</div>}
+            <div className="cx-modal-chart">{children}</div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ============================================================
+// Sparkline (Mini-Trend in KPI-Kacheln)
+// ============================================================
+
+export function Sparkline({ values, color = ORANGE }: { values: number[]; color?: string }) {
+  const W = 120
+  const H = 26
+  const n = values.length
+  if (n === 0) return null
+  const max = Math.max(1, ...values)
+  const min = Math.min(...values)
+  const x = (i: number) => (n <= 1 ? W / 2 : (i / (n - 1)) * W)
+  const y = (v: number) => H - 2 - ((v - min) / (max - min || 1)) * (H - 5)
+  const line = values.map((v, i) => `${i === 0 ? 'M' : 'L'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ')
+  const area = `${line} L${x(n - 1).toFixed(1)},${H} L${x(0).toFixed(1)},${H} Z`
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} className="cx-spark" preserveAspectRatio="none" aria-hidden="true">
+      <path d={area} fill={color} opacity={0.08} />
+      <path d={line} fill="none" stroke={color} strokeWidth={1.5} strokeLinejoin="round" />
+    </svg>
   )
 }
 

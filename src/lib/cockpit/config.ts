@@ -54,6 +54,20 @@ export function oidcClientSecret(): string {
   return process.env.OIDC_CLIENT_SECRET || process.env.COCKPIT_CLIENT_SECRET || ''
 }
 
+/**
+ * Synthetischer Login-Check: prüft die KUNDEN-Anmeldung. Realm = Kunden-Realm
+ * (Standard mpluebeck), eigener Client mit „Direct Access Grants" + Testkunde.
+ */
+export function synthLoginRealm(): string {
+  return process.env.SYNTH_LOGIN_REALM || keycloakRealm()
+}
+export function synthClientId(): string {
+  return process.env.SYNTH_LOGIN_CLIENT_ID || process.env.COCKPIT_CLIENT_ID || ''
+}
+export function synthClientSecret(): string {
+  return process.env.SYNTH_LOGIN_CLIENT_SECRET || process.env.COCKPIT_CLIENT_SECRET || ''
+}
+
 /** Nenner für den Migrationsfortschritt (Gesamtkundenzahl). */
 export function kundenGesamt(): number {
   const n = Number(process.env.COCKPIT_KUNDEN_GESAMT)

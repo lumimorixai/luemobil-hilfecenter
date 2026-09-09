@@ -1,17 +1,26 @@
 import { redirect } from 'next/navigation'
 import { getCockpitSession, isSupport } from '@/lib/auth/guard'
 import { cockpitEnv, cockpitEnvLabel, keycloakRealm } from '@/lib/cockpit/config'
-import { getDayEvents, getIntraday, getOperations, getStats } from '@/lib/cockpit/stats'
+import { getDayEvents, getIntraday, getNewUsers, getOperations, getStats } from '@/lib/cockpit/stats'
 import { shortDe } from '@/lib/cockpit/date'
 import type {
   CockpitStats,
   DayEvents,
   Intraday,
   Keycloak24hMetrics,
+  NewUsers,
   Operations,
 } from '@/lib/cockpit/types'
-import { CumulativeChart, DualLineChart, LoginsChart } from '@/components/cockpit/charts'
+import {
+  ChartCard,
+  CumulativeChart,
+  DualLineChart,
+  LoginsChart,
+  NewUsersChart,
+  Sparkline,
+} from '@/components/cockpit/charts'
 import { Kundencheck } from '@/components/cockpit/Kundencheck'
+import { LiveStatus } from '@/components/cockpit/LiveStatus'
 
 export const dynamic = 'force-dynamic'
 
@@ -49,6 +58,12 @@ export default async function CockpitPage() {
   } catch {
     ops = null
   }
+  let newUsers: NewUsers | null = null
+  try {
+    newUsers = await getNewUsers()
+  } catch {
+    newUsers = null
+  }
 
   const stamp = new Date().toLocaleString('de-DE', {
     day: '2-digit',
@@ -76,6 +91,9 @@ export default async function CockpitPage() {
             Abmelden
           </a>
         </div>
+        <div className="cx-header-in cx-header-status">
+          <LiveStatus />
+        </div>
       </header>
 
       <main className="cx-wrap">
@@ -99,28 +117,36 @@ export default async function CockpitPage() {
           <Unavailable />
         )}
 
+        {/* Neue Nutzer */}
+        <h2 className="cx-h2">
+          Neue Nutzer <span>· Stunde / 24 h / 7 Tage / 30 Tage</span>
+        </h2>
+        {newUsers ? (
+          <ChartCard title="Neu angelegte Nutzer" hint="Neuzugänge je Zeitraum (Migration beim Erstlogin + Registrierung)">
+            <NewUsersChart data={newUsers} />
+          </ChartCard>
+        ) : (
+          <Unavailable />
+        )}
+
         {/* Intraday-Verlauf */}
         <h2 className="cx-h2">
           Verlauf <span>· letzte 24 Stunden &amp; letzte Stunde</span>
         </h2>
         {intraday ? (
           <div className="cx-charts cx-charts--even">
-            <div className="cx-card">
-              <h3 className="cx-card-h">Letzte 24 Stunden</h3>
-              <div className="cx-card-hint">Logins und Fehler je Stunde</div>
+            <ChartCard title="Letzte 24 Stunden" hint="Logins und Fehler je Stunde">
               <DualLineChart
                 points={intraday.hourly.map((p) => ({ label: p.label, a: p.logins, b: p.loginErrors }))}
                 maxTicks={7}
               />
-            </div>
-            <div className="cx-card">
-              <h3 className="cx-card-h">Letzte Stunde</h3>
-              <div className="cx-card-hint">Logins und Fehler je Minute</div>
+            </ChartCard>
+            <ChartCard title="Letzte Stunde" hint="Logins und Fehler je Minute">
               <DualLineChart
                 points={intraday.minutely.map((p) => ({ label: p.label, a: p.logins, b: p.loginErrors }))}
                 maxTicks={7}
               />
-            </div>
+            </ChartCard>
           </div>
         ) : (
           <Unavailable />
@@ -132,16 +158,15 @@ export default async function CockpitPage() {
         </h2>
         {stats ? (
           <div className="cx-charts">
-            <div className="cx-card">
-              <h3 className="cx-card-h">Logins und Fehler pro Tag</h3>
-              <div className="cx-card-hint">Quelle: Keycloak-Events LOGIN und LOGIN_ERROR</div>
+            <ChartCard title="Logins und Fehler pro Tag" hint="Quelle: Keycloak-Events LOGIN und LOGIN_ERROR">
               <LoginsChart series={stats.series} />
-            </div>
-            <div className="cx-card">
-              <h3 className="cx-card-h">Migrierte Kunden, kumuliert</h3>
-              <div className="cx-card-hint">Neu angelegte User im Realm (Migration beim ersten Login)</div>
+            </ChartCard>
+            <ChartCard
+              title="Migrierte Kunden, kumuliert"
+              hint="Föderierte (migrierte) Nutzer im Realm, kumuliert"
+            >
               <CumulativeChart points={stats.cumulativeMigrated} />
-            </div>
+            </ChartCard>
           </div>
         ) : (
           <Unavailable />
@@ -153,11 +178,10 @@ export default async function CockpitPage() {
         </h2>
         {stats ? (
           <div className="cx-charts">
-            <div className="cx-card">
-              <h3 className="cx-card-h">Migrationen vs. Neuregistrierungen</h3>
-              <div className="cx-card-hint">
-                Migriert = neue Realm-Nutzer ohne REGISTER · Neu registriert = REGISTER-Events
-              </div>
+            <ChartCard
+              title="Migrationen vs. Neuregistrierungen"
+              hint="Migriert = föderierte Neuzugänge · Neu registriert = REGISTER-Events"
+            >
               <DualLineChart
                 points={stats.migrationSeries.map((p) => ({
                   label: shortDe(p.datum),
@@ -168,7 +192,7 @@ export default async function CockpitPage() {
                 labelB="Neu registriert"
                 maxTicks={7}
               />
-            </div>
+            </ChartCard>
             <div className="cx-card">
               <h3 className="cx-card-h">Heute</h3>
               <div className="cx-card-hint">Neuzugänge nach Herkunft</div>
@@ -253,11 +277,13 @@ function KpiRow({ stats }: { stats: CockpitStats }) {
             {trend} % ggü. Vortag
           </div>
         )}
+        <Sparkline values={stats.series.map((p) => p.logins)} />
       </div>
       <div className="cx-kpi">
         <div className="cx-kpi-n">{de(k.failedLogins)}</div>
         <div className="cx-kpi-l">Fehlgeschlagene Logins</div>
         <div className="cx-kpi-t down">{rate} % Fehlerquote</div>
+        <Sparkline values={stats.series.map((p) => p.loginErrors)} color="#000000" />
       </div>
       <div className="cx-kpi">
         <div className="cx-kpi-n">{de(k.newMigrated)}</div>

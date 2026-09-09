@@ -12,6 +12,7 @@ import {
   getLoginsByClient,
   getMigratedCount,
   getSupportMetrics,
+  getUserCreationTimestamps,
   usersCount,
 } from '../keycloak'
 import { isMock, kundenGesamt } from './config'
@@ -21,12 +22,14 @@ import { mockIntradayHourly, mockIntradayMinutely, mockSeries } from './mockData
 import type {
   Anomaly,
   CockpitStats,
+  CountPoint,
   DailyPoint,
   DayEvents,
   ErrorTypeAgg,
   Intraday,
   IntradayPoint,
   KcEvent,
+  NewUsers,
   Operations,
 } from './types'
 
@@ -144,6 +147,55 @@ export async function getOperations(): Promise<Operations> {
     getLoginsByClient(now - 24 * 60 * 60 * 1000, now),
   ])
   return { support24h, support7d, loginsByClient, mock: isMock() }
+}
+
+// --- Neue Nutzer (mehrere Zeitfenster) --------------------------------------
+
+function binCounts(
+  ts: number[],
+  startMs: number,
+  bucketMs: number,
+  count: number,
+  label: (start: number) => string,
+): CountPoint[] {
+  const buckets: CountPoint[] = Array.from({ length: count }, (_, i) => ({
+    label: label(startMs + i * bucketMs),
+    count: 0,
+  }))
+  for (const t of ts) {
+    const idx = Math.floor((t - startMs) / bucketMs)
+    if (idx >= 0 && idx < count) buckets[idx].count++
+  }
+  return buckets
+}
+
+function dayLabel(ms: number): string {
+  const d = new Date(ms)
+  return `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.`
+}
+
+/** Neu angelegte Nutzer je Zeitfenster (letzte Stunde/24 h/7 Tage/30 Tage). */
+export async function getNewUsers(): Promise<NewUsers> {
+  const now = Date.now()
+  const MIN = 60 * 1000
+  const HOUR = 60 * MIN
+  const DAY = 24 * HOUR
+  const ts = await getUserCreationTimestamps(now - 30 * DAY)
+
+  const hour = binCounts(ts, now - 12 * 5 * MIN, 5 * MIN, 12, minuteLabel)
+  const day = binCounts(ts, now - 24 * HOUR, HOUR, 24, hourLabel)
+  const week = binCounts(ts, now - 7 * DAY, DAY, 7, dayLabel)
+  const month = binCounts(ts, now - 30 * DAY, DAY, 30, dayLabel)
+
+  const inWin = (w: number) => ts.filter((t) => t >= now - w).length
+  return {
+    hour,
+    day,
+    week,
+    month,
+    totals: { hour: inWin(HOUR), day: inWin(DAY), week: inWin(7 * DAY), month: inWin(30 * DAY) },
+    mock: isMock(),
+  }
 }
 
 // --- Intraday-Reihen ---------------------------------------------------------
