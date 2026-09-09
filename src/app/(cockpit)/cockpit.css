@@ -548,7 +548,60 @@ body {
     grid-template-columns: repeat(2, 1fr);
   }
   .cx-charts,
+  .cx-charts--even,
   .cx-split {
     grid-template-columns: 1fr;
   }
+}
+
+/* Handy (schmale Viewports) */
+@media (max-width: 560px) {
+  .cx-wrap {
+    padding: 0 16px 56px;
+  }
+  .cx-header-in {
+    padding: 12px 16px;
+    gap: 8px 12px;
+  }
+  .cx-kpis,
+  .cx-kpis--3 {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .cx-kpi {
+    padding: 13px 14px;
+  }
+  .cx-kpi-n {
+    font-size: 24px;
+  }
+  .cx-status {
+    gap: 12px;
+  }
+  /* Ereignisliste darf umbrechen, Zeitspalte schmaler */
+  .cx-ev {
+    flex-wrap: wrap;
+  }
+  .cx-ev-time {
+    min-width: 96px;
+  }
+  .cx-ev-client {
+    width: 100%;
+    padding-left: 21px;
+  }
+  /* Modal randlos genug */
+  .cx-modal {
+    padding: 12px;
+  }
+  .cx-modal-box {
+    width: calc(100vw - 24px);
+    padding: 16px 16px 18px;
+  }
+}
+
+/* Breite Tabellen horizontal scrollen statt quetschen */
+.cx-tablewrap {
+  overflow-x: auto;
+}
+.cx-tablewrap .cx-table {
+  min-width: 440px;
 }
