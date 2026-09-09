@@ -64,6 +64,12 @@ export default async function FrontendLayout({ children }: { children: React.Rea
             <div className="lm-brand">
               <span className="lm-brand-dot" />
               Stadtwerke Lübeck · LüMobil
+              <a
+                className="lm-brand-login"
+                href={support ? '/api/auth/logout' : '/api/auth/login?next=/cockpit'}
+              >
+                {support ? 'Abmelden' : 'Intern anmelden'}
+              </a>
             </div>
             <h1>
               Wie können wir<br />
@@ -111,6 +117,9 @@ export default async function FrontendLayout({ children }: { children: React.Rea
             LüMobil — Stadtwerke Lübeck Digital GmbH · Geniner Straße 80, 23560 Lübeck ·{' '}
             <a href="mailto:mobil@swhl.de">mobil@swhl.de</a>
           </span>
+          <a className="lm-intern-link" href={support ? '/api/auth/logout' : '/api/auth/login?next=/cockpit'}>
+            {support ? 'Abmelden' : 'Intern anmelden'}
+          </a>
         </footer>
       </body>
     </html>
