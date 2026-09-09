@@ -605,3 +605,100 @@ body {
 .cx-tablewrap .cx-table {
   min-width: 440px;
 }
+
+/* ============================================================
+   Verfügbarkeits-Historie (Statuspage-Streifen)
+   ============================================================ */
+.cx-avail {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 12px;
+}
+.cx-avail-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.cx-avail-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.cx-avail-label {
+  font-weight: 600;
+  font-size: 14px;
+}
+.cx-avail-pct {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  font-size: 13px;
+}
+.cx-avail-pct--ok {
+  color: var(--swl-status-green);
+}
+.cx-avail-pct--warn {
+  color: var(--swl-orange-dark);
+}
+.cx-avail-pct--bad {
+  color: var(--swl-pink);
+}
+.cx-avail-pct--none {
+  color: var(--swl-label-gray);
+  font-weight: 400;
+}
+.cx-avail-strip {
+  display: flex;
+  gap: 2px;
+  height: 30px;
+  align-items: stretch;
+}
+.cx-avail-strip .cx-seg {
+  flex: 1 1 0;
+  min-width: 0;
+  border-radius: 1px;
+}
+.cx-seg {
+  display: inline-block;
+}
+.cx-seg--ok {
+  background: var(--swl-status-green);
+}
+.cx-seg--down {
+  background: var(--swl-pink);
+}
+.cx-seg--none {
+  background: var(--swl-gray-bg);
+}
+.cx-avail-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--swl-hairline);
+  font-size: 12px;
+  color: var(--swl-label-gray);
+}
+.cx-avail-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.cx-avail-legend .cx-seg {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+.cx-avail-mock {
+  margin-left: auto;
+  font-style: italic;
+}
+@media (max-width: 560px) {
+  .cx-avail-strip {
+    height: 26px;
+    gap: 1px;
+  }
+}

@@ -32,6 +32,53 @@ function niceMax(v: number): number {
   return step * pow
 }
 
+/**
+ * Gleichmäßig verteilte X-Achsen-Ticks inkl. erstem und letztem Punkt – ohne
+ * Überlappung am Rand (löst das Label-Gedränge bei 30 Tagen). Platziert exakt
+ * `maxTicks` Positionen von 0…n-1; der letzte Tick fällt per Rundung auf n-1,
+ * daher nie eine Dublette dicht am Rand.
+ */
+function axisTicks(n: number, maxTicks: number): number[] {
+  if (n <= 1) return n === 1 ? [0] : []
+  if (n <= maxTicks) return Array.from({ length: n }, (_, i) => i)
+  const stride = (n - 1) / (maxTicks - 1)
+  const idx = Array.from({ length: maxTicks }, (_, k) => Math.round(k * stride))
+  const uniq = Array.from(new Set(idx)).sort((a, b) => a - b)
+  if (uniq[uniq.length - 1] !== n - 1) uniq.push(n - 1)
+  return uniq
+}
+
+/**
+ * Weiche Linie durch die Punkte (Catmull-Rom → kubische Bézier, Spannung 0,16).
+ * Deutlich eleganter als Polygonzüge, ohne Ausreißer/Overshoot bei Zählwerten.
+ * SWL-konform: kein Verlauf, kein Schatten – nur eine ruhigere Kurvenform.
+ */
+function smoothPath(pts: { x: number; y: number }[]): string {
+  if (pts.length === 0) return ''
+  if (pts.length < 3) {
+    return pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ')
+  }
+  const t = 0.16
+  let d = `M${pts[0].x.toFixed(1)},${pts[0].y.toFixed(1)}`
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i - 1] ?? pts[i]
+    const p1 = pts[i]
+    const p2 = pts[i + 1]
+    const p3 = pts[i + 2] ?? p2
+    const c1x = p1.x + (p2.x - p0.x) * t
+    const c1y = p1.y + (p2.y - p0.y) * t
+    const c2x = p2.x - (p3.x - p1.x) * t
+    const c2y = p2.y - (p3.y - p1.y) * t
+    d += ` C${c1x.toFixed(1)},${c1y.toFixed(1)} ${c2x.toFixed(1)},${c2y.toFixed(1)} ${p2.x.toFixed(1)},${p2.y.toFixed(1)}`
+  }
+  return d
+}
+
+/** Hover-Punkt mit weißem Ring (hebt den Messpunkt sauber vom Verlauf ab). */
+function Dot({ cx, cy, fill }: { cx: number; cy: number; fill: string }) {
+  return <circle cx={cx} cy={cy} r={4} fill={fill} stroke="#ffffff" strokeWidth={2} />
+}
+
 // ============================================================
 // Logins vs. Fehler pro Tag (2 Serien)
 // ============================================================
@@ -54,14 +101,14 @@ export function LoginsChart({ series }: { series: DailyPoint[] }) {
   const y = (v: number) => padT + plotH - (v / maxY) * plotH
 
   const line = (key: 'logins' | 'loginErrors') =>
-    series.map((d, i) => `${i === 0 ? 'M' : 'L'}${x(i).toFixed(1)},${y(d[key]).toFixed(1)}`).join(' ')
+    smoothPath(series.map((d, i) => ({ x: x(i), y: y(d[key]) })))
 
   const areaLogins =
-    series.map((d, i) => `${i === 0 ? 'M' : 'L'}${x(i).toFixed(1)},${y(d.logins).toFixed(1)}`).join(' ') +
+    smoothPath(series.map((d, i) => ({ x: x(i), y: y(d.logins) }))) +
     ` L${x(n - 1).toFixed(1)},${y(0).toFixed(1)} L${x(0).toFixed(1)},${y(0).toFixed(1)} Z`
 
   const gridVals = [0, maxY / 2, maxY]
-  const tickIdx = [0, Math.floor((n - 1) / 2), n - 1].filter((v, i, a) => a.indexOf(v) === i)
+  const tickIdx = axisTicks(n, 4)
 
   const hi = hover != null ? series[hover] : null
 
@@ -80,7 +127,7 @@ export function LoginsChart({ series }: { series: DailyPoint[] }) {
           </g>
         ))}
         {/* Fläche unter Logins (dezent, neutral) */}
-        <path d={areaLogins} fill={ORANGE} opacity={0.06} />
+        <path d={areaLogins} fill={ORANGE} opacity={0.1} />
         {/* Fehler (gestrichelt, neutral) */}
         <path d={line('loginErrors')} fill="none" stroke={INK} strokeWidth={1.75} strokeDasharray="4 3" strokeLinejoin="round" />
         {/* Logins (Orange) */}
@@ -101,8 +148,8 @@ export function LoginsChart({ series }: { series: DailyPoint[] }) {
         {hi && (
           <g>
             <line x1={x(hover!)} y1={padT} x2={x(hover!)} y2={padT + plotH} stroke={HAIR} />
-            <circle cx={x(hover!)} cy={y(hi.logins)} r={3.5} fill={ORANGE} />
-            <circle cx={x(hover!)} cy={y(hi.loginErrors)} r={3.5} fill={INK} />
+            <Dot cx={x(hover!)} cy={y(hi.loginErrors)} fill={INK} />
+            <Dot cx={x(hover!)} cy={y(hi.logins)} fill={ORANGE} />
           </g>
         )}
         {/* Unsichtbare Hover-Bänder (skalierungsunabhängig) */}
@@ -151,7 +198,7 @@ export function CumulativeChart({ points }: { points: { datum: string; total: nu
   const x = (i: number) => padL + (n <= 1 ? plotW / 2 : (i / (n - 1)) * plotW)
   const y = (v: number) => padT + plotH - ((v - base) / (maxV - base || 1)) * plotH
 
-  const linePath = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${x(i).toFixed(1)},${y(p.total).toFixed(1)}`).join(' ')
+  const linePath = smoothPath(points.map((p, i) => ({ x: x(i), y: y(p.total) })))
   const areaPath = linePath + ` L${x(n - 1).toFixed(1)},${y(base).toFixed(1)} L${x(0).toFixed(1)},${y(base).toFixed(1)} Z`
 
   const gridVals = [base, (base + maxV) / 2, maxV]
@@ -171,7 +218,7 @@ export function CumulativeChart({ points }: { points: { datum: string; total: nu
         <path d={linePath} fill="none" stroke={ORANGE} strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />
         {n > 0 && (
           <>
-            <circle cx={x(n - 1)} cy={y(points[n - 1].total)} r={3.5} fill={ORANGE} />
+            <Dot cx={x(n - 1)} cy={y(points[n - 1].total)} fill={ORANGE} />
             <text x={x(n - 1)} y={y(points[n - 1].total) - 9} textAnchor="end" className="cx-endlabel">
               {de(points[n - 1].total)}
             </text>
@@ -185,7 +232,7 @@ export function CumulativeChart({ points }: { points: { datum: string; total: nu
         {hi && (
           <g>
             <line x1={x(hover!)} y1={padT} x2={x(hover!)} y2={padT + plotH} stroke={HAIR} />
-            <circle cx={x(hover!)} cy={y(hi.total)} r={3.5} fill={ORANGE} />
+            <Dot cx={x(hover!)} cy={y(hi.total)} fill={ORANGE} />
           </g>
         )}
         {points.map((_, i) => (
@@ -244,15 +291,14 @@ export function DualLineChart({
   const y = (v: number) => padT + plotH - (v / maxY) * plotH
 
   const path = (key: 'a' | 'b') =>
-    points.map((d, i) => `${i === 0 ? 'M' : 'L'}${x(i).toFixed(1)},${y(d[key]).toFixed(1)}`).join(' ')
+    smoothPath(points.map((d, i) => ({ x: x(i), y: y(d[key]) })))
 
   const area =
-    points.map((d, i) => `${i === 0 ? 'M' : 'L'}${x(i).toFixed(1)},${y(d.a).toFixed(1)}`).join(' ') +
+    smoothPath(points.map((d, i) => ({ x: x(i), y: y(d.a) }))) +
     ` L${x(n - 1).toFixed(1)},${y(0).toFixed(1)} L${x(0).toFixed(1)},${y(0).toFixed(1)} Z`
 
   const gridVals = [0, maxY / 2, maxY]
-  const step = Math.max(1, Math.floor((n - 1) / (maxTicks - 1)))
-  const tickIdx = Array.from({ length: n }, (_, i) => i).filter((i) => i % step === 0 || i === n - 1)
+  const tickIdx = axisTicks(n, maxTicks)
   const hi = hover != null ? points[hover] : null
 
   return (
@@ -271,7 +317,7 @@ export function DualLineChart({
             <text x={padL - 8} y={y(v) + 3} textAnchor="end" className="cx-axis">{de(Math.round(v))}</text>
           </g>
         ))}
-        <path d={area} fill={ORANGE} opacity={0.06} />
+        <path d={area} fill={ORANGE} opacity={0.1} />
         <path
           d={path('b')}
           fill="none"
@@ -295,8 +341,8 @@ export function DualLineChart({
         {hi && (
           <g>
             <line x1={x(hover!)} y1={padT} x2={x(hover!)} y2={padT + plotH} stroke={HAIR} />
-            <circle cx={x(hover!)} cy={y(hi.a)} r={3.5} fill={ORANGE} />
-            <circle cx={x(hover!)} cy={y(hi.b)} r={3.5} fill={INK} />
+            <Dot cx={x(hover!)} cy={y(hi.b)} fill={INK} />
+            <Dot cx={x(hover!)} cy={y(hi.a)} fill={ORANGE} />
           </g>
         )}
         {points.map((_, i) => (
@@ -344,8 +390,7 @@ function BarChart({ points, maxTicks = 6 }: { points: CountPoint[]; maxTicks?: n
   const y = (v: number) => padT + plotH - (v / maxY) * plotH
 
   const gridVals = [0, maxY / 2, maxY]
-  const step = Math.max(1, Math.floor((n - 1) / (maxTicks - 1)))
-  const tickIdx = Array.from({ length: n }, (_, i) => i).filter((i) => i % step === 0 || i === n - 1)
+  const tickIdx = axisTicks(n, maxTicks)
   const hi = hover != null ? points[hover] : null
 
   return (
@@ -364,9 +409,9 @@ function BarChart({ points, maxTicks = 6 }: { points: CountPoint[]; maxTicks?: n
             y={y(d.count)}
             width={barW}
             height={Math.max(0, padT + plotH - y(d.count))}
-            rx={2}
+            rx={3}
             fill={ORANGE}
-            opacity={hover == null || hover === i ? 1 : 0.5}
+            opacity={hover == null || hover === i ? 1 : 0.45}
           />
         ))}
         {tickIdx.map((i) => (
@@ -502,12 +547,12 @@ export function Sparkline({ values, color = ORANGE }: { values: number[]; color?
   const min = Math.min(...values)
   const x = (i: number) => (n <= 1 ? W / 2 : (i / (n - 1)) * W)
   const y = (v: number) => H - 2 - ((v - min) / (max - min || 1)) * (H - 5)
-  const line = values.map((v, i) => `${i === 0 ? 'M' : 'L'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ')
+  const line = smoothPath(values.map((v, i) => ({ x: x(i), y: y(v) })))
   const area = `${line} L${x(n - 1).toFixed(1)},${H} L${x(0).toFixed(1)},${H} Z`
   return (
     <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} className="cx-spark" preserveAspectRatio="none" aria-hidden="true">
-      <path d={area} fill={color} opacity={0.08} />
-      <path d={line} fill="none" stroke={color} strokeWidth={1.5} strokeLinejoin="round" />
+      <path d={area} fill={color} opacity={0.1} />
+      <path d={line} fill="none" stroke={color} strokeWidth={1.5} strokeLinejoin="round" strokeLinecap="round" />
     </svg>
   )
 }
