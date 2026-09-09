@@ -13,7 +13,6 @@ const SERVICES: { key: keyof Omit<Health, 'mock'>; label: string }[] = [
   { key: 'keycloak', label: 'Keycloak' },
   { key: 'login', label: 'Login (Test)' },
   { key: 'database', label: 'Datenbank' },
-  { key: 'aboonline', label: 'Aboonline' },
 ]
 
 function dotClass(s?: ServiceHealth): string {

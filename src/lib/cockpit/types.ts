@@ -181,7 +181,6 @@ export type ServiceHealth = {
 export type Health = {
   keycloak: ServiceHealth
   database: ServiceHealth
-  aboonline: ServiceHealth
   /** Synthetischer Login (Testuser) — Ende-zu-Ende-Prüfung. */
   login: ServiceHealth
   mock: boolean

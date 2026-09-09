@@ -7,9 +7,7 @@
  * Minute, egal wie viele Support-Leute zusehen.
  */
 import { payloadClient } from '../content'
-import { accountCheck } from '../aboonline'
 import {
-  aboWsUrl,
   isMock,
   keycloakRealm,
   keycloakUrl,
@@ -51,15 +49,6 @@ async function checkDatabase(): Promise<ServiceHealth> {
   } catch {
     return fail('Abfrage fehlgeschlagen', Date.now() - start)
   }
-}
-
-async function checkAboonline(): Promise<ServiceHealth> {
-  if (!aboWsUrl()) return notConfigured
-  const start = Date.now()
-  const res = await accountCheck('health-probe@example.invalid')
-  const ms = Date.now() - start
-  // „not_found"/„found" = erreichbar; „error" = Störung.
-  return res.state === 'error' ? fail(res.reason, ms) : ok(ms)
 }
 
 // --- Synthetischer Login (ROPC, gecacht) ------------------------------------
@@ -105,16 +94,14 @@ export async function getHealth(): Promise<Health> {
     return {
       keycloak: ok(42),
       database: ok(6),
-      aboonline: ok(88),
       login: ok(120),
       mock: true,
     }
   }
-  const [keycloak, database, aboonline, login] = await Promise.all([
+  const [keycloak, database, login] = await Promise.all([
     checkKeycloak(),
     checkDatabase(),
-    checkAboonline(),
     checkLogin(),
   ])
-  return { keycloak, database, aboonline, login, mock: false }
+  return { keycloak, database, login, mock: false }
 }

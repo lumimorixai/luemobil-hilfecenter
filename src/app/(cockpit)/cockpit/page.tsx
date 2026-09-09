@@ -396,30 +396,32 @@ function ErrorSection({ day }: { day: DayEvents }) {
         {day.rows.length === 0 ? (
           <div className="cx-empty">Keine Fehler heute.</div>
         ) : (
-          <table className="cx-table">
-            <thead>
-              <tr>
-                <th>Zeit</th>
-                <th>Fehler</th>
-                <th>Client</th>
-                <th>Benutzer</th>
-              </tr>
-            </thead>
-            <tbody>
-              {day.rows.map((r, i) => (
-                <tr key={i}>
-                  <td>{r.time}</td>
-                  <td>
-                    <span className={`cx-pill ${r.error === 'invalid_user_credentials' ? 'amber' : 'red'}`}>
-                      {r.error}
-                    </span>
-                  </td>
-                  <td>{r.clientId}</td>
-                  <td className="cx-mono">{r.username}</td>
+          <div className="cx-tablewrap">
+            <table className="cx-table">
+              <thead>
+                <tr>
+                  <th>Zeit</th>
+                  <th>Fehler</th>
+                  <th>Client</th>
+                  <th>Benutzer</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {day.rows.map((r, i) => (
+                  <tr key={i}>
+                    <td>{r.time}</td>
+                    <td>
+                      <span className={`cx-pill ${r.error === 'invalid_user_credentials' ? 'amber' : 'red'}`}>
+                        {r.error}
+                      </span>
+                    </td>
+                    <td>{r.clientId}</td>
+                    <td className="cx-mono">{r.username}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
       <div>
