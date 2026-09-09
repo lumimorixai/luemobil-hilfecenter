@@ -609,10 +609,20 @@ body {
 /* ============================================================
    Verfügbarkeits-Historie (Statuspage-Streifen)
    ============================================================ */
+.cx-avail-explain {
+  margin: 10px 0 4px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--swl-label-gray);
+}
+.cx-avail-explain b {
+  color: var(--swl-black);
+  font-weight: 600;
+}
 .cx-avail {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 18px;
   margin-top: 12px;
 }
 .cx-avail-row {
@@ -622,7 +632,7 @@ body {
 }
 .cx-avail-meta {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
 }
@@ -630,23 +640,39 @@ body {
   font-weight: 600;
   font-size: 14px;
 }
-.cx-avail-pct {
-  font-variant-numeric: tabular-nums;
+.cx-avail-state {
+  font-size: 12px;
   font-weight: 600;
-  font-size: 13px;
+  padding: 2px 9px;
+  border-radius: var(--radius);
+  border: 1px solid var(--swl-hairline);
 }
-.cx-avail-pct--ok {
+.cx-avail-state--ok {
   color: var(--swl-status-green);
+  border-color: var(--swl-status-green);
 }
-.cx-avail-pct--warn {
-  color: var(--swl-orange-dark);
+.cx-avail-state--down {
+  color: var(--swl-white);
+  background: var(--swl-pink);
+  border-color: var(--swl-pink);
 }
-.cx-avail-pct--bad {
-  color: var(--swl-pink);
-}
-.cx-avail-pct--none {
+.cx-avail-state--none {
   color: var(--swl-label-gray);
   font-weight: 400;
+}
+.cx-avail-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  font-size: 12px;
+  color: var(--swl-label-gray);
+}
+.cx-avail-facts b {
+  color: var(--swl-black);
+  font-variant-numeric: tabular-nums;
+}
+.cx-avail-facts code {
+  font-size: 11px;
 }
 .cx-avail-strip {
   display: flex;

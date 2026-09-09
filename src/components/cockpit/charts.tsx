@@ -49,27 +49,55 @@ function axisTicks(n: number, maxTicks: number): number[] {
 }
 
 /**
- * Weiche Linie durch die Punkte (Catmull-Rom → kubische Bézier, Spannung 0,16).
- * Deutlich eleganter als Polygonzüge, ohne Ausreißer/Overshoot bei Zählwerten.
- * SWL-konform: kein Verlauf, kein Schatten – nur eine ruhigere Kurvenform.
+ * Weiche Linie durch die Punkte per monotoner Kubik (Fritsch–Carlson).
+ * Anders als Catmull-Rom schwingt sie nie über die Datenpunkte hinaus – der
+ * Verlauf bleibt zwischen benachbarten Werten und taucht daher nicht unter 0
+ * (kein „negatives" Aussehen). SWL-konform: kein Verlauf, kein Schatten.
  */
 function smoothPath(pts: { x: number; y: number }[]): string {
-  if (pts.length === 0) return ''
-  if (pts.length < 3) {
+  const n = pts.length
+  if (n === 0) return ''
+  if (n < 3) {
     return pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ')
   }
-  const t = 0.16
+  // Sekantensteigungen zwischen den Punkten
+  const dx: number[] = []
+  const slope: number[] = []
+  for (let i = 0; i < n - 1; i++) {
+    const h = pts[i + 1].x - pts[i].x
+    dx.push(h)
+    slope.push(h === 0 ? 0 : (pts[i + 1].y - pts[i].y) / h)
+  }
+  // Tangenten: an Extrema 0 setzen, sonst Mittel der Nachbarsekanten
+  const m: number[] = new Array(n)
+  m[0] = slope[0]
+  m[n - 1] = slope[n - 2]
+  for (let i = 1; i < n - 1; i++) {
+    m[i] = slope[i - 1] * slope[i] <= 0 ? 0 : (slope[i - 1] + slope[i]) / 2
+  }
+  // Fritsch–Carlson-Begrenzung erzwingt Monotonie (kein Overshoot)
+  for (let i = 0; i < n - 1; i++) {
+    if (slope[i] === 0) {
+      m[i] = 0
+      m[i + 1] = 0
+      continue
+    }
+    const a = m[i] / slope[i]
+    const b = m[i + 1] / slope[i]
+    const s = a * a + b * b
+    if (s > 9) {
+      const tau = 3 / Math.sqrt(s)
+      m[i] = tau * a * slope[i]
+      m[i + 1] = tau * b * slope[i]
+    }
+  }
   let d = `M${pts[0].x.toFixed(1)},${pts[0].y.toFixed(1)}`
-  for (let i = 0; i < pts.length - 1; i++) {
-    const p0 = pts[i - 1] ?? pts[i]
-    const p1 = pts[i]
-    const p2 = pts[i + 1]
-    const p3 = pts[i + 2] ?? p2
-    const c1x = p1.x + (p2.x - p0.x) * t
-    const c1y = p1.y + (p2.y - p0.y) * t
-    const c2x = p2.x - (p3.x - p1.x) * t
-    const c2y = p2.y - (p3.y - p1.y) * t
-    d += ` C${c1x.toFixed(1)},${c1y.toFixed(1)} ${c2x.toFixed(1)},${c2y.toFixed(1)} ${p2.x.toFixed(1)},${p2.y.toFixed(1)}`
+  for (let i = 0; i < n - 1; i++) {
+    const c1x = pts[i].x + dx[i] / 3
+    const c1y = pts[i].y + (m[i] * dx[i]) / 3
+    const c2x = pts[i + 1].x - dx[i] / 3
+    const c2y = pts[i + 1].y - (m[i + 1] * dx[i]) / 3
+    d += ` C${c1x.toFixed(1)},${c1y.toFixed(1)} ${c2x.toFixed(1)},${c2y.toFixed(1)} ${pts[i + 1].x.toFixed(1)},${pts[i + 1].y.toFixed(1)}`
   }
   return d
 }
