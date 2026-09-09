@@ -7,7 +7,8 @@ export const runtime = 'nodejs'
 
 /** Meldet ab: löscht die Session und (real) die Keycloak-SSO-Sitzung. */
 export async function GET(req: NextRequest) {
-  let target = new URL('/', req.url).toString()
+  const base = (process.env.APP_BASE_URL || new URL(req.url).origin).replace(/\/$/, '')
+  let target = `${base}/`
   if (!isMock()) {
     try {
       target = (await logoutUrl()) ?? target

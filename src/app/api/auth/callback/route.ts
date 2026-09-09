@@ -37,7 +37,10 @@ export async function GET(req: NextRequest) {
   const nextRaw = req.cookies.get('oidc_next')?.value
   const target = nextRaw && nextRaw.startsWith('/') && !nextRaw.startsWith('//') ? nextRaw : '/'
 
-  const res = NextResponse.redirect(new URL(target, req.url))
+  // Basis an APP_BASE_URL festmachen — hinter dem Reverse-Proxy ist req.url die
+  // interne Container-Adresse (0.0.0.0:3000); der Browser braucht die Domain.
+  const base = (process.env.APP_BASE_URL || url.origin).replace(/\/$/, '')
+  const res = NextResponse.redirect(new URL(target, base))
   res.headers.set('Cache-Control', 'no-store')
   res.cookies.set(SESSION_COOKIE, value, sessionCookieOptions())
   res.cookies.delete('oidc_state')
