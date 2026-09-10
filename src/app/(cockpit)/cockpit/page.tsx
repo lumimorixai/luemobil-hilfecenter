@@ -337,7 +337,7 @@ function OpsSection({ ops }: { ops: Operations }) {
       <div>
         <div className="cx-card">
           <h3 className="cx-card-h">Logins nach Client</h3>
-          <div className="cx-card-hint">letzte 24 Stunden</div>
+          <div className="cx-card-hint">letzte 24 Stunden · Logins &amp; eindeutige Nutzer</div>
           {ops.loginsByClient.length === 0 ? (
             <div className="cx-empty">Keine Logins.</div>
           ) : (
@@ -346,7 +346,9 @@ function OpsSection({ ops }: { ops: Operations }) {
                 <li key={c.clientId}>
                   <div className="cx-toplist-row">
                     <b>{c.clientId}</b>
-                    <span>{de(c.count)}</span>
+                    <span>
+                      {de(c.count)} <em className="cx-toplist-sub">· {de(c.uniqueUsers)} Nutzer</em>
+                    </span>
                   </div>
                   <div className="cx-bar">
                     <i style={{ width: `${Math.round((c.count / maxClient) * 100)}%` }} />

@@ -177,6 +177,7 @@ function mapEvent(e: KcRawEvent): KcEvent {
     type: e.type, // Rohtyp beibehalten (LOGIN, LOGIN_ERROR, REGISTER, RESET_PASSWORD …)
     error: e.error,
     clientId: e.clientId,
+    userId: e.userId,
     username: e.details?.username,
     ipAddress: e.ipAddress,
   }
@@ -302,10 +303,16 @@ export async function getLoginsByClient(
     const t = Date.parse(e.time)
     return t >= fromMs && t < toMs
   })
-  const byClient = new Map<string, number>()
+  const byClient = new Map<string, { count: number; users: Set<string> }>()
   for (const e of events) {
     const id = e.clientId ?? '—'
-    byClient.set(id, (byClient.get(id) ?? 0) + 1)
+    const cur = byClient.get(id) ?? { count: 0, users: new Set<string>() }
+    cur.count++
+    const u = e.userId ?? e.username
+    if (u) cur.users.add(u)
+    byClient.set(id, cur)
   }
-  return [...byClient.entries()].map(([clientId, count]) => ({ clientId, count })).sort((a, b) => b.count - a.count)
+  return [...byClient.entries()]
+    .map(([clientId, v]) => ({ clientId, count: v.count, uniqueUsers: v.users.size }))
+    .sort((a, b) => b.count - a.count)
 }
