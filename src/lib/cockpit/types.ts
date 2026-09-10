@@ -24,6 +24,8 @@ export type KcEvent = {
   /** Fehlerursache (nur bei *_ERROR), z. B. „user_not_found". */
   error?: string
   clientId?: string
+  /** Keycloak-User-ID (stabil, für eindeutige Nutzerzählung). */
+  userId?: string
   /** Benutzername/E-Mail aus dem Event (Details.username). */
   username?: string
   ipAddress?: string
@@ -138,8 +140,8 @@ export type SupportMetrics = {
   registrations: number
 }
 
-/** Logins je Client (App-Fläche). */
-export type ClientLogin = { clientId: string; count: number }
+/** Logins je Client (App-Fläche) inkl. eindeutiger Nutzer. */
+export type ClientLogin = { clientId: string; count: number; uniqueUsers: number }
 
 /** Ein Zeit-Bucket mit Zähler (für den Neue-Nutzer-Graph). */
 export type CountPoint = { label: string; count: number }

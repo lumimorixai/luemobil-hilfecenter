@@ -144,12 +144,15 @@ export function mockUserCreationTimestamps(sinceMs: number): number[] {
 }
 
 /** Mock: Logins je Client, skaliert mit der Fensterlänge (Tage). */
-export function mockLoginsByClient(fromMs: number, toMs: number): { clientId: string; count: number }[] {
+export function mockLoginsByClient(
+  fromMs: number,
+  toMs: number,
+): { clientId: string; count: number; uniqueUsers: number }[] {
   const days = Math.max(1, Math.round((toMs - fromMs) / DAY_MS))
   return [
-    { clientId: 'luemaas', count: 300 * days },
-    { clientId: 'mpweb', count: 92 * days },
-    { clientId: 'luemobil-web', count: 8 * days },
+    { clientId: 'luemaas', count: 300 * days, uniqueUsers: Math.round(120 * Math.sqrt(days)) },
+    { clientId: 'mpweb', count: 92 * days, uniqueUsers: Math.round(48 * Math.sqrt(days)) },
+    { clientId: 'luemobil-web', count: 8 * days, uniqueUsers: Math.round(6 * Math.sqrt(days)) },
   ]
 }
 

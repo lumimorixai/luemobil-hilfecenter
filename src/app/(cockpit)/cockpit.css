@@ -847,3 +847,11 @@ body {
   font-variant-numeric: tabular-nums;
   font-weight: 600;
 }
+
+/* Eindeutige Nutzer neben der Login-Zahl (Logins nach Client) */
+.cx-toplist-sub {
+  font-style: normal;
+  font-weight: 400;
+  font-size: 12px;
+  color: var(--swl-label-gray);
+}
