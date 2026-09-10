@@ -295,7 +295,7 @@ export async function getSupportMetrics(fromMs: number, toMs: number) {
 export async function getLoginsByClient(
   fromMs: number,
   toMs: number,
-): Promise<{ clientId: string; count: number }[]> {
+): Promise<{ clientId: string; count: number; uniqueUsers: number }[]> {
   if (isMock()) return mockLoginsByClient(fromMs, toMs)
   const from = isoDate(new Date(fromMs))
   const to = isoDate(new Date(toMs + 24 * 60 * 60 * 1000))
