@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireSupport } from '@/lib/auth/guard'
+import { requireKundencheck } from '@/lib/auth/guard'
 import { runCustomerCheck } from '@/lib/cockpit/diagnose'
 import { rateLimit } from '@/lib/cockpit/rateLimit'
 
@@ -9,12 +9,12 @@ export const dynamic = 'force-dynamic'
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 /**
- * Kundencheck (User-Enumeration-Werkzeug) — nur mit Support-Rolle.
+ * Kundencheck (User-Enumeration-Werkzeug) — nur mit Kundencheck-Berechtigung.
  * Rate-Limit 30/Minute je Session. Die abgefragte E-Mail wird NICHT
  * protokolliert (nur ein anonymer Zähler über das Rate-Limit).
  */
 export async function GET(req: NextRequest) {
-  const session = await requireSupport()
+  const session = await requireKundencheck()
   if (!session) return NextResponse.json({ error: 'forbidden' }, { status: 403 })
 
   if (!rateLimit(`check:${session.sub}`, 30, 60_000)) {
@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const diagnosis = await runCustomerCheck(email)
+    const diagnosis = await runCustomerCheck(email, session.email || session.name || session.sub)
     return NextResponse.json(diagnosis, { headers: { 'Cache-Control': 'no-store' } })
   } catch {
     // Bewusst ohne Details (keine Secrets/E-Mail in der Antwort).

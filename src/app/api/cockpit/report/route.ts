@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { requireSupport } from '@/lib/auth/guard'
+import { requireCockpit } from '@/lib/auth/guard'
 import { payloadClient } from '@/lib/content'
 import type { ReportPeriod } from '@/lib/cockpit/report'
 
@@ -10,7 +10,7 @@ const PERIODS: ReportPeriod[] = ['hour', 'day', 'week', 'month']
 
 /** Manueller Report-Versand aus dem Cockpit — nur mit Support-Rolle. */
 export async function POST(req: Request) {
-  const session = await requireSupport()
+  const session = await requireCockpit()
   if (!session) return NextResponse.json({ error: 'forbidden' }, { status: 403 })
 
   let period: unknown

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireSupport } from '@/lib/auth/guard'
+import { requireCockpit } from '@/lib/auth/guard'
 import { getDayEvents } from '@/lib/cockpit/stats'
 import { todayIso } from '@/lib/cockpit/date'
 
@@ -10,7 +10,7 @@ const DAY_RE = /^\d{4}-\d{2}-\d{2}$/
 
 /** Fehlgeschlagene Anmeldungen eines Tages — nur mit Support-Rolle. */
 export async function GET(req: NextRequest) {
-  const session = await requireSupport()
+  const session = await requireCockpit()
   if (!session) return NextResponse.json({ error: 'forbidden' }, { status: 403 })
 
   const dayParam = req.nextUrl.searchParams.get('day')

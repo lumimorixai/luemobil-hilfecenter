@@ -1,23 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { isMock } from '@/lib/cockpit/config'
 import { SESSION_COOKIE, encodeSession, sessionCookieOptions } from '@/lib/auth/session'
+import { cockpitRole, kundencheckRole, supportRole } from '@/lib/auth/guard'
 
 export const runtime = 'nodejs'
 
 /**
- * Entwickler-Login: legt ohne echtes Keycloak eine Session mit Support-Rolle
- * an. NUR im Mock-Modus verfügbar — in Produktion strikt gesperrt.
+ * Entwickler-Login: legt ohne echtes Keycloak eine Session an. NUR im
+ * Mock-Modus verfügbar — in Produktion strikt gesperrt.
+ * ?as=kundencheck | cockpit | beide (Standard) — zum Testen der Rollentrennung.
  */
 export async function GET(req: NextRequest) {
   if (!isMock()) {
     return new NextResponse('Nicht verfügbar.', { status: 404 })
   }
 
-  const role = process.env.COCKPIT_SUPPORT_ROLE || 'support'
+  const as = req.nextUrl.searchParams.get('as')
+  const role = as === 'kundencheck' ? kundencheckRole() : as === 'cockpit' ? cockpitRole() : supportRole()
   const value = encodeSession({
-    sub: 'mock-support',
+    sub: `mock-${role}`,
     email: 'support@swl-innovation.de',
-    name: 'Support (Mock)',
+    name: `Support (Mock, ${role})`,
     roles: [role],
   })
 

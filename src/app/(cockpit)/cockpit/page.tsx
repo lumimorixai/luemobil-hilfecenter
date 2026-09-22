@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { getCockpitSession, isSupport } from '@/lib/auth/guard'
+import { canCockpit, canKundencheck, cockpitRole, getCockpitSession, supportRole } from '@/lib/auth/guard'
 import { cockpitEnv, cockpitEnvLabel, keycloakRealm } from '@/lib/cockpit/config'
 import {
   getAvailability,
@@ -30,6 +30,8 @@ import { AvailabilityStrip } from '@/components/cockpit/Availability'
 import { Kundencheck } from '@/components/cockpit/Kundencheck'
 import { LiveStatus } from '@/components/cockpit/LiveStatus'
 import { ReportButtons } from '@/components/cockpit/ReportButtons'
+import { PatrisUpload, type PatrisUploadStatus } from '@/components/cockpit/PatrisUpload'
+import { getPatrisStatus } from '@/lib/cockpit/patris'
 
 export const dynamic = 'force-dynamic'
 
@@ -40,7 +42,12 @@ function de(n: number): string {
 export default async function CockpitPage() {
   const session = await getCockpitSession()
   if (!session) redirect('/api/auth/login?next=/cockpit')
-  if (!isSupport(session)) return <NoAccess />
+  if (!canCockpit(session)) {
+    // Nur Kundencheck erlaubt → direkt dorthin statt „Kein Zugriff".
+    if (canKundencheck(session)) redirect('/kundencheck')
+    return <NoAccess />
+  }
+  const showKundencheck = canKundencheck(session)
 
   // Robust: Datenfehler dürfen den Kundencheck nicht mitreißen.
   let stats: CockpitStats | null = null
@@ -72,6 +79,26 @@ export default async function CockpitPage() {
     newUsers = await getNewUsers()
   } catch {
     newUsers = null
+  }
+  let patris: PatrisUploadStatus = { importedAt: null, fileName: null, importedBy: null, rowCount: 0 }
+  try {
+    const st = await getPatrisStatus()
+    patris = {
+      importedAt: st.importedAt
+        ? new Date(st.importedAt).toLocaleString('de-DE', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+          }) + ' Uhr'
+        : null,
+      fileName: st.fileName,
+      importedBy: st.importedBy,
+      rowCount: st.rowCount,
+    }
+  } catch {
+    // Ohne Status bleibt der Upload trotzdem nutzbar.
   }
   let availability: Availability | null = null
   try {
@@ -118,7 +145,13 @@ export default async function CockpitPage() {
       </header>
 
       <main className="cx-wrap">
-        <Kundencheck />
+        {showKundencheck && <Kundencheck />}
+
+        {/* Patris-Ticketdaten für den Kundencheck */}
+        <h2 className="cx-h2">
+          Ticketdaten <span>· Patris-CSV für den Kundencheck</span>
+        </h2>
+        <PatrisUpload status={patris} />
 
         {/* KPI */}
         <h2 className="cx-h2">Letzte 24 Stunden</h2>
@@ -237,8 +270,8 @@ function NoAccess() {
       <div className="cx-noaccess">
         <h1>Kein Zugriff</h1>
         <p>
-          Für das Migrations-Cockpit ist die Rolle <code>support</code> erforderlich. Ihr Konto hat
-          diese Rolle nicht.
+          Für das Migrations-Cockpit ist die Rolle <code>{cockpitRole()}</code> (oder{' '}
+          <code>{supportRole()}</code>) erforderlich. Ihr Konto hat diese Rolle nicht.
         </p>
         <a className="cx-btn" href="/api/auth/logout">
           Abmelden

@@ -221,3 +221,226 @@
     padding: 14px 0 0 0;
   }
 }
+
+/* --- Ergebnis-Kopf mit Ampel (Ticket laut Patris) --- */
+.cx-result {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  padding: 18px 20px;
+  border: 1px solid var(--swl-hairline);
+  border-left-width: 3px;
+  border-radius: var(--radius);
+  background: var(--swl-surface-muted);
+}
+.cx-result--ok {
+  border-left-color: var(--swl-status-green);
+}
+.cx-result--warn {
+  border-left-color: var(--swl-yellow);
+}
+.cx-result--no {
+  border-left-color: var(--swl-pink);
+}
+.cx-result--off {
+  border-left-color: var(--swl-hairline);
+}
+.cx-result-body {
+  flex: 1;
+  min-width: 0;
+}
+.cx-result-kicker {
+  font-size: 12px;
+  color: var(--swl-label-gray);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.cx-result-title {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  margin: 4px 0 8px;
+}
+.cx-result-text {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.55;
+  max-width: 68ch;
+  white-space: pre-line;
+}
+
+/* Ampel: schwarzes Gehäuse, drei Lichter; nur das zutreffende leuchtet. */
+.cx-light {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 9px;
+  background: var(--swl-black);
+  border-radius: var(--radius);
+}
+.cx-light-l {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--swl-label-gray);
+  opacity: 0.35;
+}
+.cx-light-l.on {
+  opacity: 1;
+}
+.cx-light-l--no.on {
+  background: var(--swl-pink);
+}
+.cx-light-l--warn.on {
+  background: var(--swl-yellow);
+}
+.cx-light-l--ok.on {
+  background: var(--swl-status-green);
+}
+
+/* --- Ticketdetails --- */
+.cx-ticket {
+  margin-top: 14px;
+  border: 1px solid var(--swl-hairline);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+}
+.cx-ticket-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px 24px;
+  margin: 0;
+}
+.cx-ticket-grid dt {
+  font-size: 12px;
+  color: var(--swl-label-gray);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 3px;
+}
+.cx-ticket-grid dd {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.cx-ticket-wide {
+  grid-column: span 3;
+}
+.cx-ticket-wide dd {
+  font-size: 16px;
+  font-weight: 700;
+}
+.cx-ticket-sub {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--swl-label-gray);
+}
+.cx-ticket-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cx-mono {
+  font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  font-weight: 400 !important;
+  font-size: 13px !important;
+}
+.cx-ticket-more {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--swl-hairline);
+}
+.cx-asof {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--swl-label-gray);
+}
+.cx-check-cols--sep {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--swl-hairline);
+}
+
+@media (max-width: 700px) {
+  .cx-result {
+    gap: 14px;
+    padding: 14px;
+  }
+  .cx-ticket-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .cx-ticket-wide {
+    grid-column: span 2;
+  }
+}
+
+/* --- Käufe in der LüMobil-App (Ticket-API) --- */
+.cx-buy {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--swl-hairline);
+}
+.cx-buy-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 13.5px;
+}
+.cx-buy-scroll {
+  overflow-x: auto;
+  margin-top: 8px;
+}
+.cx-buy-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.cx-buy-table th {
+  text-align: left;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--swl-label-gray);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0 12px 6px 0;
+  border-bottom: 1px solid var(--swl-hairline);
+  white-space: nowrap;
+}
+.cx-buy-table td {
+  padding: 7px 12px 7px 0;
+  vertical-align: top;
+}
+.cx-buy-table tr.first td {
+  border-top: 1px solid #ededed;
+}
+.cx-buy-table tbody tr:first-child td {
+  border-top: none;
+}
+.cx-buy-table tr.cont td {
+  padding-top: 0;
+}
+.cx-buy-table .num {
+  text-align: right;
+  white-space: nowrap;
+}
+.cx-buy-date {
+  white-space: nowrap;
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+  color: var(--swl-label-gray);
+}
+.cx-buy-sku {
+  color: var(--swl-label-gray);
+}
+.cx-buy-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+.cx-buy-more {
+  margin-top: 8px;
+}

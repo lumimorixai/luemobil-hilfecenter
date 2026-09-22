@@ -10,3 +10,5 @@ dist/
 .DS_Store
 *.tsbuildinfo
 next-env.d.ts
+# Secret-Dateien (z. B. Ticket-API-Token), per Docker-Volume eingebunden
+/secrets/

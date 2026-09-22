@@ -77,6 +77,7 @@ export interface Config {
     roadmap: Roadmap;
     'cockpit-daily': CockpitDaily;
     'health-checks': HealthCheck;
+    'patris-entitlements': PatrisEntitlement;
     media: Media;
     users: User;
     'payload-kv': PayloadKv;
@@ -96,6 +97,7 @@ export interface Config {
     roadmap: RoadmapSelect<false> | RoadmapSelect<true>;
     'cockpit-daily': CockpitDailySelect<false> | CockpitDailySelect<true>;
     'health-checks': HealthChecksSelect<false> | HealthChecksSelect<true>;
+    'patris-entitlements': PatrisEntitlementsSelect<false> | PatrisEntitlementsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
@@ -107,8 +109,14 @@ export interface Config {
     defaultIDType: number;
   };
   fallbackLocale: null;
-  globals: {};
-  globalsSelect: {};
+  globals: {
+    'kundencheck-hinweise': KundencheckHinweise;
+    'patris-import': PatrisImport;
+  };
+  globalsSelect: {
+    'kundencheck-hinweise': KundencheckHinweiseSelect<false> | KundencheckHinweiseSelect<true>;
+    'patris-import': PatrisImportSelect<false> | PatrisImportSelect<true>;
+  };
   locale: null;
   widgets: {
     collections: CollectionsWidget;
@@ -451,6 +459,26 @@ export interface HealthCheck {
   createdAt: string;
 }
 /**
+ * Ticketberechtigungen aus dem Patris-Export. Befüllung ausschließlich per CSV-Upload im Migrations-Cockpit (ersetzt den gesamten Bestand).
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "patris-entitlements".
+ */
+export interface PatrisEntitlement {
+  id: number;
+  entitlementId: string;
+  validFrom?: string | null;
+  validUntil?: string | null;
+  productNumber?: string | null;
+  productName?: string | null;
+  customerNumber?: string | null;
+  email?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
@@ -543,6 +571,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'health-checks';
         value: number | HealthCheck;
+      } | null)
+    | ({
+        relationTo: 'patris-entitlements';
+        value: number | PatrisEntitlement;
       } | null)
     | ({
         relationTo: 'media';
@@ -816,6 +848,23 @@ export interface HealthChecksSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "patris-entitlements_select".
+ */
+export interface PatrisEntitlementsSelect<T extends boolean = true> {
+  entitlementId?: T;
+  validFrom?: T;
+  validUntil?: T;
+  productNumber?: T;
+  productName?: T;
+  customerNumber?: T;
+  email?: T;
+  firstName?: T;
+  lastName?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media_select".
  */
 export interface MediaSelect<T extends boolean = true> {
@@ -895,6 +944,160 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   batch?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * Texte, die der Kundencheck je Situation anzeigt. Platzhalter: {produkt}, {von}, {bis}, {vorname}, {nachname}, {kundennummer} (Patris) sowie {kaufdatum}, {kaufprodukt}, {bestellnummer} (letzter erfolgreicher Kauf in der App).
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "kundencheck-hinweise".
+ */
+export interface KundencheckHinweise {
+  id: number;
+  /**
+   * Laut Patris ist heute ein Ticket gültig, es gibt ein Keycloak-Konto und in der App wurde kürzlich ein Ticket ausgeliefert (oder die Kaufdaten sind nicht abrufbar).
+   */
+  aktivMitKonto?: {
+    titel?: string | null;
+    text?: string | null;
+  };
+  /**
+   * Laut Patris ist heute ein Ticket gültig und es gibt ein Konto, in der App wurde in den letzten 35 Tagen aber kein Ticket erfolgreich ausgeliefert.
+   */
+  aktivOhneKauf?: {
+    titel?: string | null;
+    text?: string | null;
+  };
+  /**
+   * Laut Patris ist heute ein Ticket gültig, in Keycloak gibt es aber noch kein Konto.
+   */
+  aktivOhneKonto?: {
+    titel?: string | null;
+    text?: string | null;
+  };
+  /**
+   * Laut Patris ist ein Ticket vorgesehen, dessen Gültigkeit noch nicht begonnen hat.
+   */
+  zukuenftig?: {
+    titel?: string | null;
+    text?: string | null;
+  };
+  /**
+   * Laut Patris gibt es nur Tickets, deren Gültigkeit bereits abgelaufen ist.
+   */
+  abgelaufen?: {
+    titel?: string | null;
+    text?: string | null;
+  };
+  /**
+   * Zur E-Mail-Adresse bzw. Kundennummer gibt es in den Patris-Daten keinen Eintrag.
+   */
+  keinTicket?: {
+    titel?: string | null;
+    text?: string | null;
+  };
+  /**
+   * Laut Patris ist aktuell kein Ticket vorgesehen (oder es liegen keine Patris-Daten vor), in der App wurde aber in den letzten 35 Tagen ein Ticket erfolgreich ausgeliefert.
+   */
+  appKauf?: {
+    titel?: string | null;
+    text?: string | null;
+  };
+  /**
+   * Im Migrations-Cockpit wurde noch keine Patris-CSV hochgeladen.
+   */
+  keineDaten?: {
+    titel?: string | null;
+    text?: string | null;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Letzter CSV-Upload der Patris-Ticketdaten (Upload im Migrations-Cockpit).
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "patris-import".
+ */
+export interface PatrisImport {
+  id: number;
+  importedAt?: string | null;
+  fileName?: string | null;
+  importedBy?: string | null;
+  rowCount?: number | null;
+  skippedRows?: number | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "kundencheck-hinweise_select".
+ */
+export interface KundencheckHinweiseSelect<T extends boolean = true> {
+  aktivMitKonto?:
+    | T
+    | {
+        titel?: T;
+        text?: T;
+      };
+  aktivOhneKauf?:
+    | T
+    | {
+        titel?: T;
+        text?: T;
+      };
+  aktivOhneKonto?:
+    | T
+    | {
+        titel?: T;
+        text?: T;
+      };
+  zukuenftig?:
+    | T
+    | {
+        titel?: T;
+        text?: T;
+      };
+  abgelaufen?:
+    | T
+    | {
+        titel?: T;
+        text?: T;
+      };
+  keinTicket?:
+    | T
+    | {
+        titel?: T;
+        text?: T;
+      };
+  appKauf?:
+    | T
+    | {
+        titel?: T;
+        text?: T;
+      };
+  keineDaten?:
+    | T
+    | {
+        titel?: T;
+        text?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "patris-import_select".
+ */
+export interface PatrisImportSelect<T extends boolean = true> {
+  importedAt?: T;
+  fileName?: T;
+  importedBy?: T;
+  rowCount?: T;
+  skippedRows?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

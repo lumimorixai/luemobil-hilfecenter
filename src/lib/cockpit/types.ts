@@ -61,12 +61,68 @@ export type EventItem = {
   clientId?: string
 }
 
-/** Ergebnis des Kundenchecks: Keycloak-Status + letzte Ereignisse + Verdikt. */
+/** Gültigkeitsstatus eines einzelnen Patris-Tickets (bezogen auf „jetzt"). */
+export type TicketStatus = 'aktiv' | 'zukuenftig' | 'abgelaufen'
+
+/** Ein Ticket laut Patris, fertig formatiert für die Anzeige. */
+export type TicketItem = {
+  entitlementId: string
+  productName: string
+  productNumber: string
+  /** TT.MM.JJJJ oder leer. */
+  validFrom: string
+  validUntil: string
+  customerNumber: string
+  firstName: string
+  lastName: string
+  status: TicketStatus
+}
+
+/** Eine Position einer Bestellung in der LüMobil-App (Ticket-API). */
+export type PurchaseItem = {
+  produkt: string
+  sku: string
+  menge: number
+  /** Formatiert, z. B. „63,00 €" (Einzelpreis brutto). */
+  preis: string
+  status: string
+  erfolgreich: boolean
+}
+
+/** Eine Bestellung (Positionen gruppiert nach Bestellnummer). */
+export type PurchaseOrder = {
+  bestellnummer: string
+  /** „TT.MM.JJJJ, HH:MM Uhr" (deutsche Ortszeit). */
+  gekauftAm: string
+  items: PurchaseItem[]
+}
+
+/** Ampelfarbe (grün / gelb / rot / aus). */
+export type Lamp = 'ok' | 'warn' | 'no' | 'off'
+
+/** Ergebnis des Kundenchecks: Ticket-Ampel + Keycloak-Status + Ereignisse. */
 export type Diagnosis = {
   keycloak: DiagnosisStep
   /** Bis zu 10 letzte Ereignisse, neueste zuerst. */
   events: EventItem[]
-  verdict: { kind: VerdictKind; text: string }
+  ticket: {
+    lamp: Lamp
+    /** Kurzstatus, z. B. „Gültig bis 31.12.2026". */
+    label: string
+    /** Relevantestes Ticket zuerst (gültig → zukünftig → abgelaufen). */
+    tickets: TicketItem[]
+    /** Stand der Patris-Daten („TT.MM.JJJJ, HH:MM Uhr") oder null ohne Upload. */
+    dataAsOf: string | null
+  }
+  /** Bestellungen in der LüMobil-App (Ticket-API), neueste zuerst. */
+  purchases: {
+    /** error = Ticket-API nicht erreichbar/nicht konfiguriert (message erklärt es). */
+    state: 'ok' | 'error'
+    message?: string
+    orders: PurchaseOrder[]
+  }
+  /** Hinweis für das Servicecenter (Texte aus dem CMS). */
+  verdict: { kind: Lamp; title: string; text: string }
 }
 
 /** Ein Tages-Aggregat der Zeitreihe (entspricht der Collection cockpit-daily). */

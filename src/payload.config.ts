@@ -20,6 +20,9 @@ import { QuestionSubmissions } from './collections/QuestionSubmissions'
 import { RoadmapGroups } from './collections/RoadmapGroups'
 import { CockpitDaily } from './collections/CockpitDaily'
 import { HealthChecks } from './collections/HealthChecks'
+import { PatrisEntitlements } from './collections/PatrisEntitlements'
+import { KundencheckHinweise } from './globals/KundencheckHinweise'
+import { PatrisImport } from './globals/PatrisImport'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -75,9 +78,11 @@ export default buildConfig({
     RoadmapGroups,
     CockpitDaily,
     HealthChecks,
+    PatrisEntitlements,
     Media,
     Users,
   ],
+  globals: [KundencheckHinweise, PatrisImport],
   editor: lexicalEditor(),
   // E-Mail-Versand per SMTP (nur aktiv, wenn SMTP_HOST gesetzt ist — sonst
   // schreibt Payload Mails in die Konsole, praktisch für die Entwicklung).

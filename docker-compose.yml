@@ -44,7 +44,10 @@ services:
       COCKPIT_ENV: ${COCKPIT_ENV:-live}
       KEYCLOAK_URL: ${KEYCLOAK_URL:-}
       APP_BASE_URL: ${APP_BASE_URL:-${NEXT_PUBLIC_SERVER_URL:-http://localhost:3000}}
+      # Rollen: support = Kundencheck + Cockpit; kundencheck / cockpit = jeweils nur ein Bereich
       COCKPIT_SUPPORT_ROLE: ${COCKPIT_SUPPORT_ROLE:-support}
+      COCKPIT_ROLE_KUNDENCHECK: ${COCKPIT_ROLE_KUNDENCHECK:-kundencheck}
+      COCKPIT_ROLE_MIGRATION: ${COCKPIT_ROLE_MIGRATION:-cockpit}
       KEYCLOAK_REALM: ${KEYCLOAK_REALM:-mpluebeck}
       COCKPIT_CLIENT_ID: ${COCKPIT_CLIENT_ID:-}
       COCKPIT_CLIENT_SECRET: ${COCKPIT_CLIENT_SECRET:-}
@@ -62,8 +65,16 @@ services:
       ALERT_FAIL_THRESHOLD: ${ALERT_FAIL_THRESHOLD:-2}
       # Shared Secret für die HTTP-getriggerten Cron-Jobs (Health/Report/Aggregat)
       CRON_SECRET: ${CRON_SECRET:-}
+      # --- LüMobil Ticket-API (App-Käufe im Kundencheck) ---
+      # Token liegt als Datei in ./secrets (nicht im Repo); Austausch der Datei
+      # wirkt sofort, ohne Neustart/Deployment.
+      LUEMOBIL_API_URL: ${LUEMOBIL_API_URL:-}
+      LUEMOBIL_API_TOKEN_FILE: ${LUEMOBIL_API_TOKEN_FILE:-/run/secrets/app/luemobil_api_token}
+      LUEMOBIL_API_CA: ${LUEMOBIL_API_CA:-}
     volumes:
       - media:/app/media
+      # Verzeichnis (nicht Einzeldatei) mounten, damit ein Austausch der Datei im Container ankommt.
+      - ./secrets:/run/secrets/app:ro
     depends_on:
       postgres:
         condition: service_healthy

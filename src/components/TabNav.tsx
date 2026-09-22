@@ -13,7 +13,13 @@ const TABS = [
   { href: '/testen', label: 'Testen & Mitmachen' },
 ]
 
-export function TabNav({ showCockpit = false }: { showCockpit?: boolean }) {
+export function TabNav({
+  showKundencheck = false,
+  showCockpit = false,
+}: {
+  showKundencheck?: boolean
+  showCockpit?: boolean
+}) {
   const pathname = usePathname()
 
   return (
@@ -30,21 +36,24 @@ export function TabNav({ showCockpit = false }: { showCockpit?: boolean }) {
             </Link>
           )
         })}
-        {/* Interne Support-Reiter, nur bei bestehender Support-Session. */}
+        {/* Interne Reiter, jeweils nur mit der passenden Berechtigung. */}
+        {showKundencheck && (
+          <Link
+            href="/kundencheck"
+            className={`lm-tab lm-tab--support lm-tab--support-first${
+              pathname.startsWith('/kundencheck') ? ' active' : ''
+            }`}
+          >
+            Kundencheck
+          </Link>
+        )}
         {showCockpit && (
-          <>
-            <Link
-              href="/kundencheck"
-              className={`lm-tab lm-tab--support lm-tab--support-first${
-                pathname.startsWith('/kundencheck') ? ' active' : ''
-              }`}
-            >
-              Kundencheck
-            </Link>
-            <Link href="/cockpit" className="lm-tab lm-tab--support">
-              Migrations-Cockpit
-            </Link>
-          </>
+          <Link
+            href="/cockpit"
+            className={`lm-tab lm-tab--support${showKundencheck ? '' : ' lm-tab--support-first'}`}
+          >
+            Migrations-Cockpit
+          </Link>
         )}
       </nav>
     </div>

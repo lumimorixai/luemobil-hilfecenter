@@ -5,7 +5,15 @@ import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { TabNav } from '@/components/TabNav'
 import { HeroSearch } from '@/components/HeroSearch'
-import { getCockpitSession, isSupport, supportRole } from '@/lib/auth/guard'
+import {
+  canCockpit,
+  canKundencheck,
+  cockpitRole,
+  getCockpitSession,
+  isInternal,
+  kundencheckRole,
+  supportRole,
+} from '@/lib/auth/guard'
 import '@fontsource-variable/inter'
 import './globals.css'
 
@@ -17,10 +25,10 @@ export const metadata: Metadata = {
 
 export default async function FrontendLayout({ children }: { children: React.ReactNode }) {
   const session = await getCockpitSession()
-  const support = isSupport(session)
+  const support = isInternal(session)
 
   // Site-weiter Keycloak-Schutz (statt Basic Auth), aktiv per SITE_KEYCLOAK_AUTH.
-  // Eine Rolle (support) schaltet die gesamte Seite frei.
+  // Jede interne Rolle (Kundencheck, Cockpit oder support) schaltet die Seite frei.
   if (process.env.SITE_KEYCLOAK_AUTH === 'true') {
     if (!session) {
       const path = (await headers()).get('x-pathname') || '/'
@@ -29,8 +37,9 @@ export default async function FrontendLayout({ children }: { children: React.Rea
     if (!support) return <NoAccessSite />
   }
 
-  // Cockpit-Reiter nur einblenden, wenn eine Support-Session besteht.
-  const showCockpit = support
+  // Interne Reiter nur mit der jeweiligen Berechtigung einblenden.
+  const showKundencheck = canKundencheck(session)
+  const showCockpit = canCockpit(session)
   return (
     <html lang="de">
       <body>
@@ -107,7 +116,7 @@ export default async function FrontendLayout({ children }: { children: React.Rea
         </header>
         <div className="lm-container">
           <Suspense fallback={<div className="lm-tabbar" />}>
-            <TabNav showCockpit={showCockpit} />
+            <TabNav showKundencheck={showKundencheck} showCockpit={showCockpit} />
           </Suspense>
         </div>
         <main className="lm-main lm-container">{children}</main>
@@ -126,7 +135,7 @@ export default async function FrontendLayout({ children }: { children: React.Rea
   )
 }
 
-/** Angemeldet, aber ohne Rolle „support" — kein Zugriff auf die (Test-)Seite. */
+/** Angemeldet, aber ohne interne Rolle — kein Zugriff auf die (Test-)Seite. */
 function NoAccessSite() {
   return (
     <html lang="de">
@@ -134,8 +143,9 @@ function NoAccessSite() {
         <div className="lm-topbar" aria-hidden="true" />
         <main className="lm-container" style={{ maxWidth: 560, padding: '64px 24px' }}>
           <div className="lm-short" style={{ marginBottom: 20 }}>
-            <strong>Kein Zugriff.</strong> Für diesen Bereich ist die Rolle{' '}
-            <code>{supportRole()}</code> erforderlich. Ihr Konto hat diese Rolle nicht.
+            <strong>Kein Zugriff.</strong> Für diesen Bereich ist eine der Rollen{' '}
+            <code>{kundencheckRole()}</code>, <code>{cockpitRole()}</code> oder{' '}
+            <code>{supportRole()}</code> erforderlich. Ihr Konto hat keine davon.
           </div>
           <a className="lm-mini" href="/api/auth/logout">
             Abmelden
