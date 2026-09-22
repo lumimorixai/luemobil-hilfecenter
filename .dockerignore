@@ -18,6 +18,8 @@ out
 .env
 .env.*
 !.env.example
+secrets
+*.swp
 
 # Lokale Datenbank & Uploads (Prod nutzt Postgres bzw. das media-Volume)
 *.db

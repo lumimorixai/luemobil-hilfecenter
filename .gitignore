@@ -1,6 +1,8 @@
 node_modules/
 .next/
 .env
+.env.*
+!.env.example
 *.db
 *.db-*
 # Nur das Laufzeit-Medienverzeichnis am Projektstamm ignorieren
@@ -12,3 +14,10 @@ dist/
 next-env.d.ts
 # Secret-Dateien (z. B. Ticket-API-Token), per Docker-Volume eingebunden
 /secrets/
+# Editor-Auslagerungsdateien (können Secrets aus .env enthalten!)
+*.swp
+*.swo
+*~
+# Kopier-Dubletten von Finder/iCloud („datei 2.ts")
+* 2.*
+* 2
