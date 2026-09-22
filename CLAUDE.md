@@ -29,6 +29,8 @@ Hosting: eigener VPS via Docker Compose + Caddy.
 - `src/components/` – React-Komponenten (HelpCenter mit Suche ist Client-Komponente)
 - `src/seed/seed.ts` – Erstimport aus legacy/luemobil-data.js mit Zähl-Check (5 Artikel/7 FAQ/10 Kapitel/15 Fehler/5 Fragen-Gruppen)
 - `legacy/` – Original-Dateien, NUR LESEN, nie ändern
+- `docs/` – Betriebs- und Fachdoku (Architektur, Keycloak, Backup, Datenschutz, Servicecenter, Testen); `scripts/backup.sh` – Prod-Backup
+- Bei jeder nutzerrelevanten Änderung `CHANGELOG.md` ergänzen (inkl. manueller Update-Schritte)
 
 ## Konventionen
 - SWL-Design-System ist verbindlich → Skill `.claude/skills/swl-design-system` lesen

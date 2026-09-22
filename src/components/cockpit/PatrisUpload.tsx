@@ -21,6 +21,11 @@ function de(n: number): string {
   return n.toLocaleString('de-DE')
 }
 
+/** „1 Zeile" / „3 Zeilen" */
+function count(n: number, one: string, many: string): string {
+  return `${de(n)} ${n === 1 ? one : many}`
+}
+
 export function PatrisUpload({ status }: { status: PatrisUploadStatus }) {
   const router = useRouter()
   const inputRef = useRef<HTMLInputElement>(null)
@@ -40,9 +45,9 @@ export function PatrisUpload({ status }: { status: PatrisUploadStatus }) {
       const res = await fetch('/api/cockpit/patris', { method: 'POST', body })
       const data = await res.json().catch(() => ({}))
       if (res.ok && data.ok) {
-        const parts = [`${de(data.rowCount)} Tickets übernommen`]
-        if (data.skippedRows) parts.push(`${de(data.skippedRows)} Zeilen ohne entitlement_id übersprungen`)
-        if (data.invalidDates) parts.push(`${de(data.invalidDates)} Zeilen mit unlesbarem Datum`)
+        const parts = [`${count(data.rowCount, 'Ticket', 'Tickets')} übernommen`]
+        if (data.skippedRows) parts.push(`${count(data.skippedRows, 'Zeile', 'Zeilen')} ohne entitlement_id übersprungen`)
+        if (data.invalidDates) parts.push(`${count(data.invalidDates, 'Zeile', 'Zeilen')} mit unlesbarem Datum`)
         setResult({ kind: 'ok', text: parts.join(' · ') })
         if (inputRef.current) inputRef.current.value = ''
         setFileName(null)

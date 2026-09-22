@@ -15,6 +15,13 @@ siehe `KUNDENCHECK-COCKPIT.md`.
 | `README.md` | Überblick, lokale Entwicklung, Befehle (diese Datei) |
 | `LIVE-GEHEN.md` | Server-Deployment Schritt für Schritt, Cockpit-Einrichtung, Updates |
 | `KUNDENCHECK-COCKPIT.md` | Kundencheck & Cockpit: Rollen, Ampel-Logik, Patris-CSV, Ticket-API, Betrieb |
+| `docs/SERVICECENTER.md` | Kurzanleitung Kundencheck für das Servicecenter (Ampel lesen, Eskalation) |
+| `docs/ARCHITEKTUR.md` | Systemübersicht mit Diagrammen, Datenflüsse, Umgebungen |
+| `docs/KEYCLOAK-EINRICHTUNG.md` | Keycloak-Clients, Rollen, Events Schritt für Schritt |
+| `docs/BACKUP-RESTORE.md` | Datensicherung (`scripts/backup.sh`) und Wiederherstellung |
+| `docs/DATENSCHUTZ.md` | Verarbeitete personenbezogene Daten, TOMs, offene Punkte |
+| `docs/TESTEN.md` | Testumgebung, Testpersonen, Release-Checkliste |
+| `CHANGELOG.md` | Änderungen je Update und manuelle Update-Schritte |
 | `PAYLOAD-CMS-ANLEITUNG.md` | CMS für Redakteur:innen (Teil A) und Weiterentwicklung/Migrationen (Teil B) |
 | `JIRA-EXPORT.md` | Bekannte Fehler als CSV nach Jira exportieren |
 | `keycloak-theme/README.md` | SWL-Login-Theme für Keycloak |

@@ -293,7 +293,8 @@ docker compose logs -f app
 
 ### 9c. Keycloak einrichten (einmalig, nur Konfiguration)
 
-Im Keycloak-Admin:
+Ausführliche Anleitung mit allen Einstellungen: `docs/KEYCLOAK-EINRICHTUNG.md`.
+Kurzfassung im Keycloak-Admin:
 
 - **Login-Client** (Realm `swl-intern`): gültige **Redirect-URI**
   `<DOMAIN>/api/auth/callback` und Post-Logout-URL `<DOMAIN>/` eintragen.
@@ -397,7 +398,8 @@ Die Inhalte in der Datenbank bleiben dabei erhalten (der Auto-Import überspring
 eine bereits gefüllte Datenbank). Neue Tabellen/Spalten legen die Migrationen
 beim Start automatisch an.
 
-Prüfe nach dem Update, ob `.env.example` neue Werte enthält
+Was bei einem Update von Hand zu tun ist, steht je Version in `CHANGELOG.md`.
+Prüfe nach dem Update außerdem, ob `.env.example` neue Werte enthält
 (`git diff HEAD@{1} -- .env.example`), und ergänze sie bei Bedarf in der `.env`.
 
 **Update vom 22.09.2026** (Kundencheck-Ampel, Patris, Rollentrennung): danach
@@ -414,9 +416,9 @@ Datenbank sichern:
 docker compose exec postgres pg_dump -U luemobil luemobil > backup-$(date +%F).sql
 ```
 
-Die hochgeladenen Bilder liegen im Docker-Volume `media`. Für ein automatisches
-tägliches Backup kann man beides in einen Cronjob packen — sag Bescheid, dann
-richte ich dir das Skript ein.
+Die hochgeladenen Bilder liegen im Docker-Volume `media`. Für die automatische
+tägliche Sicherung beider Teile gibt es `scripts/backup.sh` — Einrichtung,
+Wiederherstellung und Test: `docs/BACKUP-RESTORE.md`.
 
 ---
 

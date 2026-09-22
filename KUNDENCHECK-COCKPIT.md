@@ -10,7 +10,9 @@ Konfiguration funktionieren und was im Betrieb zu tun ist.
 - **Migrations-Cockpit** (`/cockpit`): Monitoring der Keycloak-Migration
   (Kennzahlen, Verfügbarkeit, Fehler, Reports) und Upload der Patris-Ticketdaten.
 
-Server-Einrichtung (Keycloak-Clients, Cron, `.env`): siehe `LIVE-GEHEN.md`, Abschnitt 9.
+Server-Einrichtung (Cron, `.env`): `LIVE-GEHEN.md`, Abschnitt 9 · Keycloak:
+`docs/KEYCLOAK-EINRICHTUNG.md` · Anleitung für Mitarbeitende:
+`docs/SERVICECENTER.md` · Datenschutz: `docs/DATENSCHUTZ.md`.
 
 ---
 
@@ -133,6 +135,7 @@ Upload im **Migrations-Cockpit → Ticketdaten** (Rolle `cockpit`/`support`).
 - Speicher: Tabelle `patris_entitlements` (Postgres in Produktion), Stand des
   Uploads im Global `patris-import`. Im Admin nur lesbar.
 - Code: `src/lib/cockpit/patris.ts`, `src/app/api/cockpit/patris/route.ts`.
+- Beispieldatei mit Testdaten: `docs/beispiele/patris-beispiel.csv`.
 
 > Geplant: Der manuelle Upload ist die Übergangslösung; später soll die
 > Befüllung automatisch laufen.

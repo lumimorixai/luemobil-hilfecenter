@@ -315,8 +315,8 @@ Datenbank sichern (auf dem Server):
 ```bash
 docker compose exec postgres pg_dump -U luemobil luemobil > backup-$(date +%F).sql
 ```
-Die Bilder liegen im Docker-Volume `media`. Details und Deployment-Schritte:
-`LIVE-GEHEN.md`.
+Die Bilder liegen im Docker-Volume `media`. Automatische Sicherung und
+Wiederherstellung: `docs/BACKUP-RESTORE.md`; Deployment: `LIVE-GEHEN.md`.
 
 ## B9. Verwandte Dokumente
 
@@ -324,6 +324,8 @@ Die Bilder liegen im Docker-Volume `media`. Details und Deployment-Schritte:
 - `KUNDENCHECK-COCKPIT.md` — Kundencheck & Migrations-Cockpit (Rollen, Ampel,
   Patris-CSV, Ticket-API)
 - `JIRA-EXPORT.md` — Fehler nach Jira exportieren
+- `docs/` — Architektur, Keycloak, Backup, Datenschutz, Servicecenter, Testen
+- `CHANGELOG.md` — Änderungen und Update-Schritte je Version
 - `CLAUDE.md` — Projektgedächtnis & Roadmap
 - `.claude/skills/content-model` und `.claude/skills/swl-design-system` — Modell
   und Design-Regeln (auch für die Arbeit mit Claude Code)

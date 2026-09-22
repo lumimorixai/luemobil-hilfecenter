@@ -1,0 +1,6 @@
+entitlement_id;display_validity_begin;display_validity_end;product_mnumber;product_name;customer_number;email;first_name;last_name;weitere_spalte
+TEST-0001;01.01.2026;31.12.2027;M4711;Deutschlandticket;K-900001;anna.albers@example.de;Anna;Albers;wird ignoriert
+TEST-0002;2026-01-01;2027-12-31;M4711;Deutschlandticket;K-900002;bernd.behn@example.de;Bernd;Behn;wird ignoriert
+TEST-0003;01.01.2027;31.12.2027;M4712;Deutschlandticket Job;K-900003;dora.dietz@example.de;Dora;Dietz;
+TEST-0004;01.01.2025;30.06.2025;M4711;Deutschlandticket;K-900004;erik.ernst@example.de;Erik;Ernst;
+;01.01.2026;31.12.2026;M4711;Zeile ohne ID wird übersprungen;K-900005;x@example.de;X;Y;
