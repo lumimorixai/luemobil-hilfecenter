@@ -189,9 +189,11 @@ async function fetchEvents(
   dateTo: string,
   types?: string[],
   max = 5000,
+  userId?: string,
 ): Promise<KcEvent[]> {
   const params = new URLSearchParams()
   for (const t of types ?? []) params.append('type', t)
+  if (userId) params.set('user', userId)
   params.set('dateFrom', dateFrom)
   params.set('dateTo', dateTo)
   params.set('max', String(max))
@@ -232,16 +234,27 @@ export async function getEventsSince(sinceMs: number): Promise<KcEvent[]> {
   return events.filter((e) => Date.parse(e.time) >= sinceMs)
 }
 
-/** Letzte Login-Ereignisse zu einer E-Mail (Schritt 3 des Kundenchecks). */
-export async function getRecentUserEvents(email: string, max = 5): Promise<KcEvent[]> {
+/**
+ * Letzte Login-Ereignisse (14 Tage) zu einem Kunden (Kundencheck).
+ * Mit User-ID filtert Keycloak serverseitig nach dem Konto — vollständig,
+ * unabhängig vom übrigen Event-Aufkommen. Ohne Konto (userId leer) bleibt nur
+ * der Abgleich über den eingegebenen Benutzernamen, z. B. für
+ * `user_not_found`-Fehlversuche, die keine User-ID tragen.
+ */
+export async function getRecentUserEvents(
+  email: string,
+  userId?: string,
+  max = 5,
+): Promise<KcEvent[]> {
   if (isMock()) return mockRecentUserEvents(email)
   const from = isoDate(new Date(Date.now() - 14 * 24 * 60 * 60 * 1000))
   const to = isoDate(new Date(Date.now() + 24 * 60 * 60 * 1000))
-  const events = await fetchEvents(from, to, LOGIN_TYPES)
-  return events
-    .filter((e) => (e.username ?? '').toLowerCase() === email.toLowerCase())
-    .sort((a, b) => b.time.localeCompare(a.time))
-    .slice(0, max)
+  const events = userId
+    ? await fetchEvents(from, to, LOGIN_TYPES, max, userId)
+    : (await fetchEvents(from, to, LOGIN_TYPES)).filter(
+        (e) => (e.username ?? '').toLowerCase() === email.toLowerCase(),
+      )
+  return events.sort((a, b) => b.time.localeCompare(a.time)).slice(0, max)
 }
 
 /**

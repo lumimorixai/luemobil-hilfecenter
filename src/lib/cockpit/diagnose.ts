@@ -45,7 +45,7 @@ export async function runCustomerCheck(email: string): Promise<Diagnosis> {
       }
 
   // Letzte Ereignisse — bis zu 10, neueste zuerst
-  const raw = await getRecentUserEvents(email, 10)
+  const raw = await getRecentUserEvents(email, kcUser?.id, 10)
   const events: EventItem[] = raw
     .slice()
     .sort((a, b) => b.time.localeCompare(a.time))
