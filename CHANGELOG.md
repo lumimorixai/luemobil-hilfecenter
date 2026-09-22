@@ -4,6 +4,11 @@ Neueste Änderungen oben. Je Eintrag: was neu ist und **was beim Update von Hand
 zu tun ist**. Allgemeiner Update-Ablauf: `LIVE-GEHEN.md`, „Später: Updates
 einspielen".
 
+## 2026-09-22 — Impressum und Datenschutz
+
+- Footer der öffentlichen Seiten verlinkt Impressum und Datenschutzerklärung der
+  Stadtwerke Lübeck (swhl.de). Kein manueller Update-Schritt.
+
 ## 2026-09-22 — Kundencheck-Ampel, Patris, Ticket-API, Rollentrennung
 
 **Neu**

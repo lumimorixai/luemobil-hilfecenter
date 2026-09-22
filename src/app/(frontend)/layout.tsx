@@ -126,6 +126,15 @@ export default async function FrontendLayout({ children }: { children: React.Rea
             LüMobil — Stadtwerke Lübeck Digital GmbH · Geniner Straße 80, 23560 Lübeck ·{' '}
             <a href="mailto:mobil@swhl.de">mobil@swhl.de</a>
           </span>
+          {/* Impressum und Datenschutz liegen bei den Stadtwerken Lübeck (SWHL). */}
+          <span className="lm-footer-legal">
+            <a href="https://www.swhl.de/impressum/" target="_blank" rel="noopener noreferrer">
+              Impressum
+            </a>
+            <a href="https://www.swhl.de/datenschutz/" target="_blank" rel="noopener noreferrer">
+              Datenschutz
+            </a>
+          </span>
           <a className="lm-intern-link" href={support ? '/api/auth/logout' : '/api/auth/login?next=/cockpit'}>
             {support ? 'Abmelden' : 'Intern anmelden'}
           </a>

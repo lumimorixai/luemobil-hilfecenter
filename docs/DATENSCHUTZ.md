@@ -79,8 +79,12 @@ Zugriff nur für Mitarbeitende mit Rolle `kundencheck`, `cockpit` oder
 
 ## 5. Offene Punkte für die Verantwortlichen
 
-1. **Impressum und Datenschutzerklärung fehlen auf der öffentlichen Website.**
-   Vor dem öffentlichen Livegang ergänzen (Seiten + Links im Footer).
+1. **Impressum und Datenschutzerklärung** sind seit 22.09.2026 im Footer jeder
+   öffentlichen Seite auf die SWHL-Seiten verlinkt
+   (`https://www.swhl.de/impressum/`, `https://www.swhl.de/datenschutz/`).
+   **[offen: prüfen, ob die SWHL-Datenschutzerklärung das Hilfecenter abdeckt —
+   insbesondere die Formulare (V2, V3) und den Kundencheck (V6); sonst dort
+   ergänzen lassen.]**
 2. Rechtsgrundlagen je Verarbeitung (V1–V10) festlegen.
 3. Löschfristen für Meldungen (V2, V3), Server-Logs (V1), Keycloak-Events und
    das Abfrageprotokoll der Ticket-API festlegen — ggf. automatische Löschung

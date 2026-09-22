@@ -946,6 +946,20 @@ main.lm-main {
   line-height: 1.5;
 }
 
+/* --- Rechtliche Links im Footer (Impressum, Datenschutz bei der SWHL) --- */
+.lm-footer-legal {
+  display: inline-flex;
+  gap: 16px;
+}
+.lm-footer-legal a {
+  color: var(--swl-label-gray);
+  text-decoration: underline;
+  white-space: nowrap;
+}
+.lm-footer-legal a:hover {
+  color: var(--swl-orange);
+}
+
 /* --- Interner Login-Link im Footer (dezent) --- */
 .lm-intern-link {
   color: var(--swl-label-gray);
