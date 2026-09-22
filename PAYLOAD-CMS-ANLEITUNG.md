@@ -23,12 +23,15 @@ Weiterentwicklung** (Datenmodell ändern, Migrationen, Deployment).
 
 ## A1. Anmelden und Aufbau
 
-Nach dem Login siehst du links die Navigation, gegliedert in drei Gruppen:
+Nach dem Login siehst du links die Navigation, gegliedert in vier Gruppen:
 
 - **Inhalte** — die öffentlichen Inhalte der Website: Hilfeartikel, FAQ-Gruppen,
-  Handbuch-Kapitel, Bekannte Fehler, Offene Fragen.
+  Handbuch-Kapitel, Bekannte Fehler, Offene Fragen, Ausblick V2.
 - **Meldungen** — was Nutzer:innen über die Formulare einreichen: Fehlermeldungen
   und eingereichte Fragen.
+- **Cockpit** — Daten der internen Support-Werkzeuge: **Kundencheck-Hinweise**
+  (bearbeitbar, siehe A11) sowie nur lesbar Patris-Tickets, Patris-Import,
+  Cockpit-Tageswerte und Health-Checks.
 - **System** — Medien (Bilder) und Benutzer.
 
 Ganz oben in der Navigation findest du außerdem den Button **„⬇ Fehler → Jira (CSV)"**
@@ -156,6 +159,24 @@ Schritt-für-Schritt-Anleitung steht in **`JIRA-EXPORT.md`**.
 - **Suchen:** Die Website hat pro Bereich eine Suche und oben eine übergreifende
   Suche über alle Inhalte.
 
+## A11. Kundencheck-Hinweise pflegen
+
+Der interne **Kundencheck** zeigt dem Servicecenter per Ampel, ob ein Kunde ein
+Ticket hat — und darunter einen Hinweis, was dem Kunden zu sagen ist. Diese
+Hinweise pflegst du unter **Cockpit → Kundencheck-Hinweise**:
+
+- Pro Situation (z. B. „Grün – Ticket gültig, Konto vorhanden") gibt es einen
+  **Titel** und einen **Hinweistext**. Unter jeder Situation steht, wann sie eintritt.
+- Leere Felder fallen automatisch auf den Standardtext zurück.
+- Platzhalter werden beim Anzeigen ersetzt: `{produkt}`, `{von}`, `{bis}`,
+  `{vorname}`, `{nachname}`, `{kundennummer}` (aus Patris) sowie `{kaufdatum}`,
+  `{kaufprodukt}`, `{bestellnummer}` (letzter Kauf in der App).
+- Sprache: formelles „Sie", sachlich, als Handlungsanweisung für das Servicecenter.
+
+Die **Patris-Tickets** und der **Patris-Import** sind hier nur zur Kontrolle
+lesbar — befüllt werden sie ausschließlich über den CSV-Upload im
+Migrations-Cockpit. Details: `KUNDENCHECK-COCKPIT.md`.
+
 ---
 
 # Teil B — Für die Weiterentwicklung
@@ -168,9 +189,12 @@ Collections) oder das Projekt betreiben.
 ```
 src/collections/      Die Collections = das Datenmodell
   Articles.ts, FaqGroups.ts, ManualChapters.ts, KnownBugs.ts,
-  OpenQuestions.ts, BugReports.ts, QuestionSubmissions.ts, Media.ts, Users.ts
+  OpenQuestions.ts, RoadmapGroups.ts, BugReports.ts, QuestionSubmissions.ts,
+  Media.ts, Users.ts
+  Cockpit: CockpitDaily.ts, HealthChecks.ts, PatrisEntitlements.ts
+src/globals/          Globals (Einzeldokumente): KundencheckHinweise.ts, PatrisImport.ts
 src/payload.config.ts Zentrale Payload-Konfiguration (DB-Adapter, Admin-Branding,
-                      Collections-Liste, onInit-Seed, Migrationen)
+                      Collections-/Globals-Liste, onInit-Seed, Migrationen)
 src/payload-types.ts  AUTOMATISCH generiert — nie von Hand ändern
 src/migrations/       Datenbank-Migrationen (Postgres, Produktion)
 src/seed/             Erstimport der Inhalte (seedDatabase.ts + seed.ts)
@@ -206,12 +230,26 @@ Wichtig ist die **Reihenfolge**, sonst schlägt der Produktions-Build fehl:
    pnpm dev          # Änderung im Admin/Frontend testen
    ```
 4. **Migration erzeugen** (für Postgres/Produktion) — benötigt eine laufende
-   Postgres-Datenbank zum Abgleich:
+   Postgres-Datenbank. Am einfachsten eine Wegwerf-Datenbank per Docker:
    ```bash
-   pnpm payload migrate:create <name>
+   docker run -d --rm --name lm-mig-pg -e POSTGRES_PASSWORD=pw -e POSTGRES_DB=lm \
+     -p 55432:5432 postgres:16-alpine
+   export DATABASE_URI=postgres://postgres:pw@localhost:55432/lm
+   pnpm payload migrate                   # bestehende Migrationen einspielen
+   pnpm payload migrate:create <name>     # neue Migration erzeugen
+   pnpm payload migrate                   # neue Migration testen
+   docker stop lm-mig-pg
    ```
-   Legt eine neue Datei unter `src/migrations/` an. Diese Datei **mitcommitten** —
-   sie wird beim nächsten Deploy automatisch ausgeführt.
+   Legt unter `src/migrations/` eine `.ts`- und eine `.json`-Datei (Schema-Snapshot)
+   an und trägt sie in `index.ts` ein. Alles **mitcommitten** — die Migration läuft
+   beim nächsten Deploy automatisch.
+
+   **Erzeugte Datei immer lesen.** Payload vergleicht mit dem letzten
+   JSON-Snapshot, nicht mit der Datenbank. Gibt es von Hand geschriebene
+   Migrationen ohne Snapshot, tauchen deren Tabellen erneut auf und müssen aus der
+   neuen Datei entfernt werden (seit `20260922_101232_patris` ist der Snapshot
+   wieder vollständig). Im `down`-Teil zuerst Constraints/Indizes/Spalten, danach
+   die Tabellen löschen — umgekehrt scheitert das Zurückrollen.
 5. **Admin-Komponenten** (nur falls du welche hinzugefügt hast, z. B. Logo/Icon):
    ```bash
    pnpm generate:importmap
@@ -255,6 +293,13 @@ In den Collections steuert `access`, wer was darf:
   Fragen les- und bearbeitbar. Das **Anlegen** über die öffentlichen Formulare
   läuft über abgesicherte Server Actions (mit Honeypot und Limits), nicht über die
   offene Schnittstelle.
+- **Cockpit-Collections** (Tageswerte, Health-Checks, Patris-Tickets, Patris-Import)
+  sind nur für angemeldete Redakteur:innen lesbar und im Admin nicht änderbar; sie
+  werden ausschließlich vom Server (Jobs, CSV-Upload) geschrieben. Die
+  Kundencheck-Hinweise sind für Angemeldete bearbeitbar.
+- Der **Kundencheck** und das **Migrations-Cockpit** selbst nutzen nicht die
+  Payload-Benutzer, sondern den Keycloak-Login mit eigenen Rollen
+  (`KUNDENCHECK-COCKPIT.md`).
 
 ## B7. Benutzer & Rollen
 
@@ -276,6 +321,8 @@ Die Bilder liegen im Docker-Volume `media`. Details und Deployment-Schritte:
 ## B9. Verwandte Dokumente
 
 - `LIVE-GEHEN.md` — Server-Deployment Schritt für Schritt
+- `KUNDENCHECK-COCKPIT.md` — Kundencheck & Migrations-Cockpit (Rollen, Ampel,
+  Patris-CSV, Ticket-API)
 - `JIRA-EXPORT.md` — Fehler nach Jira exportieren
 - `CLAUDE.md` — Projektgedächtnis & Roadmap
 - `.claude/skills/content-model` und `.claude/skills/swl-design-system` — Modell

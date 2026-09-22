@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic'
 
 const DAY_RE = /^\d{4}-\d{2}-\d{2}$/
 
-/** Fehlgeschlagene Anmeldungen eines Tages — nur mit Support-Rolle. */
+/** Fehlgeschlagene Anmeldungen eines Tages — nur mit Cockpit-Berechtigung (Rolle cockpit oder support). */
 export async function GET(req: NextRequest) {
   const session = await requireCockpit()
   if (!session) return NextResponse.json({ error: 'forbidden' }, { status: 403 })

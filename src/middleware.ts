@@ -58,7 +58,7 @@ function hasValidBasicAuth(req: NextRequest): boolean {
 
 /**
  * Interne Bereiche haben einen eigenen, stärkeren Schutz (Keycloak-OIDC +
- * Support-Rolle) und werden deshalb von der pauschalen Basic Auth ausgenommen —
+ * Rollen kundencheck/cockpit/support) und werden deshalb von der pauschalen Basic Auth ausgenommen —
  * sonst müssten Support-Mitarbeitende sich doppelt anmelden.
  */
 function isInternalPath(pathname: string): boolean {

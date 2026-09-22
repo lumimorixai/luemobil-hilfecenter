@@ -5,7 +5,7 @@ import { getHealth } from '@/lib/cockpit/health'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-/** Live-Systemstatus für die Ampel — nur mit Support-Rolle. */
+/** Live-Systemstatus für die Ampel — nur mit Cockpit-Berechtigung (Rolle cockpit oder support). */
 export async function GET() {
   const session = await requireCockpit()
   if (!session) return NextResponse.json({ error: 'forbidden' }, { status: 403 })

@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic'
 
 const PERIODS: ReportPeriod[] = ['hour', 'day', 'week', 'month']
 
-/** Manueller Report-Versand aus dem Cockpit — nur mit Support-Rolle. */
+/** Manueller Report-Versand aus dem Cockpit — nur mit Cockpit-Berechtigung (Rolle cockpit oder support). */
 export async function POST(req: Request) {
   const session = await requireCockpit()
   if (!session) return NextResponse.json({ error: 'forbidden' }, { status: 403 })

@@ -5,7 +5,7 @@ description: Datenmodell des LüMobil Hilfecenters (Payload-Collections und Lega
 
 # Content-Modell LüMobil Hilfecenter
 
-Fünf Inhalts-Collections + Media + Users. Nach JEDER Feldänderung: `pnpm generate:types` ausführen.
+Sechs Inhalts-Collections, zwei Meldungs-Collections, drei Cockpit-Collections, zwei Globals + Media + Users. Nach JEDER Feldänderung: `pnpm generate:types` ausführen und eine Postgres-Migration erzeugen (siehe PAYLOAD-CMS-ANLEITUNG.md, B3).
 
 ## articles (Hilfeartikel) — 5 Stück im Seed
 - `slug` (unique, aus Legacy-`id`, z. B. `verbindung`, `favoriten`, `abfahrten`)
@@ -40,6 +40,29 @@ Fünf Inhalts-Collections + Media + Users. Nach JEDER Feldänderung: `pnpm gener
 - Zugriff: ALLE Operationen nur für angemeldete User; das Formular erstellt über die Local API (Server Action umgeht Access Control bewusst)
 - Schutz: Honeypot-Feld `website`, Längenlimits, max. 3 Bilder à 4 MB (JPG/PNG/WebP)
 - Admin-Gruppe „Meldungen"; Workflow: prüfen → ggf. manuell als known-bug übernehmen → Status setzen
+
+## question-submissions (eingereichte Fragen)
+- Öffentliches Formular auf /fragen → Server Action `src/app/(frontend)/fragen/actions.ts`; REST gesperrt
+- `question`, `answer`, `reporter`, `contact`, `internalNote`, `targetGroup` (→ open-questions)
+- `status` (neu | in-pruefung | uebernommen | abgelehnt); bei „uebernommen" wird die Frage an eine Offene-Fragen-Gruppe angehängt (`convertedTo`, `publishedQid`)
+- Neue Einreichungen lösen `notifyEditors` aus (`src/lib/notify.ts`, nur mit SMTP)
+
+## roadmap (Ausblick V2, Seite /ausblick)
+- `order`, `kicker`, `heading`, `intro`, `items[]` mit `title`, `status` (geplant | in Prüfung | in Vorbereitung), `text`
+
+## Cockpit (Admin-Gruppe „Cockpit", nur lesbar, nur serverseitig geschrieben)
+- `cockpit-daily` — Tageswerte der Migrations-Zeitreihe (`datum` unique JJJJ-MM-TT, `logins`, `loginErrors`, `newUsers`, `registrations`); Upsert durch `pnpm job:cockpit` / Cron `job=aggregate`
+- `health-checks` — minütliche Systemstatus-Checks (`checkedAt`, `status`, `failCounts`, `alertedDown` als JSON); Grundlage für Alerting und Verfügbarkeit
+- `patris-entitlements` — Ticketberechtigungen aus dem Patris-CSV: `entitlementId`, `validFrom`, `validUntil`, `productNumber`, `productName`, `customerNumber`, `email` (kleingeschrieben), `firstName`, `lastName`. Wird beim Upload per Drizzle in EINER Transaktion komplett ersetzt (`src/lib/cockpit/patris.ts`), nicht über die Local API
+
+## Globals
+- `kundencheck-hinweise` — je Ampel-Situation eine Gruppe `{ titel, text }`; Schlüssel und Standardtexte kommen aus `src/lib/cockpit/hints.ts` (`HINT_SITUATIONS`). Neue Situation ⇒ neue Spalten ⇒ Migration
+- `patris-import` — Stand des letzten Uploads: `importedAt`, `fileName`, `importedBy`, `rowCount`, `skippedRows` (nur lesbar)
+
+## Externe Datenquellen (nicht in Payload)
+- Keycloak Admin API (`src/lib/keycloak.ts`) — Konten, Events
+- LüMobil Ticket-API (`src/lib/cockpit/ticketApi.ts`) — App-Käufe je E-Mail, nur serverseitig
+- Details: `KUNDENCHECK-COCKPIT.md`
 
 ## media
 - Upload-Collection, `staticDir: 'media'`, nur Bilder, Feld `alt`

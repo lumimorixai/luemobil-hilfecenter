@@ -251,7 +251,7 @@ export default async function CockpitPage() {
         </div>
 
         <footer className="cx-footer">
-          Datenquelle: Keycloak Admin API (Events, Users). Zugriff nur für Support-Rollen;
+          Datenquelle: Keycloak Admin API (Events, Users). Zugriff nur mit Cockpit-Berechtigung;
           Kundencheck-Abfragen werden nicht protokolliert.
           {stats?.mock || day?.mock ? ' · Mock-Daten (Entwicklung)' : ''}
         </footer>

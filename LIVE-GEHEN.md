@@ -204,10 +204,13 @@ der `.env` einfach gehalten hast.
 ## 9. Migrations-Cockpit aktivieren (interner Bereich)
 
 Das **Migrations-Cockpit** (`/cockpit`) ist ein interner Monitoring-Bereich für
-den Support: Kundencheck, Login-/Fehler-Kennzahlen, neue Nutzer, Verfügbarkeit
-sowie automatische Störungs-Benachrichtigungen und grafische Reports (Mail +
-PDF). Die öffentliche Hilfe-Center-Seite bleibt frei zugänglich — nur `/cockpit`
-und `/kundencheck` liegen hinter dem **Keycloak-Login** mit der Rolle `support`.
+den Support: Login-/Fehler-Kennzahlen, neue Nutzer, Verfügbarkeit, Upload der
+Patris-Ticketdaten sowie automatische Störungs-Benachrichtigungen und grafische
+Reports (Mail + PDF). Der **Kundencheck** (`/kundencheck`) zeigt dem
+Servicecenter per Ampel, ob ein Kunde ein Ticket hat und was ihm zu sagen ist.
+Die öffentliche Hilfe-Center-Seite bleibt frei zugänglich — nur `/cockpit` und
+`/kundencheck` liegen hinter dem **Keycloak-Login**. Welche Rolle was freischaltet
+und wie die Ampel entscheidet, steht in `KUNDENCHECK-COCKPIT.md`.
 
 > Ohne die folgenden Werte startet die Seite trotzdem normal; nur der interne
 > Cockpit-Bereich bleibt inaktiv. Du kannst diesen Abschnitt also auch später
@@ -244,7 +247,10 @@ APP_BASE_URL=<DOMAIN>
 KEYCLOAK_URL=<https://auth.deine-domain.de>
 KEYCLOAK_REALM=mpluebeck          # Kunden-Realm (Datenquelle)
 KEYCLOAK_AUTH_REALM=swl-intern    # Mitarbeiter-Realm (Login)
+# Rollen: support = beides, kundencheck / cockpit = jeweils nur ein Bereich
 COCKPIT_SUPPORT_ROLE=support
+COCKPIT_ROLE_KUNDENCHECK=kundencheck
+COCKPIT_ROLE_MIGRATION=cockpit
 
 # Login-Client (im Mitarbeiter-Realm)
 OIDC_CLIENT_ID=<login-client>
@@ -268,6 +274,10 @@ ALERT_FAIL_THRESHOLD=2
 # Sitzungs- und Cron-Secrets aus Schritt 9a
 SESSION_SECRET=<openssl-wert-1>
 CRON_SECRET=<openssl-wert-2>
+
+# LüMobil Ticket-API (App-Käufe im Kundencheck) — leer lassen, bis es eine
+# Prod-URL gibt; das Token kommt NICHT hierher, sondern als Datei (Schritt 9g)
+LUEMOBIL_API_URL=
 ```
 
 Voraussetzung für E-Mail/Report-Versand ist ein konfigurierter SMTP-Zugang
@@ -289,8 +299,10 @@ Im Keycloak-Admin:
   `<DOMAIN>/api/auth/callback` und Post-Logout-URL `<DOMAIN>/` eintragen.
 - **Service-Account-Client** (Realm `mpluebeck`): unter *Service account roles*
   die `realm-management`-Rollen **`view-users`** und **`view-events`** zuweisen.
-- **Rolle `support`** den berechtigten Mitarbeitenden geben (nur sie sehen das
-  Cockpit).
+- **Rollen** im Login-Realm anlegen und vergeben:
+  `kundencheck` (nur Kundencheck, z. B. Servicecenter), `cockpit` (nur
+  Migrations-Cockpit) und `support` (beides). Nach einer Rollenänderung muss sich
+  die Person neu anmelden.
 - **Events aktivieren** (Realm-Settings → Events): Login-, Register-, Passwort-
   und Verify-Events einschalten, damit die Kennzahlen Daten haben.
 - **Login-Theme** (optional, SWL-Optik): den Ordner `keycloak-theme/swl` bzw.
@@ -326,7 +338,7 @@ Cockpit auslösen.
 
 - Öffentliche Seite lädt normal unter `<DOMAIN>`.
 - „Intern anmelden" (Kopf-/Fußzeile) führt zum Keycloak-Login; nach Anmeldung
-  mit `support`-Rolle erscheint `/cockpit`.
+  erscheinen die Reiter passend zur Rolle (`support`: Kundencheck und Cockpit).
 - Cron-Endpunkt testen:
   ```bash
   curl -i -X POST -H "x-cron-secret: <CRON_SECRET>" "<DOMAIN>/api/cockpit/cron?job=health"
@@ -336,6 +348,36 @@ Cockpit auslösen.
 - Report-Button im Cockpit auslösen → Mail mit PDF-Anhang trifft bei
   `ALERT_EMAIL` ein.
 
+### 9f. Patris-Ticketdaten hochladen
+
+Im Cockpit unter **Ticketdaten** die CSV-Datei aus Patris hochladen. Jeder Upload
+ersetzt den gesamten bisherigen Bestand. Bis zum ersten Upload zeigt der
+Kundencheck „Keine Patris-Daten" (graue Ampel). Erwartetes Dateiformat:
+`KUNDENCHECK-COCKPIT.md`, Abschnitt 3.2.
+
+### 9g. Ticket-API anbinden (sobald es eine Prod-URL gibt)
+
+Die LüMobil Ticket-API liefert die App-Käufe für den Kundencheck. Ohne sie läuft
+der Kundencheck normal, nur der Kaufbereich zeigt „nicht eingerichtet".
+
+1. Die **IP-Adresse des Servers** dem API-Betreiber mitteilen (Freigabeliste).
+2. Token als Datei ablegen — **nicht** in die `.env`, nicht per Mail/Chat
+   weitergeben (Passwort-Tresor):
+   ```bash
+   cd /opt/luemobil
+   mkdir -p secrets
+   printf '%s' '<TOKEN>' > secrets/luemobil_api_token
+   sudo chown $(docker compose exec app id -u) secrets/luemobil_api_token
+   chmod 400 secrets/luemobil_api_token
+   ```
+3. In der `.env` `LUEMOBIL_API_URL=https://<api-host>` setzen, dann
+   `docker compose up -d`.
+4. Prüfen: Kundencheck mit einer bekannten Adresse ausführen → Abschnitt
+   „Käufe in der LüMobil-App" zeigt Bestellungen.
+
+**Token-Wechsel** (z. B. nach Ablauf oder einer 401-Alarmmail): nur die Datei
+`secrets/luemobil_api_token` ersetzen — wirkt sofort, ohne Neustart.
+
 ---
 
 ## Später: Updates einspielen
@@ -344,12 +386,23 @@ Wenn du Änderungen am Projekt gemacht hast (neuer Code), auf dem Server:
 
 ```bash
 cd /opt/luemobil
+docker compose exec postgres pg_dump -U luemobil luemobil > backup-$(date +%F).sql   # vorher sichern
 git pull            # oder erneut per rsync hochladen
+mkdir -p secrets    # einmalig; Ordner für Token-Dateien (sonst legt Docker ihn als root an)
 docker compose up -d --build
+docker compose logs -f app   # Zeilen „Migrated: …" zeigen neue Datenbank-Migrationen
 ```
 
 Die Inhalte in der Datenbank bleiben dabei erhalten (der Auto-Import überspringt
-eine bereits gefüllte Datenbank).
+eine bereits gefüllte Datenbank). Neue Tabellen/Spalten legen die Migrationen
+beim Start automatisch an.
+
+Prüfe nach dem Update, ob `.env.example` neue Werte enthält
+(`git diff HEAD@{1} -- .env.example`), und ergänze sie bei Bedarf in der `.env`.
+
+**Update vom 22.09.2026** (Kundencheck-Ampel, Patris, Rollentrennung): danach
+Patris-CSV hochladen (9f); Rollen `kundencheck`/`cockpit` in Keycloak sind
+optional — `support` schaltet weiterhin alles frei (9c).
 
 ---
 

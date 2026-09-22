@@ -5,7 +5,7 @@ import { getStats } from '@/lib/cockpit/stats'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-/** KPIs + Zeitreihen — nur mit Support-Rolle. */
+/** KPIs + Zeitreihen — nur mit Cockpit-Berechtigung (Rolle cockpit oder support). */
 export async function GET() {
   const session = await requireCockpit()
   if (!session) return NextResponse.json({ error: 'forbidden' }, { status: 403 })

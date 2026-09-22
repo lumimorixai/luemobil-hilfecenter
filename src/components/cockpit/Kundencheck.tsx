@@ -3,7 +3,7 @@
 /**
  * Kundencheck: E-Mail eingeben → Ticket-Ampel (Patris) mit Hinweis aus dem CMS,
  * Ticketdetails, Keycloak-Status und letzte Ereignisse.
- * Ruft /api/cockpit/check (nur Support-Rolle, serverseitig). Zustände:
+ * Ruft /api/cockpit/check (nur mit Kundencheck-Berechtigung, serverseitig geprüft). Zustände:
  * Ruhe, Laden, Ergebnis, Fehler (403 / Rate-Limit / Störung).
  *
  * Statusfarben (grün/gelb/pink) sind hier zulässig — sie zeigen einen Status,
