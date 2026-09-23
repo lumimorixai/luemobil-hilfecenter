@@ -45,7 +45,13 @@ export function DashboardFrame({
   useEffect(() => {
     const el = frameRef.current
     if (!el) return
-    const update = () => setHeight(heightFor(el.clientWidth, sizing))
+    // Nur bei spürbarer Änderung neu setzen: Jede Größenänderung lässt Metabase
+    // die Kacheln neu zeichnen (sichtbares Zucken beim Ziehen des Fensters).
+    const update = () =>
+      setHeight((prev) => {
+        const next = heightFor(el.clientWidth, sizing)
+        return Math.abs(next - prev) >= 8 ? next : prev
+      })
     update()
     const ro = new ResizeObserver(update)
     ro.observe(el)
