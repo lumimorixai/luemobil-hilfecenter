@@ -15,9 +15,11 @@ const TABS = [
 
 export function TabNav({
   showKundencheck = false,
+  showKennzahlen = false,
   showCockpit = false,
 }: {
   showKundencheck?: boolean
+  showKennzahlen?: boolean
   showCockpit?: boolean
 }) {
   const pathname = usePathname()
@@ -47,10 +49,20 @@ export function TabNav({
             Kundencheck
           </Link>
         )}
+        {showKennzahlen && (
+          <Link
+            href="/kennzahlen"
+            className={`lm-tab lm-tab--support${showKundencheck ? '' : ' lm-tab--support-first'}${
+              pathname.startsWith('/kennzahlen') ? ' active' : ''
+            }`}
+          >
+            Kennzahlen
+          </Link>
+        )}
         {showCockpit && (
           <Link
             href="/cockpit"
-            className={`lm-tab lm-tab--support${showKundencheck ? '' : ' lm-tab--support-first'}`}
+            className={`lm-tab lm-tab--support${showKundencheck || showKennzahlen ? '' : ' lm-tab--support-first'}`}
           >
             Migrations-Cockpit
           </Link>

@@ -21,8 +21,9 @@ Hosting: eigener VPS via Docker Compose + Caddy.
 - `src/app/(frontend)/fehler/actions.ts` – Server Action für öffentliche Fehlermeldungen (Validierung, Honeypot, Bild-Limits); die Collection bug-reports ist für die REST-API gesperrt
 - `src/app/(frontend)/fragen/actions.ts` – Server Action für öffentliche Fragen-Einreichungen; Collection question-submissions ist REST-gesperrt. Übernahme (Status „uebernommen“) hängt die Frage an eine Offene-Fragen-Gruppe an
 - `src/payload.config.ts` – zentrale Payload-Konfiguration; DB-Adapter wird per DATABASE_URI gewählt (file: → SQLite, postgres → Postgres)
-- `src/app/(frontend)/` – öffentliche Seiten: / (Hilfe-Center), /artikel/[slug], /handbuch, /fragen, /fehler, /stoerungen, /testen, /ausblick, /suche; intern: /kundencheck
+- `src/app/(frontend)/` – öffentliche Seiten: / (Hilfe-Center), /artikel/[slug], /handbuch, /fragen, /fehler, /stoerungen, /testen, /ausblick, /suche; intern: /kundencheck, /kennzahlen
 - `src/app/(cockpit)/cockpit` + `src/app/api/cockpit/*` – Migrations-Cockpit und interne APIs (Kundencheck, Patris-Upload, Stats, Health, Reports, Cron) → Details in `KUNDENCHECK-COCKPIT.md`
+- `src/lib/metabase.ts` + `/kennzahlen` – eingebettete LüMobil-Dashboards (Metabase, JWT HS256 serverseitig, 10 min; Rechte je Dashboard) → `docs/KENNZAHLEN.md`
 - `src/lib/auth/` – Keycloak-OIDC-Login, HMAC-Session-Cookie, Rollen-Guards (`guard.ts`: Rolle kundencheck | cockpit | support = beides)
 - `src/lib/cockpit/` – Cockpit-/Kundencheck-Logik: `diagnose.ts` (Ampel), `hints.ts` (Situationen + Standardtexte), `patris.ts` (CSV-Import), `ticketApi.ts` (LüMobil Ticket-API, nur serverseitig); Keycloak-Admin-API in `src/lib/keycloak.ts`
 - `src/app/(payload)/` – Payload-Admin & API (generierter Boilerplate — Struktur nicht ändern)

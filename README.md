@@ -4,9 +4,10 @@ Hilfecenter der LüMobil-App (Stadtwerke Lübeck) — Next.js 15 + Payload CMS 3
 Inhalte (Hilfeartikel, FAQ, App-Handbuch, Offene Fragen, Bekannte Fehler) werden im
 eingebauten Admin-Panel unter `/admin` gepflegt, nicht mehr in einer JS-Datei.
 
-Dazu kommen zwei interne Support-Werkzeuge hinter dem Keycloak-Login: der
-**Kundencheck** (`/kundencheck`) und das **Migrations-Cockpit** (`/cockpit`) —
-siehe `KUNDENCHECK-COCKPIT.md`.
+Dazu kommen interne Bereiche hinter dem Keycloak-Login: der **Kundencheck**
+(`/kundencheck`), das **Migrations-Cockpit** (`/cockpit`) — siehe
+`KUNDENCHECK-COCKPIT.md` — und die **Kennzahlen** (`/kennzahlen`, eingebettete
+LüMobil-Dashboards aus Metabase) — siehe `docs/KENNZAHLEN.md`.
 
 ## Dokumentation
 
@@ -15,6 +16,7 @@ siehe `KUNDENCHECK-COCKPIT.md`.
 | `README.md` | Überblick, lokale Entwicklung, Befehle (diese Datei) |
 | `LIVE-GEHEN.md` | Server-Deployment Schritt für Schritt, Cockpit-Einrichtung, Updates |
 | `KUNDENCHECK-COCKPIT.md` | Kundencheck & Cockpit: Rollen, Ampel-Logik, Patris-CSV, Ticket-API, Betrieb |
+| `docs/KENNZAHLEN.md` | LüMobil-Dashboards (Metabase) auf `/kennzahlen`: Ablauf, Rechte, Konfiguration |
 | `docs/SERVICECENTER.md` | Kurzanleitung Kundencheck für das Servicecenter (Ampel lesen, Eskalation) |
 | `docs/ARCHITEKTUR.md` | Systemübersicht mit Diagrammen, Datenflüsse, Umgebungen |
 | `docs/KEYCLOAK-EINRICHTUNG.md` | Keycloak-Clients, Rollen, Events Schritt für Schritt |

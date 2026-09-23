@@ -21,6 +21,7 @@ Verantwortlichen ergänzt werden. Stand: 22.09.2026.
 | V7 | Migrations-Cockpit | Kund:innen | Benutzername/E-Mail bei fehlgeschlagenen Logins (Fehlertabelle), Zählwerte | live aus Keycloak; nur Zählwerte in DB `cockpit_daily` | Tageswerte unbefristet (ohne Personenbezug) |
 | V8 | Benachrichtigungen | Redaktion, Betrieb | Inhalt neuer Meldungen (inkl. Name/Kontakt) per E-Mail; Alarm- und Report-Mails ohne Kundendaten | SMTP-Server, Postfächer | nach Postfach-Regeln |
 | V9 | Jira-Export | Melder:innen | Inhalte bekannter Fehler; bei übernommenen Meldungen Name des Melders im Feld „Fundort" | Jira Cloud (Atlassian) | nach Jira-Regeln |
+| V11 | Kennzahlen (`/kennzahlen`) | Kund:innen | Dashboards aus Metabase, überwiegend Summen; „Abo-Bestand": PLZ-Tabelle mit kleinen Fallzahlen; „Betrieb & Störungen": **einzelne Bestellungen** (Bestellnummer, Kauftag, Produkt, Preis, Status) | nicht im Hilfecenter — der Browser lädt direkt aus Metabase | — |
 | V10 | Datensicherung | alle oben | vollständige DB + Medien | Backup-Ordner, 14 Tage | automatisch nach 14 Tagen |
 
 Kein Tracking, keine Analyse-Werkzeuge, keine externen Schriftarten (Inter
@@ -94,3 +95,6 @@ Zugriff nur für Mitarbeitende mit Rolle `kundencheck`, `cockpit` oder
 5. Hinweis an die Formularnutzer:innen, dass Name/Kontakt freiwillig sind und
    wofür sie verwendet werden (V2, V3).
 6. Verträge zur Auftragsverarbeitung mit den Dienstleistern (Abschnitt 4).
+7. Kennzahlen (V11): festlegen, welche Rollen „Betrieb & Störungen" (einzelne
+   Bestellungen) und die PLZ-Auswertung sehen dürfen. Technischer Standard:
+   Bestelldaten nur Rolle `support` (`docs/KENNZAHLEN.md`).

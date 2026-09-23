@@ -4,6 +4,21 @@ Neueste Änderungen oben. Je Eintrag: was neu ist und **was beim Update von Hand
 zu tun ist**. Allgemeiner Update-Ablauf: `LIVE-GEHEN.md`, „Später: Updates
 einspielen".
 
+## 2026-09-22 — Kennzahlen (LüMobil-Dashboards)
+
+**Neu**
+- Interne Seite `/kennzahlen` mit den vier LüMobil-Dashboards aus Metabase
+  (statische Einbettung, serverseitig signierte Tokens, 10 Minuten gültig,
+  automatisches Nachladen). Dashboard „Betrieb & Störungen" (einzelne
+  Bestellungen) standardmäßig nur für die Rolle `support`.
+
+**Beim Update**
+- Schlüssel als Datei `secrets/metabase_embed_secret` ablegen,
+  `METABASE_URL` und `METABASE_DASHBOARDS` (Prod-IDs!) in die `.env`,
+  `docker compose up -d` (`docs/KENNZAHLEN.md`).
+- Adresse des Hilfecenters dem LüMobil-Betrieb für die Einbettungsfreigabe melden.
+- Ohne diese Werte bleibt die Seite ausgeblendet.
+
 ## 2026-09-22 — Impressum und Datenschutz
 
 - Footer der öffentlichen Seiten verlinkt Impressum und Datenschutzerklärung der

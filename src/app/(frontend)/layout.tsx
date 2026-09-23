@@ -14,6 +14,7 @@ import {
   kundencheckRole,
   supportRole,
 } from '@/lib/auth/guard'
+import { visibleDashboards } from '@/lib/metabase'
 import '@fontsource-variable/inter'
 import './globals.css'
 
@@ -40,6 +41,7 @@ export default async function FrontendLayout({ children }: { children: React.Rea
   // Interne Reiter nur mit der jeweiligen Berechtigung einblenden.
   const showKundencheck = canKundencheck(session)
   const showCockpit = canCockpit(session)
+  const showKennzahlen = visibleDashboards(session).length > 0
   return (
     <html lang="de">
       <body>
@@ -116,7 +118,7 @@ export default async function FrontendLayout({ children }: { children: React.Rea
         </header>
         <div className="lm-container">
           <Suspense fallback={<div className="lm-tabbar" />}>
-            <TabNav showKundencheck={showKundencheck} showCockpit={showCockpit} />
+            <TabNav showKundencheck={showKundencheck} showKennzahlen={showKennzahlen} showCockpit={showCockpit} />
           </Suspense>
         </div>
         <main className="lm-main lm-container">{children}</main>

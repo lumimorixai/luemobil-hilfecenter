@@ -28,10 +28,11 @@ flowchart LR
     SMTP[SMTP-Server]
     J[Jira Cloud]
     ST[Störungsseite<br/>enrico-peter.de]
+    MB[Metabase<br/>LüMobil-Dashboards]
   end
 
   K -->|öffentliche Seiten| C
-  S -->|/kundencheck, /cockpit| C
+  S -->|/kundencheck, /kennzahlen, /cockpit| C
   R -->|/admin| C
   C --> A
   A --> P
@@ -45,6 +46,7 @@ flowchart LR
   A -->|Alarme, Reports, Benachrichtigungen| SMTP
   A -->|Tickets aus Bekannten Fehlern| J
   A -->|Proxy| ST
+  S -. iframe mit signiertem Token .-> MB
 ```
 
 ## Bausteine
@@ -55,6 +57,7 @@ flowchart LR
 | CMS | Payload 3, `/admin` | Pflege aller Inhalte; Benutzer = Redakteur:innen (eigene Payload-Konten) |
 | Kundencheck | `/kundencheck`, `src/lib/cockpit/diagnose.ts` | Ampel aus Patris + Keycloak + Ticket-API |
 | Migrations-Cockpit | `/cockpit`, `src/app/(cockpit)` | Kennzahlen, Verfügbarkeit, Reports, Patris-Upload |
+| Kennzahlen | `/kennzahlen`, `src/lib/metabase.ts` | LüMobil-Dashboards aus Metabase; Server signiert nur das Token, der Browser lädt direkt von Metabase |
 | Interne APIs | `src/app/api/cockpit/*`, `src/app/api/auth/*` | nur serverseitig geprüft (Rollen bzw. Cron-Secret) |
 | Datenbank | SQLite (lokal), PostgreSQL (Produktion) | Inhalte, Meldungen, Cockpit-Daten, Patris-Tickets |
 | Jobs | Host-Cron → `/api/cockpit/cron` (Prod), `pnpm job:*` (lokal) | Health-Check/Alerting, Tagesaggregat, Reports |
@@ -114,3 +117,4 @@ einer Transaktion ersetzt.
 - `LIVE-GEHEN.md` — Deployment
 - `docs/KEYCLOAK-EINRICHTUNG.md` — Keycloak-Konfiguration
 - `PAYLOAD-CMS-ANLEITUNG.md` — CMS und Datenmodell
+- `docs/KENNZAHLEN.md` — LüMobil-Dashboards (Metabase)

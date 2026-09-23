@@ -379,6 +379,13 @@ der Kundencheck normal, nur der Kaufbereich zeigt „nicht eingerichtet".
 **Token-Wechsel** (z. B. nach Ablauf oder einer 401-Alarmmail): nur die Datei
 `secrets/luemobil_api_token` ersetzen — wirkt sofort, ohne Neustart.
 
+### 9h. Kennzahlen (LüMobil-Dashboards) einbinden
+
+Schlüssel als Datei `secrets/metabase_embed_secret` ablegen (wie in 9g),
+`METABASE_URL` und `METABASE_DASHBOARDS` (Dashboard-IDs des Produktivservers)
+in die `.env`, dann `docker compose up -d`. Die Adresse des Hilfecenters dem
+LüMobil-Betrieb melden. Details und Rechte je Dashboard: `docs/KENNZAHLEN.md`.
+
 ---
 
 ## Später: Updates einspielen

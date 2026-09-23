@@ -71,6 +71,12 @@ services:
       LUEMOBIL_API_URL: ${LUEMOBIL_API_URL:-}
       LUEMOBIL_API_TOKEN_FILE: ${LUEMOBIL_API_TOKEN_FILE:-/run/secrets/app/luemobil_api_token}
       LUEMOBIL_API_CA: ${LUEMOBIL_API_CA:-}
+      # --- LüMobil-Dashboards (Metabase, statische Einbettung, Seite /kennzahlen) ---
+      # Schlüssel als Datei in ./secrets; Austausch wirkt sofort, ohne Neustart.
+      METABASE_URL: ${METABASE_URL:-}
+      METABASE_EMBED_SECRET_FILE: ${METABASE_EMBED_SECRET_FILE:-/run/secrets/app/metabase_embed_secret}
+      METABASE_DASHBOARDS: ${METABASE_DASHBOARDS:-}
+      METABASE_DASHBOARD_ROLES: ${METABASE_DASHBOARD_ROLES:-}
     volumes:
       - media:/app/media
       # Verzeichnis (nicht Einzeldatei) mounten, damit ein Austausch der Datei im Container ankommt.

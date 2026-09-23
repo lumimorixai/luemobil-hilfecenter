@@ -67,6 +67,8 @@ function isInternalPath(pathname: string): boolean {
     pathname.startsWith('/cockpit/') ||
     pathname === '/kundencheck' ||
     pathname.startsWith('/kundencheck/') ||
+    pathname === '/kennzahlen' ||
+    pathname.startsWith('/kennzahlen/') ||
     pathname === '/ansprechpartner' ||
     pathname.startsWith('/ansprechpartner/') ||
     pathname.startsWith('/api/cockpit') ||

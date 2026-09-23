@@ -373,6 +373,38 @@ main.lm-main {
   color: var(--swl-orange);
 }
 
+/* Chips als Links (z. B. Dashboard-Auswahl auf /kennzahlen) */
+a.lm-chip {
+  display: inline-block;
+  text-decoration: none;
+}
+
+/* --- Kennzahlen (eingebettete Metabase-Dashboards) --- */
+/* Bewusste Ausnahme vom 960-px-Raster: Dashboards brauchen Breite, sonst kürzt
+   Metabase Zahlen und Titel („81,9 K"). Volle Fensterbreite mit 24 px Rand,
+   höchstens 1600 px, mittig unter der Kopfzeile. */
+.lm-dash-wide {
+  position: relative;
+  left: 50%;
+  width: min(calc(100vw - 48px), 1600px);
+  transform: translateX(-50%);
+}
+.lm-dash-desc {
+  color: var(--swl-label-gray);
+  font-size: 13px;
+  margin: 6px 0 14px;
+}
+.lm-dash-frame {
+  display: block;
+  width: 100%;
+  border: 1px solid var(--swl-hairline);
+  border-radius: var(--radius);
+  background: var(--swl-white);
+}
+.lm-dash-note {
+  margin-bottom: 14px;
+}
+
 /* --- Karten --- */
 .lm-grid {
   display: grid;

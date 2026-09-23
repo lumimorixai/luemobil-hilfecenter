@@ -65,6 +65,9 @@ Auf einer lokalen oder Test-Instanz durchgehen; Ergebnis im Release-Eintrag
 - [ ] Patris-Upload: Beispiel-CSV → „4 Tickets übernommen · 1 Zeile ohne entitlement_id übersprungen"; Datei ohne Pflichtspalte → verständliche Fehlermeldung, alter Stand bleibt
 - [ ] Ticket-API: Käufe erscheinen; mit falschem Token → Hinweis „Zugang abgelehnt" (Alarm-Mail nur bei gesetztem `ALERT_EMAIL`)
 - [ ] Cockpit: Kennzahlen, Live-Ampel, Report-Button
+- [ ] `/kennzahlen`: `support` sieht 4 Dashboards, `cockpit` 3 (ohne „Betrieb"), `kundencheck` „Kein Zugriff" ohne Token im HTML; ohne Login → Anmeldung
+- [ ] `/kennzahlen`: „Überblick" zeigt Daten (Demo: „Umsatz brutto" 81.926 €); Seite 30 Minuten offen lassen → aktualisiert sich ohne Fehler
+- [ ] Schlüssel nicht im Build: `grep -rl "$(cat <schlüsseldatei>)" .next` liefert nichts
 
 **Nach dem Deployment (Produktion)**
 - [ ] `docker compose logs app`: Migrationen gelaufen, keine Fehler
