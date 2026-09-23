@@ -4,6 +4,12 @@ Neueste Änderungen oben. Je Eintrag: was neu ist und **was beim Update von Hand
 zu tun ist**. Allgemeiner Update-Ablauf: `LIVE-GEHEN.md`, „Später: Updates
 einspielen".
 
+## 2026-09-23 — Tokens und Schlüssel unempfindlich gegen Umbrüche
+
+- Aus Ticket-API-Token und Metabase-Schlüssel werden jetzt alle Leerzeichen und
+  Zeilenumbrüche entfernt, nicht nur am Rand. Ein beim Einfügen ins Terminal
+  umbrochenes Token führte sonst zu einem unverständlichen HTTP 401.
+
 ## 2026-09-23 — Kennzahlen: Flackern endgültig behoben
 
 - Die Breite entsteht jetzt dadurch, dass die Inhaltsspalte der Seite selbst

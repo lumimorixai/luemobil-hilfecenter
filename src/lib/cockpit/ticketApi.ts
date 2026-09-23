@@ -53,17 +53,26 @@ function apiUrl(): string {
   return (process.env.LUEMOBIL_API_URL || '').replace(/\/+$/, '')
 }
 
-/** Token frisch lesen (Datei bevorzugt), damit ein Austausch sofort wirkt. */
+/**
+ * Token frisch lesen (Datei bevorzugt), damit ein Austausch sofort wirkt.
+ * Alle Leerzeichen und Umbrüche entfernen: Ein JWT enthält keine, aber beim
+ * Einfügen ins Terminal wird er gern umbrochen — sonst scheitert die Anfrage
+ * mit einem unverständlichen 401.
+ */
+function cleanSecret(raw: string): string {
+  return raw.replace(/\s+/g, '')
+}
+
 function readToken(): string {
   const file = process.env.LUEMOBIL_API_TOKEN_FILE
   if (file) {
     try {
-      return readFileSync(file, 'utf8').trim()
+      return cleanSecret(readFileSync(file, 'utf8'))
     } catch {
       return ''
     }
   }
-  return (process.env.LUEMOBIL_API_TOKEN || '').trim()
+  return cleanSecret(process.env.LUEMOBIL_API_TOKEN || '')
 }
 
 let caCache: { path: string; pem: Buffer } | null = null

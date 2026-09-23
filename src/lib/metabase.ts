@@ -80,17 +80,23 @@ export function metabaseUrl(): string {
   return (process.env.METABASE_URL || '').replace(/\/+$/, '')
 }
 
-/** Schlüssel frisch lesen (Datei bevorzugt), damit ein Austausch sofort wirkt. */
+/**
+ * Schlüssel frisch lesen (Datei bevorzugt), damit ein Austausch sofort wirkt.
+ * Leerzeichen und Umbrüche werden entfernt — der Schlüssel enthält keine, beim
+ * Einfügen ins Terminal entstehen sie aber leicht.
+ */
 function readSecret(): string {
   const file = process.env.METABASE_EMBED_SECRET_FILE
-  if (file) {
-    try {
-      return readFileSync(file, 'utf8').trim()
-    } catch {
-      return ''
-    }
-  }
-  return (process.env.METABASE_EMBED_SECRET || '').trim()
+  const raw = file
+    ? (() => {
+        try {
+          return readFileSync(file, 'utf8')
+        } catch {
+          return ''
+        }
+      })()
+    : process.env.METABASE_EMBED_SECRET || ''
+  return raw.replace(/\s+/g, '')
 }
 
 export function metabaseConfigured(): boolean {
