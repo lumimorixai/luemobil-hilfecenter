@@ -97,9 +97,14 @@ neu lädt.
 
 ## Darstellung
 
-- **Breite:** Die Seite verlässt bewusst das 960-px-Raster des Hilfecenters.
-  Das Dashboard nutzt die volle Fensterbreite (24 px Rand, höchstens 1600 px);
-  sonst kürzt Metabase Zahlen und Titel (z. B. „€82k" statt „€81.926").
+- **Breite:** Auf dieser Seite wird die Inhaltsspalte selbst breiter (höchstens
+  1600 px plus 24 px Rand, CSS-Regel `main.lm-main:has(> .lm-dash-page)`); sonst
+  kürzt Metabase Zahlen und Titel (z. B. „€82k" statt „€81.926"). Wichtig: Der
+  Inhalt darf **nicht** per negativem Rand oder `transform` aus der Spalte
+  herausragen — dann rastert Chrome das iframe beim Scrollen neu, was sichtbar
+  flackert. Browser ohne `:has()` zeigen die normale Breite.
+- **Diagnose:** `?breit=0` an die Adresse hängen zeigt das Dashboard in der
+  normalen 960-px-Spalte — praktisch, um Darstellungsprobleme einzugrenzen.
 - **Höhe:** Metabase skaliert die Kacheln mit der Breite. Die Höhe des iframes
   wird deshalb aus seiner tatsächlichen Breite berechnet:
   `base + (Breite − 1200) × slope + 80`. Die Werte je Dashboard stehen in

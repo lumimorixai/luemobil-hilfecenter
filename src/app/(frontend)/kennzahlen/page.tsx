@@ -41,9 +41,7 @@ export default async function KennzahlenPage({
   const params = await searchParams
   const visible = visibleDashboards(session)
   const requested = (params.d || '').toLowerCase()
-  // Diagnose: ?breit=0 zeigt das Dashboard in der normalen 960-px-Spalte.
-  // Damit lässt sich prüfen, ob die volle Breite an einem Darstellungsproblem
-  // (z. B. Flackern im Browser) beteiligt ist.
+  // ?breit=0 zeigt das Dashboard in der normalen 960-px-Spalte (Diagnose).
   const wide = params.breit !== '0'
 
   // Ausdrücklich angefordertes, aber nicht erlaubtes Dashboard → kein Token.
@@ -63,9 +61,9 @@ export default async function KennzahlenPage({
   const url = dashboardEmbedUrl(current)
 
   return (
-    // Breiter als die übliche Inhaltsspalte (960 px), damit Metabase Zahlen und
-    // Titel nicht kürzt — bewusste Ausnahme vom Seitenraster.
-    <div className={wide ? 'lm-dash-wide' : undefined}>
+    // lm-dash-page verbreitert über :has() die Inhaltsspalte dieser Seite,
+    // damit Metabase Zahlen und Titel nicht kürzt (siehe globals.css).
+    <div className={wide ? 'lm-dash-page' : undefined}>
       <p className="lm-kicker">Kennzahlen · LüMobil</p>
       {visible.length > 1 && (
         <nav className="lm-chips" aria-label="Dashboards">

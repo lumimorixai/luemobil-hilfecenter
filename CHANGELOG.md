@@ -4,6 +4,13 @@ Neueste Änderungen oben. Je Eintrag: was neu ist und **was beim Update von Hand
 zu tun ist**. Allgemeiner Update-Ablauf: `LIVE-GEHEN.md`, „Später: Updates
 einspielen".
 
+## 2026-09-23 — Kennzahlen: Flackern endgültig behoben
+
+- Die Breite entsteht jetzt dadurch, dass die Inhaltsspalte der Seite selbst
+  breiter wird (`:has()`), statt dass ein Block per negativem Rand aus ihr
+  herausragt. Nur so bleibt das iframe beim Scrollen ruhig.
+- Neu: `?breit=0` zeigt das Dashboard in normaler Spaltenbreite (Diagnose).
+
 ## 2026-09-23 — Ticket-API auch über das Docker-Netz
 
 - Der Ticket-API-Client spricht jetzt auch `http://…`, damit in Produktion der

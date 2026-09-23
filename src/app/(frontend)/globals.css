@@ -381,14 +381,18 @@ a.lm-chip {
 
 /* --- Kennzahlen (eingebettete Metabase-Dashboards) --- */
 /* Bewusste Ausnahme vom 960-px-Raster: Dashboards brauchen Breite, sonst kürzt
-   Metabase Zahlen und Titel („81,9 K"). Volle Fensterbreite mit 24 px Rand,
-   höchstens 1600 px, mittig unter der Kopfzeile.
-   Zentriert über margin statt transform: Ein iframe in einem transformierten
-   Element rastert Chrome beim Scrollen neu — das flackert sichtbar. */
-.lm-dash-wide {
-  --lm-dash-w: min(calc(100vw - 48px), 1600px);
-  width: var(--lm-dash-w);
-  margin-left: calc(50% - var(--lm-dash-w) / 2);
+   Metabase Zahlen und Titel („81,9 K").
+   Dafür wird die Inhaltsspalte SELBST breiter (nur auf dieser Seite), statt einen
+   Block per negativem Rand oder transform herausragen zu lassen: Beides lässt
+   Chrome ein iframe beim Scrollen neu rastern, was sichtbar flackert.
+   1648 px = 1600 px Inhalt + 2 × 24 px Seitenrand. Browser ohne :has() zeigen
+   die normale Breite — nur schmaler, sonst unverändert. */
+main.lm-main:has(> .lm-dash-page) {
+  max-width: 1648px;
+  /* main.lm-main setzt den Seitenrand der Spalte auf 0 — hier wieder auf die
+     üblichen 24 px, damit das Dashboard nicht an der Fensterkante klebt. */
+  padding-left: 24px;
+  padding-right: 24px;
 }
 .lm-dash-desc {
   color: var(--swl-label-gray);
