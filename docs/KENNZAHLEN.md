@@ -103,6 +103,11 @@ neu lädt.
   Inhalt darf **nicht** per negativem Rand oder `transform` aus der Spalte
   herausragen — dann rastert Chrome das iframe beim Scrollen neu, was sichtbar
   flackert. Browser ohne `:has()` zeigen die normale Breite.
+- **Scrollbalken:** Auf dieser Seite ist sein Platz fest reserviert
+  (`scrollbar-gutter: stable`), und die Höhe wird erst ab 32 px Breitenänderung
+  neu gesetzt. Sonst entsteht eine Rückkopplung: Höhe ändert sich → Scrollbalken
+  erscheint oder verschwindet → Breite ändert sich um ~15 px → neue Höhe → …
+  Das äußert sich als Flackern und hörte beim Hineinzoomen auf.
 - **Diagnose:** `?breit=0` an die Adresse hängen zeigt das Dashboard in der
   normalen 960-px-Spalte — praktisch, um Darstellungsprobleme einzugrenzen.
 - **Höhe:** Metabase skaliert die Kacheln mit der Breite. Die Höhe des iframes

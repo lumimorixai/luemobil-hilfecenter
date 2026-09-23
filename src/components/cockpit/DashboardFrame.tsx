@@ -40,18 +40,22 @@ export function DashboardFrame({
   const [expired, setExpired] = useState(false)
   const frameRef = useRef<HTMLIFrameElement>(null)
   const loadedAt = useRef(Date.now())
+  const lastWidth = useRef(0)
   const [height, setHeight] = useState(() => heightFor(1200, sizing))
 
   useEffect(() => {
     const el = frameRef.current
     if (!el) return
-    // Nur bei spürbarer Änderung neu setzen: Jede Größenänderung lässt Metabase
-    // die Kacheln neu zeichnen (sichtbares Zucken beim Ziehen des Fensters).
-    const update = () =>
-      setHeight((prev) => {
-        const next = heightFor(el.clientWidth, sizing)
-        return Math.abs(next - prev) >= 8 ? next : prev
-      })
+    // Erst ab einer deutlichen Breitenänderung neu rechnen. Kleine Sprünge
+    // entstehen allein dadurch, dass ein Scrollbalken kommt oder geht — darauf
+    // zu reagieren erzeugt eine Endlosschleife aus Höhe → Scrollbalken → Breite.
+    const MIN_DELTA = 32
+    const update = () => {
+      const width = el.clientWidth
+      if (Math.abs(width - lastWidth.current) < MIN_DELTA) return
+      lastWidth.current = width
+      setHeight(heightFor(width, sizing))
+    }
     update()
     const ro = new ResizeObserver(update)
     ro.observe(el)

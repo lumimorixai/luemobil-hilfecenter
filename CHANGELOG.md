@@ -4,6 +4,12 @@ Neueste Änderungen oben. Je Eintrag: was neu ist und **was beim Update von Hand
 zu tun ist**. Allgemeiner Update-Ablauf: `LIVE-GEHEN.md`, „Später: Updates
 einspielen".
 
+## 2026-09-23 — Kennzahlen: Flackern durch Scrollbalken-Rückkopplung behoben
+
+- Platz für den Scrollbalken wird auf `/kennzahlen` fest reserviert und die
+  iframe-Höhe erst ab 32 px Breitenänderung neu gesetzt. Vorher schaukelten sich
+  Höhe und Scrollbalken gegenseitig auf.
+
 ## 2026-09-23 — Tokens und Schlüssel unempfindlich gegen Umbrüche
 
 - Aus Ticket-API-Token und Metabase-Schlüssel werden jetzt alle Leerzeichen und

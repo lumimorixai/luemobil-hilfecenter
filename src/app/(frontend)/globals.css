@@ -387,6 +387,13 @@ a.lm-chip {
    Chrome ein iframe beim Scrollen neu rastern, was sichtbar flackert.
    1648 px = 1600 px Inhalt + 2 × 24 px Seitenrand. Browser ohne :has() zeigen
    die normale Breite — nur schmaler, sonst unverändert. */
+/* Platz für den Scrollbalken dauerhaft reservieren — sonst entsteht eine
+   Rückkopplung: Höhe ändert sich → Scrollbalken erscheint/verschwindet →
+   Breite ändert sich um ~15 px → neue Höhe → … Das flackert sichtbar. */
+:root:has(main.lm-main > .lm-dash-page) {
+  scrollbar-gutter: stable;
+}
+
 main.lm-main:has(> .lm-dash-page) {
   max-width: 1648px;
   /* main.lm-main setzt den Seitenrand der Spalte auf 0 — hier wieder auf die
