@@ -4,6 +4,13 @@ Neueste Änderungen oben. Je Eintrag: was neu ist und **was beim Update von Hand
 zu tun ist**. Allgemeiner Update-Ablauf: `LIVE-GEHEN.md`, „Später: Updates
 einspielen".
 
+## 2026-09-23 — Ticket-API auch über das Docker-Netz
+
+- Der Ticket-API-Client spricht jetzt auch `http://…`, damit in Produktion der
+  Container `postgrest` im selben Docker-Netz direkt erreichbar ist
+  (`LUEMOBIL_API_URL=http://postgrest:3000`, kein TLS/CA nötig). Bei `https`
+  wird das Zertifikat weiterhin immer geprüft.
+
 ## 2026-09-22 — Kennzahlen (LüMobil-Dashboards)
 
 **Neu**

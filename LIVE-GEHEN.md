@@ -356,14 +356,21 @@ ersetzt den gesamten bisherigen Bestand. Bis zum ersten Upload zeigt der
 Kundencheck „Keine Patris-Daten" (graue Ampel). Erwartetes Dateiformat:
 `KUNDENCHECK-COCKPIT.md`, Abschnitt 3.2.
 
-### 9g. Ticket-API anbinden (sobald es eine Prod-URL gibt)
+### 9g. Ticket-API anbinden
 
 Die LüMobil Ticket-API liefert die App-Käufe für den Kundencheck. Ohne sie läuft
 der Kundencheck normal, nur der Kaufbereich zeigt „nicht eingerichtet".
 
-1. Die **IP-Adresse des Servers** dem API-Betreiber mitteilen (Freigabeliste).
-2. Token als Datei ablegen — **nicht** in die `.env`, nicht per Mail/Chat
-   weitergeben (Passwort-Tresor):
+Sie gehört zum **Reporting-Stack** (eigenes Repo `luemobil_reporting`) und läuft
+dort als Container `postgrest` im selben Docker-Netz wie dieser Stack — kein
+öffentlicher Port, kein TLS, keine CA. Aufsetzen: dessen `BETRIEBSHANDBUCH.md`,
+Abschnitte 4.6 bis 4.10.
+
+Auf Hilfecenter-Seite:
+
+1. Token ausstellen lassen (im Reporting-Repo):
+   `./ticket-api/token.sh neu hilfecenter-prod 365` — Übergabe über den Tresor.
+2. Token als Datei ablegen, **nicht** in die `.env`:
    ```bash
    cd /opt/luemobil
    mkdir -p secrets
@@ -371,10 +378,13 @@ der Kundencheck normal, nur der Kaufbereich zeigt „nicht eingerichtet".
    sudo chown $(docker compose exec app id -u) secrets/luemobil_api_token
    chmod 400 secrets/luemobil_api_token
    ```
-3. In der `.env` `LUEMOBIL_API_URL=https://<api-host>` setzen, dann
-   `docker compose up -d`.
+3. In die `.env`: `LUEMOBIL_API_URL=http://postgrest:3000`, dann
+   `docker compose up -d app`.
 4. Prüfen: Kundencheck mit einer bekannten Adresse ausführen → Abschnitt
    „Käufe in der LüMobil-App" zeigt Bestellungen.
+
+Beide Stacks müssen dasselbe Docker-Netz nutzen; das stellt `HILFECENTER_NETZ`
+in der `.env` des Reporting-Stacks sicher.
 
 **Token-Wechsel** (z. B. nach Ablauf oder einer 401-Alarmmail): nur die Datei
 `secrets/luemobil_api_token` ersetzen — wirkt sofort, ohne Neustart.

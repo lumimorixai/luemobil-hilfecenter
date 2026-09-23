@@ -7,12 +7,16 @@
  * Sicherheit (Vorgabe der API-Betreiber):
  * - Token aus LUEMOBIL_API_TOKEN_FILE (bei jedem Aufruf neu gelesen → Token-
  *   Wechsel ohne Deployment/Neustart) oder ersatzweise LUEMOBIL_API_TOKEN.
- * - Zertifikat wird immer geprüft; im Dev-System gegen die CA aus LUEMOBIL_API_CA.
+ * - Bei https wird das Zertifikat immer geprüft; im Dev-System gegen die CA aus
+ *   LUEMOBIL_API_CA. http ist nur für netzinterne Adressen gedacht (in Produktion
+ *   läuft die API als Container im selben Docker-Netz, http://postgrest:3000) —
+ *   der Verkehr verlässt den Host dann nicht.
  * - Weder Token noch E-Mail-Adresse werden geloggt (nur HTTP-Status).
  *
  * Bewusst über node:https statt fetch: so lässt sich die eigene CA ohne
  * zusätzliche Abhängigkeit (undici) hinterlegen.
  */
+import http from 'node:http'
 import { readFileSync } from 'node:fs'
 import https from 'node:https'
 import { payloadClient } from '../content'
@@ -77,12 +81,13 @@ export function ticketApiConfigured(): boolean {
 type RawResponse = { status: number; body: string }
 
 function post(url: string, token: string, body: string, bearbeiter: string): Promise<RawResponse> {
+  const insecure = url.startsWith('http://')
   return new Promise((resolve, reject) => {
-    const req = https.request(
+    const req = (insecure ? http : https).request(
       url,
       {
         method: 'POST',
-        ca: readCa(),
+        ...(insecure ? {} : { ca: readCa() }),
         // rejectUnauthorized bleibt bewusst auf dem Standard (true).
         headers: {
           Authorization: `Bearer ${token}`,

@@ -164,10 +164,19 @@ X-Bearbeiter: <E-Mail der angemeldeten Person>
 
 Ist die API nicht erreichbar, entscheidet die Ampel allein nach Patris + Konto.
 
+**Betriebsarten:**
+- **Produktion:** Die API läuft als Container `postgrest` im selben Docker-Netz
+  (Reporting-Stack, siehe dessen `BETRIEBSHANDBUCH.md`, 4.10) →
+  `LUEMOBIL_API_URL=http://postgrest:3000`. Kein TLS und keine CA nötig, der
+  Verkehr verlässt den Host nicht; die Authentifizierung übernimmt das Token.
+- **Dev (Mac):** nginx mit eigener CA → `https://localhost:8443` plus
+  `LUEMOBIL_API_CA`.
+
 **Sicherheit** (Vorgaben des API-Betreibers, umgesetzt in `src/lib/cockpit/ticketApi.ts`):
 - Token nie im Code/Repo, nie im Browser, nie im Log (auch die E-Mail nicht).
-- Zertifikat wird immer geprüft; im Dev-System gegen die mitgelieferte `ca.crt`
-  (`LUEMOBIL_API_CA`), in Produktion gegen die System-CAs.
+- Bei `https` wird das Zertifikat immer geprüft; im Dev-System gegen die
+  mitgelieferte `ca.crt` (`LUEMOBIL_API_CA`). `http` ist nur für netzinterne
+  Adressen gedacht (siehe oben).
 - **Token-Wechsel ohne Deployment:** Das Token wird bei jedem Aufruf aus der Datei
   `LUEMOBIL_API_TOKEN_FILE` gelesen — Datei ersetzen genügt, kein Neustart.
 
