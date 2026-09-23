@@ -24,7 +24,7 @@ export const metadata = {
 export default async function KennzahlenPage({
   searchParams,
 }: {
-  searchParams: Promise<{ d?: string }>
+  searchParams: Promise<{ d?: string; breit?: string }>
 }) {
   const session = await getCockpitSession()
   if (!session) redirect('/api/auth/login?next=/kennzahlen')
@@ -38,8 +38,13 @@ export default async function KennzahlenPage({
     )
   }
 
+  const params = await searchParams
   const visible = visibleDashboards(session)
-  const requested = ((await searchParams).d || '').toLowerCase()
+  const requested = (params.d || '').toLowerCase()
+  // Diagnose: ?breit=0 zeigt das Dashboard in der normalen 960-px-Spalte.
+  // Damit lässt sich prüfen, ob die volle Breite an einem Darstellungsproblem
+  // (z. B. Flackern im Browser) beteiligt ist.
+  const wide = params.breit !== '0'
 
   // Ausdrücklich angefordertes, aber nicht erlaubtes Dashboard → kein Token.
   const requestedExists = requested && dashboards().some((d) => d.key === requested)
@@ -60,14 +65,14 @@ export default async function KennzahlenPage({
   return (
     // Breiter als die übliche Inhaltsspalte (960 px), damit Metabase Zahlen und
     // Titel nicht kürzt — bewusste Ausnahme vom Seitenraster.
-    <div className="lm-dash-wide">
+    <div className={wide ? 'lm-dash-wide' : undefined}>
       <p className="lm-kicker">Kennzahlen · LüMobil</p>
       {visible.length > 1 && (
         <nav className="lm-chips" aria-label="Dashboards">
           {visible.map((d) => (
             <Link
               key={d.key}
-              href={`/kennzahlen?d=${d.key}`}
+              href={`/kennzahlen?d=${d.key}${wide ? '' : '&breit=0'}`}
               className={`lm-chip${d.key === current.key ? ' active' : ''}`}
               aria-current={d.key === current.key ? 'page' : undefined}
             >
