@@ -14,10 +14,13 @@ eigenes Metabase-Konto. Vorgaben des LüMobil-Betriebs:
    Dashboard, gültig **10 Minuten**, und liefert die iframe-URL aus.
 4. Der **Browser** lädt das Dashboard direkt von `METABASE_URL`. Der
    Hilfecenter-Server braucht keine Verbindung zu Metabase.
-5. Bleibt die Seite offen, holt sie **alle 9 Minuten** über
-   `GET /api/cockpit/kennzahlen?dashboard=<schlüssel>` eine frische URL (gleiche
-   Prüfung; ohne Berechtigung 403). Wurde man zwischenzeitlich abgemeldet, zeigt
-   die Seite einen Hinweis statt weiter zu verlängern.
+5. Das iframe wird **nicht im Takt** neu geladen — das würde bei jedem Mal
+   sichtbar flackern. Ein offenes Dashboard lädt von sich aus keine Daten nach,
+   ein abgelaufenes Token stört es also nicht. Aufgefrischt wird nur, wenn man
+   zur Seite **zurückkehrt** (Tab- oder Fensterwechsel) und die Anzeige älter als
+   9 Minuten ist: über `GET /api/cockpit/kennzahlen?dashboard=<schlüssel>` mit
+   derselben Prüfung (ohne Berechtigung 403). Wurde man zwischenzeitlich
+   abgemeldet, zeigt die Seite einen Hinweis.
 
 Metabase akzeptiert abgelaufene Tokens noch **60 Sekunden** (Toleranz für
 Uhrabweichungen, getestet). Eine kopierte URL ist damit nach höchstens
@@ -80,8 +83,8 @@ Dem LüMobil-Betrieb **alle** Adressen des Hilfecenters (Dev, Test, Produktion)
 melden — nur diese dürfen einbetten (`frame-ancestors`).
 
 **Schlüsselwechsel:** Datei ersetzen — wirkt sofort. Alle alten Tokens werden
-ungültig; offene Seiten erholen sich beim nächsten Nachladen (spätestens nach
-9 Minuten) bzw. nach einem Neuladen.
+ungültig; offene Seiten erholen sich, sobald man zur Seite zurückkehrt oder sie
+neu lädt.
 
 ## Sicherheit
 

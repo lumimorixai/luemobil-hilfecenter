@@ -1,9 +1,10 @@
 'use client'
 
 /**
- * Metabase-Dashboard im iframe. Das Token in der URL gilt 10 Minuten; damit
- * eine offene Seite weiter funktioniert, holt die Komponente alle 9 Minuten
- * eine frische URL vom Server (gleiche Rechteprüfung wie die Seite).
+ * Metabase-Dashboard im iframe. Das Token in der URL gilt 10 Minuten. Eine
+ * offene Seite lädt von sich aus keine Daten nach, deshalb wird das iframe
+ * NICHT im Takt neu geladen (das würde sichtbar flackern) — sondern nur, wenn
+ * man zur Seite zurückkehrt und die Anzeige älter als 9 Minuten ist.
  *
  * Höhe: Metabase skaliert die Kacheln mit der Breite. Die Höhe wird deshalb
  * aus der tatsächlichen iframe-Breite berechnet (gemessene Werte je Dashboard),
@@ -12,7 +13,11 @@
 import { useEffect, useRef, useState } from 'react'
 import type { DashboardSizing } from '@/lib/metabase'
 
-const REFRESH_MS = 9 * 60 * 1000
+/**
+ * Ab diesem Alter wird beim Zurückkehren auf die Seite eine frische URL geholt.
+ * Kürzer als die Token-Gültigkeit (10 min), damit das neue Token sicher gilt.
+ */
+const MAX_AGE_MS = 9 * 60 * 1000
 /** Unter dem Raster: Rand und „Powered by Metabase" (gemessen). */
 const FOOTER_PX = 80
 
@@ -34,6 +39,7 @@ export function DashboardFrame({
   const [url, setUrl] = useState(initialUrl)
   const [expired, setExpired] = useState(false)
   const frameRef = useRef<HTMLIFrameElement>(null)
+  const loadedAt = useRef(Date.now())
   const [height, setHeight] = useState(() => heightFor(1200, sizing))
 
   useEffect(() => {
@@ -46,10 +52,18 @@ export function DashboardFrame({
     return () => ro.disconnect()
   }, [sizing])
 
+  // Kein Nachladen im Takt: Ein offenes Dashboard lädt von sich aus keine Daten
+  // nach, ein abgelaufenes Token stört es also nicht. Stattdessen wird beim
+  // Zurückkehren auf die Seite aufgefrischt — so flackert nichts beim Zuschauen.
   useEffect(() => {
     setUrl(initialUrl)
     setExpired(false)
-    const timer = setInterval(async () => {
+    loadedAt.current = Date.now()
+
+    let running = false
+    async function refreshIfStale() {
+      if (running || document.hidden || Date.now() - loadedAt.current < MAX_AGE_MS) return
+      running = true
       try {
         const res = await fetch(`/api/cockpit/kennzahlen?dashboard=${encodeURIComponent(dashboardKey)}`, {
           credentials: 'same-origin',
@@ -57,17 +71,25 @@ export function DashboardFrame({
         })
         if (res.ok) {
           setUrl(((await res.json()) as { url: string }).url)
+          loadedAt.current = Date.now()
           setExpired(false)
         } else {
           // Abgemeldet oder Rechte entzogen: kein neues Token mehr.
           setExpired(true)
-          clearInterval(timer)
         }
       } catch {
-        // Netzwerkfehler: beim nächsten Intervall erneut versuchen.
+        // Netzwerkfehler: beim nächsten Zurückkehren erneut versuchen.
+      } finally {
+        running = false
       }
-    }, REFRESH_MS)
-    return () => clearInterval(timer)
+    }
+
+    document.addEventListener('visibilitychange', refreshIfStale)
+    window.addEventListener('focus', refreshIfStale)
+    return () => {
+      document.removeEventListener('visibilitychange', refreshIfStale)
+      window.removeEventListener('focus', refreshIfStale)
+    }
   }, [dashboardKey, initialUrl])
 
   return (

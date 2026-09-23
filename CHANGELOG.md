@@ -9,8 +9,9 @@ einspielen".
 **Neu**
 - Interne Seite `/kennzahlen` mit den vier LüMobil-Dashboards aus Metabase
   (statische Einbettung, serverseitig signierte Tokens, 10 Minuten gültig,
-  automatisches Nachladen). Dashboard „Betrieb & Störungen" (einzelne
-  Bestellungen) standardmäßig nur für die Rolle `support`.
+  Auffrischen beim Zurückkehren auf die Seite statt im Takt — so flackert
+  nichts). Dashboard „Betrieb & Störungen" (einzelne Bestellungen)
+  standardmäßig nur für die Rolle `support`.
 
 **Beim Update**
 - Schlüssel als Datei `secrets/metabase_embed_secret` ablegen,
