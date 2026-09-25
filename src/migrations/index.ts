@@ -6,6 +6,7 @@ import * as migration_20260904_180000_cockpit_daily from './20260904_180000_cock
 import * as migration_20260906_150000_cockpit_registrations from './20260906_150000_cockpit_registrations';
 import * as migration_20260909_153000_health_checks from './20260909_153000_health_checks';
 import * as migration_20260922_101232_patris from './20260922_101232_patris';
+import * as migration_20260925_092649_users_rolle from './20260925_092649_users_rolle';
 
 export const migrations = [
   {
@@ -46,6 +47,11 @@ export const migrations = [
   {
     up: migration_20260922_101232_patris.up,
     down: migration_20260922_101232_patris.down,
-    name: '20260922_101232_patris'
+    name: '20260922_101232_patris',
+  },
+  {
+    up: migration_20260925_092649_users_rolle.up,
+    down: migration_20260925_092649_users_rolle.down,
+    name: '20260925_092649_users_rolle'
   },
 ];

@@ -11,7 +11,9 @@ export const runtime = 'nodejs'
  * ?as=kundencheck | cockpit | beide (Standard) — zum Testen der Rollentrennung.
  */
 export async function GET(req: NextRequest) {
-  if (!isMock()) {
+  // Doppelt gesichert: Mock-Modus UND niemals im Produktions-Build — sonst
+  // öffnet ein versehentliches COCKPIT_MOCK=true eine Anmeldung ohne Passwort.
+  if (process.env.NODE_ENV === 'production' || !isMock()) {
     return new NextResponse('Nicht verfügbar.', { status: 404 })
   }
 

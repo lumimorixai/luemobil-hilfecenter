@@ -486,6 +486,10 @@ export interface User {
   id: number;
   name?: string | null;
   /**
+   * Kundendaten aus dem Patris-Import (inkl. Telefonnummern) sehen nur Administratoren. Konten ohne gesetzte Rolle gelten als Administrator.
+   */
+  role?: ('admin' | 'redaktion') | null;
+  /**
    * Bei neuen Fehlermeldungen und eingereichten Fragen eine E-Mail erhalten. Kann jederzeit deaktiviert werden.
    */
   notifyOnSubmissions?: boolean | null;
@@ -887,6 +891,7 @@ export interface MediaSelect<T extends boolean = true> {
  */
 export interface UsersSelect<T extends boolean = true> {
   name?: T;
+  role?: T;
   notifyOnSubmissions?: T;
   updatedAt?: T;
   createdAt?: T;

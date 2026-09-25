@@ -16,6 +16,7 @@ LüMobil-Dashboards aus Metabase) — siehe `docs/KENNZAHLEN.md`.
 | `README.md` | Überblick, lokale Entwicklung, Befehle (diese Datei) |
 | `LIVE-GEHEN.md` | Server-Deployment Schritt für Schritt, Cockpit-Einrichtung, Updates |
 | `KUNDENCHECK-COCKPIT.md` | Kundencheck & Cockpit: Rollen, Ampel-Logik, Patris-CSV, Ticket-API, Betrieb |
+| `docs/ABO-BERECHTIGUNGEN.md` | Struktur der Patris-Berechtigungen (Bestandssegmente 9999/9995) und Aktivierungskennzahlen |
 | `docs/KENNZAHLEN.md` | LüMobil-Dashboards (Metabase) auf `/kennzahlen`: Ablauf, Rechte, Konfiguration |
 | `docs/SERVICECENTER.md` | Kurzanleitung Kundencheck für das Servicecenter (Ampel lesen, Eskalation) |
 | `docs/ARCHITEKTUR.md` | Systemübersicht mit Diagrammen, Datenflüsse, Umgebungen |

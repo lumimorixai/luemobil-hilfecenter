@@ -12,8 +12,11 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
  * Kundencheck (User-Enumeration-Werkzeug) — nur mit Kundencheck-Berechtigung.
  * Rate-Limit 30/Minute je Session. Die abgefragte E-Mail wird NICHT
  * protokolliert (nur ein anonymer Zähler über das Rate-Limit).
+ *
+ * Bewusst POST mit der Adresse im Body: In einer Query landet sie sonst in
+ * Server-, Proxy- und Browser-Verlauf.
  */
-export async function GET(req: NextRequest) {
+export async function POST(req: NextRequest) {
   const session = await requireKundencheck()
   if (!session) return NextResponse.json({ error: 'forbidden' }, { status: 403 })
 
@@ -24,7 +27,13 @@ export async function GET(req: NextRequest) {
     )
   }
 
-  const email = (req.nextUrl.searchParams.get('email') || '').trim().toLowerCase()
+  let email = ''
+  try {
+    const body = (await req.json()) as { email?: unknown }
+    email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : ''
+  } catch {
+    return NextResponse.json({ error: 'invalid_email' }, { status: 400 })
+  }
   if (!email || email.length > 254 || !EMAIL_RE.test(email)) {
     return NextResponse.json({ error: 'invalid_email' }, { status: 400 })
   }

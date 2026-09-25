@@ -1,4 +1,5 @@
 import type { GlobalConfig } from 'payload'
+import { nurAdmin } from '../lib/payloadRoles'
 
 /**
  * Stand des letzten Patris-CSV-Uploads (wird vom Upload geschrieben, im Admin
@@ -12,7 +13,7 @@ export const PatrisImport: GlobalConfig = {
     description: 'Letzter CSV-Upload der Patris-Ticketdaten (Upload im Migrations-Cockpit).',
   },
   access: {
-    read: ({ req }) => Boolean(req.user),
+    read: nurAdmin,
     update: () => false,
   },
   fields: [

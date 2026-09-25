@@ -10,6 +10,58 @@ einspielen".
   iframe-Höhe erst ab 32 px Breitenänderung neu gesetzt. Vorher schaukelten sich
   Höhe und Scrollbalken gegenseitig auf.
 
+## 2026-09-25 — Kundendaten im CMS abgesichert
+
+- **Payload-Rollen:** Konten sind jetzt „Administrator" oder „Redaktion".
+  Kundendaten aus dem Patris-Import (inkl. Telefonnummern) lesen nur noch
+  Administratoren — vorher kam jedes angemeldete CMS-Konto über die REST-API an
+  den gesamten Bestand.
+- **Kundencheck per POST:** Die gesuchte E-Mail steht nicht mehr in der URL und
+  landet damit nicht in Server-, Proxy- oder Browser-Verlauf.
+- **Dev-Login** ist in Produktions-Builds zusätzlich hart gesperrt, unabhängig
+  von `COCKPIT_MOCK`.
+
+**Beim Update**
+- Migration `20260925_092649_users_rolle` läuft automatisch; **bestehende Konten
+  bleiben Administrator**, neue Konten sind standardmäßig Redaktion.
+- Danach im Admin unter System → Benutzer die Rollen vergeben: Redaktionskonten
+  auf „Redaktion" setzen.
+
+## 2026-09-23 — Kennzahlen: Flackern durch Scrollbalken-Rückkopplung behoben
+
+- Platz für den Scrollbalken wird auf `/kennzahlen` fest reserviert und die
+  iframe-Höhe erst ab 32 px Breitenänderung neu gesetzt. Vorher schaukelten sich
+  Höhe und Scrollbalken gegenseitig auf.
+
+## 2026-09-25 — Kundendaten im CMS abgesichert
+
+- **Payload-Rollen:** Konten sind jetzt „Administrator" oder „Redaktion".
+  Kundendaten aus dem Patris-Import (inkl. Telefonnummern) lesen nur noch
+  Administratoren — vorher kam jedes angemeldete CMS-Konto über die REST-API an
+  den gesamten Bestand.
+- **Kundencheck per POST:** Die gesuchte E-Mail steht nicht mehr in der URL und
+  landet damit nicht in Server-, Proxy- oder Browser-Verlauf.
+- **Dev-Login** ist in Produktions-Builds zusätzlich hart gesperrt, unabhängig
+  von `COCKPIT_MOCK`.
+
+**Beim Update**
+- Migration `20260925_092649_users_rolle` läuft automatisch; **bestehende Konten
+  bleiben Administrator**, neue Konten sind standardmäßig Redaktion.
+- Danach im Admin unter System → Benutzer die Rollen vergeben: Redaktionskonten
+  auf „Redaktion" setzen.
+
+## 2026-09-25 — Telefonnummer im Patris-Import
+
+- Der CSV-Import übernimmt zusätzlich die Spalte `phone` (auch `telefon`,
+  `telephone`, `mobile`, `mobil`, `handy`), wenn sie vorhanden ist. Die Spalte ist
+  optional: Ältere Exporte ohne sie funktionieren unverändert weiter.
+- Angezeigt wird die Nummer noch nicht; sie ist die Grundlage für die geplante
+  Anrufaktion des Callcenters.
+
+**Beim Update**
+- Migration `20260925_073842_patris_phone` läuft automatisch (eine neue Spalte).
+- Danach die Patris-CSV neu hochladen, damit die Nummern in der Datenbank landen.
+
 ## 2026-09-23 — Tokens und Schlüssel unempfindlich gegen Umbrüche
 
 - Aus Ticket-API-Token und Metabase-Schlüssel werden jetzt alle Leerzeichen und

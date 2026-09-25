@@ -38,7 +38,7 @@ Zugriff nur für Mitarbeitende mit Rolle `kundencheck`, `cockpit` oder
 
 | Quelle | Daten | Gespeichert im Hilfecenter? |
 |---|---|---|
-| Patris-CSV (Upload) | Entitlement-ID, Gültigkeit, Produkt, Kundennummer, E-Mail, Vor- und Nachname | **Ja**, Tabelle `patris_entitlements`, bis zum nächsten Upload (dann vollständig ersetzt). Nur diese 9 Spalten; alle übrigen CSV-Spalten werden verworfen |
+| Patris-CSV (Upload) | Entitlement-ID, Gültigkeit, Produkt, Kundennummer, E-Mail, Vor- und Nachname, **Telefonnummer** (seit 25.09.2026, sofern die CSV sie enthält) | **Ja**, Tabelle `patris_entitlements`, bis zum nächsten Upload (dann vollständig ersetzt). Nur diese 10 Spalten; alle übrigen CSV-Spalten werden verworfen. Die Telefonnummer wird im Kundencheck nicht angezeigt |
 | Keycloak (Kunden-Realm) | Konto vorhanden, Kundennummer, Anlagedatum; Login-Ereignisse der letzten 14 Tage (Zeit, Ergebnis, Client) | Nein, live abgefragt |
 | LüMobil Ticket-API | Bestellungen: Zeitpunkt, Bestellnummer, Produkt, Tarif, Menge, Preis, Status | Nein, live abgefragt |
 | Upload-Protokoll | Dateiname, Zeitpunkt, E-Mail der hochladenden Person, Zeilenzahl | Ja, Global `patris_import` (nur letzter Upload) |
@@ -60,11 +60,11 @@ Zugriff nur für Mitarbeitende mit Rolle `kundencheck`, `cockpit` oder
 |---|---|
 | Transportverschlüsselung | HTTPS über Caddy (Let's Encrypt); Ticket-API mit Zertifikatsprüfung |
 | Zugriffskontrolle intern | Keycloak-Login mit Rollen, serverseitig je Seite/API geprüft |
-| Zugriffskontrolle CMS | Payload-Login; Meldungen und Cockpit-Daten nur für Angemeldete |
+| Zugriffskontrolle CMS | Payload-Login mit Rollen: Kundendaten aus dem Patris-Import (inkl. Telefonnummern) nur für Administratoren, Redaktionskonten erhalten HTTP 403 |
 | Formularschutz | Honeypot, Längen- und Dateigrößenlimits, REST-Schreibzugriff gesperrt |
 | Session | HttpOnly, SameSite=Lax, signiert, 8 h; `Secure`, sobald `APP_BASE_URL` mit `https` beginnt |
 | Secrets | `.env` und `secrets/` nur auf dem Server, nicht im Repository |
-| Datensparsamkeit | Patris: nur benötigte Spalten; Kundencheck ohne Abfrageprotokoll |
+| Datensparsamkeit | Patris: nur benötigte Spalten; Kundencheck ohne Abfrageprotokoll; die gesuchte E-Mail geht per POST im Body, nicht als URL-Parameter (sonst in Server- und Proxy-Logs) |
 | Datensicherung | täglich, 14 Tage, Ordner nur für root lesbar (`docs/BACKUP-RESTORE.md`) |
 | Suchmaschinen | `noindex` in der Testphase; `/admin` immer `noindex` |
 
@@ -95,6 +95,9 @@ Zugriff nur für Mitarbeitende mit Rolle `kundencheck`, `cockpit` oder
 5. Hinweis an die Formularnutzer:innen, dass Name/Kontakt freiwillig sind und
    wofür sie verwendet werden (V2, V3).
 6. Verträge zur Auftragsverarbeitung mit den Dienstleistern (Abschnitt 4).
-7. Kennzahlen (V11): festlegen, welche Rollen „Betrieb & Störungen" (einzelne
+7. Telefonnummern (seit 25.09.2026 im Patris-Import): Zweck ist die geplante
+   Anrufaktion des Callcenters. Rechtsgrundlage für die Anrufe und Löschfrist der
+   Nummern festlegen; bis dahin werden sie nur gespeichert, nicht genutzt.
+8. Kennzahlen (V11): festlegen, welche Rollen „Betrieb & Störungen" (einzelne
    Bestellungen) und die PLZ-Auswertung sehen dürfen. Technischer Standard:
    Bestelldaten nur Rolle `support` (`docs/KENNZAHLEN.md`).

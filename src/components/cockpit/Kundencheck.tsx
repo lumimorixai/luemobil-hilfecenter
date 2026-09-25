@@ -27,8 +27,11 @@ export function Kundencheck() {
     setError(null)
     setResult(null)
     try {
-      const res = await fetch(`/api/cockpit/check?email=${encodeURIComponent(q)}`, {
-        headers: { Accept: 'application/json' },
+      // POST, damit die Adresse nicht als Query in Logs und Verlauf landet.
+      const res = await fetch('/api/cockpit/check', {
+        method: 'POST',
+        headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: q }),
       })
       if (res.status === 403) {
         setError('Keine Berechtigung für den Kundencheck.')

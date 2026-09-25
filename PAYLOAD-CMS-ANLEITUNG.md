@@ -303,11 +303,19 @@ In den Collections steuert `access`, wer was darf:
 
 ## B7. Benutzer & Rollen
 
-- Unter **System → Benutzer** legst du weitere Redakteur:innen an (E-Mail + Passwort).
-- Aktuell hat jede:r angemeldete Nutzer:in vollen Zugriff. Braucht ihr feinere
-  Rollen (z. B. „nur Inhalte, kein Benutzer-Management"), lässt sich das in
-  `src/collections/Users.ts` über ein Rollenfeld und angepasste `access`-Regeln
-  ergänzen (siehe Roadmap in `CLAUDE.md`).
+- Unter **System → Benutzer** legst du weitere Konten an (E-Mail + Passwort).
+- Jedes Konto hat eine **Rolle** (`src/lib/payloadRoles.ts`):
+  - **Administrator** — alles, auch die Kundendaten aus dem Patris-Import
+    (Namen, Kundennummern, Telefonnummern)
+  - **Redaktion** — Inhalte und Meldungen; Patris-Tickets und Patris-Import sind
+    weder im Admin sichtbar noch über die REST-API lesbar (HTTP 403)
+- Neue Konten sind standardmäßig **Redaktion**. Die Rolle kann nur ein
+  Administrator setzen.
+- Konten **ohne** gesetzte Rolle gelten als Administrator (Bestandskonten aus der
+  Zeit vor den Rollen). Nach der Vergabe der Rollen kann dieser Sonderfall im
+  Code entfallen.
+- Die Payload-Rollen haben nichts mit den Keycloak-Rollen für Kundencheck und
+  Cockpit zu tun (`KUNDENCHECK-COCKPIT.md`) — das sind getrennte Anmeldungen.
 
 ## B8. Betrieb: Backups
 

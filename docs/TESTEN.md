@@ -61,6 +61,7 @@ Auf einer lokalen oder Test-Instanz durchgehen; Ergebnis im Release-Eintrag
 - [ ] Rolle `cockpit`: nur Reiter Cockpit, ohne eingebetteten Kundencheck; `/kundencheck` leitet um
 - [ ] Rolle `support`: beides
 - [ ] Ohne Anmeldung: `/kundencheck` und `/cockpit` führen zum Login; `/api/cockpit/check` → 403
+- [ ] Payload-Konto mit Rolle „Redaktion": `/api/patris-entitlements` und `/api/globals/patris-import` → 403, `/api/articles` → 200
 - [ ] Kundencheck: alle Ampelfarben aus der Tabelle oben
 - [ ] Patris-Upload: Beispiel-CSV → „4 Tickets übernommen · 1 Zeile ohne entitlement_id übersprungen"; Datei ohne Pflichtspalte → verständliche Fehlermeldung, alter Stand bleibt
 - [ ] Ticket-API: Käufe erscheinen; mit falschem Token → Hinweis „Zugang abgelehnt" (Alarm-Mail nur bei gesetztem `ALERT_EMAIL`)
