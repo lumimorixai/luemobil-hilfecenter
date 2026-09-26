@@ -22,10 +22,11 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
 
 export async function down({ db, payload, req }: MigrateDownArgs): Promise<void> {
   await db.execute(sql`
-   ALTER TABLE "cockpit_daily" DISABLE ROW LEVEL SECURITY;
-  DROP TABLE "cockpit_daily" CASCADE;
-  ALTER TABLE "payload_locked_documents_rels" DROP CONSTRAINT "payload_locked_documents_rels_cockpit_daily_fk";
-
-  DROP INDEX "payload_locked_documents_rels_cockpit_daily_id_idx";
-  ALTER TABLE "payload_locked_documents_rels" DROP COLUMN "cockpit_daily_id";`)
+   -- Erst die Verweise lösen, dann die Tabelle: andersherum ist der
+  -- Fremdschlüssel durch CASCADE bereits fort und DROP CONSTRAINT scheitert.
+  ALTER TABLE "payload_locked_documents_rels" DROP CONSTRAINT IF EXISTS "payload_locked_documents_rels_cockpit_daily_fk";
+  DROP INDEX IF EXISTS "payload_locked_documents_rels_cockpit_daily_id_idx";
+  ALTER TABLE "payload_locked_documents_rels" DROP COLUMN IF EXISTS "cockpit_daily_id";
+  ALTER TABLE "cockpit_daily" DISABLE ROW LEVEL SECURITY;
+  DROP TABLE "cockpit_daily" CASCADE;`)
 }

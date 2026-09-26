@@ -34,13 +34,14 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
 
 export async function down({ db, payload, req }: MigrateDownArgs): Promise<void> {
   await db.execute(sql`
-   ALTER TABLE "roadmap_items" DISABLE ROW LEVEL SECURITY;
+   -- Erst die Verweise lösen, dann die Tabellen: andersherum ist der
+  -- Fremdschlüssel durch CASCADE bereits fort und DROP CONSTRAINT scheitert.
+  ALTER TABLE "payload_locked_documents_rels" DROP CONSTRAINT IF EXISTS "payload_locked_documents_rels_roadmap_fk";
+  DROP INDEX IF EXISTS "payload_locked_documents_rels_roadmap_id_idx";
+  ALTER TABLE "payload_locked_documents_rels" DROP COLUMN IF EXISTS "roadmap_id";
+  ALTER TABLE "roadmap_items" DISABLE ROW LEVEL SECURITY;
   ALTER TABLE "roadmap" DISABLE ROW LEVEL SECURITY;
   DROP TABLE "roadmap_items" CASCADE;
   DROP TABLE "roadmap" CASCADE;
-  ALTER TABLE "payload_locked_documents_rels" DROP CONSTRAINT "payload_locked_documents_rels_roadmap_fk";
-  
-  DROP INDEX "payload_locked_documents_rels_roadmap_id_idx";
-  ALTER TABLE "payload_locked_documents_rels" DROP COLUMN "roadmap_id";
   DROP TYPE "public"."enum_roadmap_items_status";`)
 }
