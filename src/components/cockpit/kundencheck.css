@@ -1,446 +1,524 @@
-/* ============================================================
-   Kundencheck — Styles der Komponente (mit der Komponente geladen,
-   damit sie sowohl im Cockpit als auch als Tab auf der Startseite wirkt).
-   SWL-Design-System: nur Token-Farben, Inter, 2px-Radius, Hairlines.
-   Statusfarben (grün/gelb/pink) nur für Status.
-   ============================================================ */
+/*
+ * Kundencheck — im Material des Cockpits.
+ *
+ * Alle Farben und Maße kommen aus den Variablen der Hülle (.cx-app), damit
+ * helle und dunkle Fassung ohne zweiten Satz Regeln funktionieren. Nichts hier
+ * definiert eigene Hex-Werte.
+ *
+ * Statusfarben (grün/gelb/pink) sind zulässig — sie zeigen einen Zustand,
+ * keine Dekoration.
+ */
 
-.cx-check {
-  background: var(--swl-white);
-  border: 1px solid var(--swl-hairline);
-  border-top: 3px solid var(--swl-orange);
-  border-radius: var(--radius);
-  padding: 22px 24px;
-  margin-top: 26px;
-}
-.cx-check-title {
-  font-size: 21px;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-  margin: 0 0 4px;
-}
-.cx-check-sub {
-  color: var(--swl-label-gray);
-  margin: 0 0 16px;
-  max-width: 62ch;
-  font-size: 14px;
-  line-height: 1.5;
-}
+/* --- Suchzeile --------------------------------------------------------- */
+
 .cx-searchrow {
   display: flex;
-  gap: 10px;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 12px 10px 24px;
   flex-wrap: wrap;
 }
-.cx-input {
-  flex: 1;
-  min-width: 240px;
-  padding: 11px 14px;
-  border: 1px solid var(--swl-hairline);
-  border-radius: var(--radius);
-  font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace;
+.cx-searchrow label {
   font-size: 14px;
-  color: var(--swl-black);
-  background: var(--swl-white);
+  color: var(--t5);
+  flex-shrink: 0;
+}
+.cx-input {
+  flex-grow: 1;
+  min-width: 220px;
+  font: inherit;
+  font-size: 16px;
+  color: var(--t1);
+  background: transparent;
+  border: 0;
+  outline: none;
+  padding: 12px 0;
+}
+.cx-input::placeholder {
+  color: var(--t6);
+}
+.cx-input:focus-visible {
   outline: none;
 }
-.cx-input:focus {
-  border-color: var(--swl-orange);
+.cx-searchrow:focus-within {
+  border-color: color-mix(in srgb, var(--akzent) 45%, transparent);
 }
 .cx-btn {
-  padding: 11px 22px;
-  border: 1px solid var(--swl-black);
-  border-radius: var(--radius);
-  background: var(--swl-black);
-  color: var(--swl-white);
-  font-family: inherit;
+  font: inherit;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
+  padding: 12px 26px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--akzent) 45%, transparent);
+  background: color-mix(in srgb, var(--akzent) 22%, transparent);
+  color: var(--t1);
   cursor: pointer;
-  transition: background 0.12s ease;
+  box-shadow: inset 0 1px 0 var(--glanz);
+  flex-shrink: 0;
 }
-.cx-btn:hover {
-  background: #3f3b3b;
+.cx-btn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--akzent) 32%, transparent);
 }
 .cx-btn:disabled {
   opacity: 0.6;
   cursor: default;
 }
-.cx-demo {
-  margin-top: 10px;
-  font-size: 13px;
-  color: var(--swl-label-gray);
-}
-.cx-demo-btn {
-  background: none;
-  border: none;
-  color: var(--swl-orange);
-  cursor: pointer;
-  font: inherit;
-  font-family: ui-monospace, monospace;
-  text-decoration: underline;
-  padding: 0 2px;
-}
-.cx-demo-btn:hover {
-  color: var(--swl-orange-dark);
-}
 
-/* --- Prüfstrecke --- */
+/* --- Ergebnis ---------------------------------------------------------- */
+
 .cx-pipeline {
-  margin-top: 22px;
-  border-top: 1px solid var(--swl-hairline);
-  padding-top: 20px;
-}
-.cx-steps {
   display: flex;
-  gap: 0;
-  flex-wrap: wrap;
-}
-.cx-step {
-  flex: 1;
-  min-width: 200px;
-  padding: 0 18px 0 0;
-}
-.cx-step + .cx-step {
-  padding-left: 18px;
-  border-left: 1px solid var(--swl-hairline);
-}
-.cx-step-who {
-  font-size: 12px;
-  color: var(--swl-label-gray);
-  margin-bottom: 6px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-.cx-step-state {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 700;
-  font-size: 14px;
-}
-.cx-dot {
-  width: 11px;
-  height: 11px;
-  border-radius: 50%;
-  flex: none;
-}
-.cx-dot--ok {
-  background: var(--swl-status-green);
-}
-.cx-dot--warn {
-  background: var(--swl-yellow);
-}
-.cx-dot--no {
-  background: var(--swl-pink);
-}
-.cx-dot--off {
-  background: var(--swl-hairline);
-}
-.cx-step-detail {
-  margin-top: 6px;
-  font-size: 13px;
-  color: var(--swl-label-gray);
-  line-height: 1.45;
-}
-.cx-verdict {
-  margin-top: 18px;
-  padding: 13px 16px;
-  border: 1px solid var(--swl-hairline);
-  border-left-width: 3px;
-  border-radius: var(--radius);
-  background: var(--swl-surface-muted);
-  font-size: 14px;
-  line-height: 1.5;
-}
-.cx-verdict--ok {
-  border-left-color: var(--swl-status-green);
-}
-.cx-verdict--warn {
-  border-left-color: var(--swl-yellow);
-}
-.cx-verdict--no {
-  border-left-color: var(--swl-pink);
+  flex-direction: column;
+  gap: 20px;
 }
 
-/* Keycloak-Block + Ereignisliste nebeneinander */
-.cx-check-cols {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-}
-
-.cx-evlist {
-  list-style: none;
-  margin: 8px 0 0;
-  padding: 0;
-}
-.cx-ev {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 6px 0;
-  border-bottom: 1px solid #ededed;
-  font-size: 13px;
-}
-.cx-ev:last-child {
-  border-bottom: none;
-}
-.cx-ev-time {
-  font-family: ui-monospace, monospace;
-  font-size: 12px;
-  color: var(--swl-label-gray);
-  flex: none;
-  min-width: 118px;
-}
-.cx-ev-label {
-  flex: 1;
-}
-.cx-ev-client {
-  font-family: ui-monospace, monospace;
-  font-size: 11.5px;
-  color: var(--swl-label-gray);
-}
-.cx-ev-empty {
-  margin-top: 8px;
-  font-size: 13px;
-  color: var(--swl-label-gray);
-}
-
-@media (max-width: 900px) {
-  .cx-check-cols {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-  .cx-step {
-    min-width: 100%;
-    padding: 0 0 14px 0;
-  }
-  .cx-step + .cx-step {
-    border-left: none;
-    border-top: 1px solid var(--swl-hairline);
-    padding: 14px 0 0 0;
-  }
-}
-
-/* --- Ergebnis-Kopf mit Ampel (Ticket laut Patris) --- */
+/* Die Ampel-Karte trägt den Ton des Ergebnisses an der linken Kante. */
 .cx-result {
   display: flex;
-  gap: 20px;
   align-items: flex-start;
-  padding: 18px 20px;
-  border: 1px solid var(--swl-hairline);
-  border-left-width: 3px;
-  border-radius: var(--radius);
-  background: var(--swl-surface-muted);
+  gap: 20px;
+  padding: 26px 30px;
 }
 .cx-result--ok {
-  border-left-color: var(--swl-status-green);
+  border-color: color-mix(in srgb, var(--gruen) 30%, transparent);
+  background: color-mix(in srgb, var(--gruen) 8%, var(--glas));
 }
 .cx-result--warn {
-  border-left-color: var(--swl-yellow);
+  border-color: color-mix(in srgb, var(--gelb) 32%, transparent);
+  background: color-mix(in srgb, var(--gelb) 8%, var(--glas));
 }
 .cx-result--no {
-  border-left-color: var(--swl-pink);
-}
-.cx-result--off {
-  border-left-color: var(--swl-hairline);
+  border-color: color-mix(in srgb, var(--pink) 32%, transparent);
+  background: color-mix(in srgb, var(--pink) 8%, var(--glas));
 }
 .cx-result-body {
-  flex: 1;
+  flex-grow: 1;
   min-width: 0;
 }
 .cx-result-kicker {
   font-size: 12px;
-  color: var(--swl-label-gray);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  color: var(--t5);
+  margin-bottom: 6px;
 }
 .cx-result-title {
+  margin: 0;
   font-size: 22px;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-  margin: 4px 0 8px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: var(--t1);
 }
 .cx-result-text {
-  margin: 0;
-  font-size: 15px;
-  line-height: 1.55;
-  max-width: 68ch;
-  white-space: pre-line;
+  margin: 10px 0 0;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--t3);
+  max-width: 104ch;
+}
+.cx-result-quelle {
+  flex-shrink: 0;
+  padding: 7px 14px;
+  font-size: 12px;
+  color: var(--t5);
+  white-space: nowrap;
 }
 
-/* Ampel: schwarzes Gehäuse, drei Lichter; nur das zutreffende leuchtet. */
+/* Ampel: drei Lichter, nur das zutreffende leuchtet. */
 .cx-light {
-  flex: none;
   display: flex;
   flex-direction: column;
   gap: 7px;
-  padding: 9px;
-  background: var(--swl-black);
-  border-radius: var(--radius);
+  padding: 10px 9px;
+  border-radius: 999px;
+  background: var(--spur);
+  flex-shrink: 0;
 }
 .cx-light-l {
-  width: 22px;
-  height: 22px;
+  width: 13px;
+  height: 13px;
   border-radius: 50%;
-  background: var(--swl-label-gray);
-  opacity: 0.35;
-}
-.cx-light-l.on {
-  opacity: 1;
+  background: var(--gedaempft);
+  display: block;
 }
 .cx-light-l--no.on {
-  background: var(--swl-pink);
+  background: var(--pink);
+  box-shadow: 0 0 14px var(--pink);
 }
 .cx-light-l--warn.on {
-  background: var(--swl-yellow);
+  background: var(--gelb);
+  box-shadow: 0 0 14px var(--gelb);
 }
 .cx-light-l--ok.on {
-  background: var(--swl-status-green);
+  background: var(--gruen);
+  box-shadow: 0 0 14px var(--gruen);
 }
 
-/* --- Ticketdetails --- */
-.cx-ticket {
-  margin-top: 14px;
-  border: 1px solid var(--swl-hairline);
-  border-radius: var(--radius);
-  padding: 16px 18px;
-}
-.cx-ticket-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px 24px;
-  margin: 0;
-}
-.cx-ticket-grid dt {
-  font-size: 12px;
-  color: var(--swl-label-gray);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  margin-bottom: 3px;
-}
-.cx-ticket-grid dd {
-  margin: 0;
+/* --- Fehlermeldungen --------------------------------------------------- */
+
+.cx-verdict {
+  padding: 18px 24px;
   font-size: 14px;
+  color: var(--t2);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.cx-verdict--no {
+  border-color: color-mix(in srgb, var(--pink) 32%, transparent);
+  background: color-mix(in srgb, var(--pink) 9%, var(--glas));
+}
+.cx-verdict--warn {
+  border-color: color-mix(in srgb, var(--gelb) 32%, transparent);
+}
+.cx-verdict--ok {
+  border-color: color-mix(in srgb, var(--gruen) 32%, transparent);
+}
+
+/* --- Karten-Raster ----------------------------------------------------- */
+
+/*
+ * Die Breiten folgen dem Gewicht: Was die Person gekauft hat, ist die Antwort
+ * auf die häufigste Frage im Servicecenter und bekommt den meisten Platz. Das
+ * Konto in Keycloak beantwortet nur „kommt sie rein" und sitzt schmal rechts.
+ */
+.cx-check-cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1.75fr) minmax(0, 1.15fr) minmax(0, 0.8fr);
+  gap: 20px;
+  align-items: start;
+}
+.cx-check-cols--2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.cx-step--schmal {
+  padding: 22px 22px;
+}
+.cx-step--schmal .cx-step-state {
+  font-size: 14.5px;
+}
+.cx-step-fuss {
+  margin-top: auto;
+  padding-top: 16px;
+  font-size: 12px;
+  color: var(--t6);
+}
+.cx-step {
+  padding: 24px 26px;
+  display: flex;
+  flex-direction: column;
+}
+.cx-step-who {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.cx-step-who h3 {
+  margin: 0;
+  font-size: 17px;
   font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--t1);
+}
+.cx-step-who .quelle {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--t6);
+  white-space: nowrap;
+}
+.cx-step-state {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  color: var(--t1);
+  margin-bottom: 10px;
+}
+.cx-step-detail {
+  font-size: 13.5px;
+  color: var(--t5);
+  line-height: 1.6;
+}
+
+/* Schlüssel-Wert-Zeilen, überall gleich aufgebaut. */
+.cx-paare-liste {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+.cx-paare-liste > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+}
+.cx-paare-liste > div + div {
+  border-top: 1px solid var(--linie);
+  padding-top: 13px;
+}
+.cx-paare-liste dt,
+.cx-paare-liste .k {
+  font-size: 13.5px;
+  color: var(--t5);
+  flex-shrink: 0;
+}
+.cx-paare-liste dd,
+.cx-paare-liste .v {
+  margin: 0;
+  font-size: 14.5px;
+  color: var(--t1);
+  text-align: right;
+  min-width: 0;
   overflow-wrap: anywhere;
 }
-.cx-ticket-wide {
-  grid-column: span 3;
-}
-.cx-ticket-wide dd {
-  font-size: 16px;
-  font-weight: 700;
-}
-.cx-ticket-sub {
-  font-size: 13px;
-  font-weight: 400;
-  color: var(--swl-label-gray);
-}
 .cx-ticket-status {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 8px;
 }
-.cx-mono {
-  font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace;
-  font-weight: 400 !important;
-  font-size: 13px !important;
+.cx-ticket-sub {
+  color: var(--t5);
+  font-size: 13px;
+}
+
+.cx-asof {
+  font-size: 12px;
+  color: var(--t6);
+  padding: 0 6px;
+}
+
+/* --- Listen (Ereignisse, weitere Tickets) ------------------------------ */
+
+.cx-evlist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.cx-ev {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 0;
+  font-size: 13.5px;
+  color: var(--t2);
+}
+.cx-ev + .cx-ev {
+  border-top: 1px solid var(--linie);
+}
+.cx-ev-time {
+  color: var(--t5);
+  white-space: nowrap;
+  min-width: 132px;
+}
+.cx-ev-label {
+  flex-grow: 1;
+  min-width: 0;
+}
+.cx-ev-client {
+  font-size: 12px;
+  color: var(--t5);
+  background: var(--spur);
+  border-radius: 999px;
+  padding: 4px 11px;
+  white-space: nowrap;
+}
+.cx-ev-empty {
+  font-size: 13.5px;
+  color: var(--t5);
+  line-height: 1.6;
 }
 .cx-ticket-more {
-  margin-top: 16px;
-  padding-top: 12px;
-  border-top: 1px solid var(--swl-hairline);
-}
-.cx-asof {
-  margin-top: 8px;
-  font-size: 12px;
-  color: var(--swl-label-gray);
-}
-.cx-check-cols--sep {
   margin-top: 20px;
   padding-top: 18px;
-  border-top: 1px solid var(--swl-hairline);
+  border-top: 1px solid var(--linie);
 }
 
-@media (max-width: 700px) {
-  .cx-result {
-    gap: 14px;
-    padding: 14px;
-  }
-  .cx-ticket-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-  .cx-ticket-wide {
-    grid-column: span 2;
-  }
-}
+/* --- Käufe ------------------------------------------------------------- */
 
-/* --- Käufe in der LüMobil-App (Ticket-API) --- */
-.cx-buy {
-  margin-top: 20px;
-  padding-top: 18px;
-  border-top: 1px solid var(--swl-hairline);
-}
 .cx-buy-note {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-top: 8px;
+  gap: 12px;
   font-size: 13.5px;
+  color: var(--t3);
 }
-.cx-buy-scroll {
-  overflow-x: auto;
-  margin-top: 8px;
+
+/* Kopfzeile mit den Summen — beantwortet die Frage, bevor man liest. */
+.cx-buy-summe {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  flex-wrap: wrap;
+  padding-bottom: 16px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--linie);
+  font-size: 13.5px;
+  color: var(--t4);
 }
-.cx-buy-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-}
-.cx-buy-table th {
-  text-align: left;
-  font-size: 11.5px;
+.cx-buy-summe b {
+  font-size: 18px;
   font-weight: 600;
-  color: var(--swl-label-gray);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  padding: 0 12px 6px 0;
-  border-bottom: 1px solid var(--swl-hairline);
-  white-space: nowrap;
+  letter-spacing: -0.02em;
+  color: var(--t1);
+  margin-right: 5px;
 }
-.cx-buy-table td {
-  padding: 7px 12px 7px 0;
-  vertical-align: top;
-}
-.cx-buy-table tr.first td {
-  border-top: 1px solid #ededed;
-}
-.cx-buy-table tbody tr:first-child td {
-  border-top: none;
-}
-.cx-buy-table tr.cont td {
-  padding-top: 0;
-}
-.cx-buy-table .num {
-  text-align: right;
-  white-space: nowrap;
-}
-.cx-buy-date {
-  white-space: nowrap;
-  font-family: ui-monospace, monospace;
-  font-size: 12px;
-  color: var(--swl-label-gray);
-}
-.cx-buy-sku {
-  color: var(--swl-label-gray);
-}
-.cx-buy-status {
+.cx-buy-summe .nicht-ok {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
+  color: var(--pink);
+  margin-left: auto;
+}
+
+/* Eine Bestellung: Kopf mit Datum und Nummer, darunter ihre Positionen. */
+.cx-buy-liste {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.cx-buy-liste > li {
+  padding: 16px 0;
+}
+.cx-buy-liste > li + li {
+  border-top: 1px solid var(--linie);
+}
+.cx-buy-kopf {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin-bottom: 10px;
+}
+.cx-buy-datum {
+  font-size: 13px;
+  color: var(--t4);
+}
+.cx-buy-nr {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--t6);
+}
+.cx-buy-pos {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 7px 0;
+  font-size: 14px;
+  color: var(--t2);
+}
+.cx-buy-pos .cx-punkt {
+  align-self: center;
+}
+.cx-buy-produkt {
+  flex-grow: 1;
+  min-width: 0;
+  color: var(--t1);
+}
+.cx-buy-menge {
+  color: var(--t5);
+  margin-right: 6px;
+}
+.cx-buy-sku {
+  color: var(--t5);
+  font-size: 12.5px;
+}
+.cx-buy-preis {
+  font-weight: 600;
   white-space: nowrap;
+  color: var(--t1);
+}
+.cx-buy-status {
+  font-size: 12px;
+  color: var(--t5);
+  white-space: nowrap;
+  min-width: 108px;
+  text-align: right;
 }
 .cx-buy-more {
-  margin-top: 8px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  margin-top: 16px;
+  padding: 9px 18px;
+  border-radius: 999px;
+  border: 1px solid var(--kante);
+  background: var(--pille);
+  color: var(--t1);
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 var(--glanz);
+}
+.cx-buy-more:hover {
+  background: var(--aktiv);
+}
+
+/* --- Ladezustand ------------------------------------------------------- */
+
+.cx-skelett {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 26px 30px;
+}
+.cx-skelett i {
+  display: block;
+  height: 13px;
+  border-radius: 999px;
+  background: var(--spur);
+}
+.cx-skelett i:nth-child(1) {
+  width: 38%;
+  height: 22px;
+}
+.cx-skelett i:nth-child(2) {
+  width: 72%;
+}
+.cx-skelett i:nth-child(3) {
+  width: 56%;
+}
+
+/* --- Schmale Fenster --------------------------------------------------- */
+
+@media (max-width: 1240px) {
+  /* Käufe behalten die volle Breite, die beiden anderen teilen sich die Zeile. */
+  .cx-check-cols {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .cx-step--breit {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 720px) {
+  .cx-check-cols,
+  .cx-check-cols--2 {
+    grid-template-columns: 1fr;
+  }
+  .cx-buy-pos {
+    flex-wrap: wrap;
+  }
+  .cx-buy-status {
+    min-width: 0;
+    text-align: left;
+    width: 100%;
+    padding-left: 20px;
+  }
+  .cx-result {
+    padding: 20px 20px;
+    gap: 16px;
+  }
+  .cx-result-title {
+    font-size: 19px;
+  }
+  .cx-ev {
+    flex-wrap: wrap;
+    gap: 8px 12px;
+  }
+  .cx-ev-time {
+    min-width: 0;
+  }
+  .cx-ev-client {
+    order: 3;
+  }
 }
