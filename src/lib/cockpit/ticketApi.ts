@@ -242,3 +242,45 @@ function mockOrders(email: string): TicketOrder[] {
     { gekauft_am: '2026-08-01T06:01:57.40', bestellnummer: '1785757317000', produkt: 'Deutschlandticket 2.Kl', sku: '541', menge: 1, preis_brutto: '58.00', status: 'Abgebrochen', erfolgreich: false },
   ]
 }
+
+/**
+ * Erreichbarkeits-Prüfung für die Ampel: eine GET-Anfrage auf die Wurzel des
+ * Dienstes, mit Token. Es werden keine Kundendaten abgefragt. Jede HTTP-Antwort
+ * unter 500 gilt als „Dienst antwortet"; 401/403 melden wir gesondert, weil
+ * dann der Token abgelaufen sein dürfte.
+ */
+export async function pingTicketApi(): Promise<{ ok: boolean; ms: number | null; note?: string }> {
+  const url = apiUrl()
+  const token = readToken()
+  if (!url || !token) return { ok: false, ms: null, note: 'nicht konfiguriert' }
+
+  const root = url.replace(/\/rpc\/.*$/, '/')
+  const insecure = root.startsWith('http://')
+  const start = Date.now()
+  try {
+    const status = await new Promise<number>((resolve, reject) => {
+      const req = (insecure ? http : https).request(
+        root,
+        {
+          method: 'GET',
+          ...(insecure ? {} : { ca: readCa() }),
+          headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
+          timeout: 5000,
+        },
+        (res) => {
+          res.resume()
+          res.on('end', () => resolve(res.statusCode ?? 0))
+        },
+      )
+      req.on('timeout', () => req.destroy(new Error('timeout')))
+      req.on('error', reject)
+      req.end()
+    })
+    const ms = Date.now() - start
+    if (status === 401 || status === 403) return { ok: false, ms, note: `Token abgelehnt (HTTP ${status})` }
+    if (status >= 500) return { ok: false, ms, note: `HTTP ${status}` }
+    return { ok: true, ms }
+  } catch {
+    return { ok: false, ms: Date.now() - start, note: 'nicht erreichbar' }
+  }
+}

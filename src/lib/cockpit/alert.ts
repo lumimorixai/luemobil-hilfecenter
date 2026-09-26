@@ -11,11 +11,22 @@ import { getHealth } from './health'
 import { alertEmail, alertThreshold } from './config'
 import type { ServiceHealth } from './types'
 
-type SvcKey = 'keycloak' | 'login' | 'database'
+type SvcKey =
+  | 'keycloak'
+  | 'login'
+  | 'database'
+  | 'ticketApi'
+  | 'dashboards'
+  | 'patris'
+  | 'reporting'
 const LABELS: Record<SvcKey, string> = {
   keycloak: 'Keycloak',
   login: 'Login (Testkunde)',
   database: 'Datenbank',
+  ticketApi: 'Ticket-API',
+  dashboards: 'Dashboards (Metabase)',
+  patris: 'Patris-Daten',
+  reporting: 'Reporting-Datenbank',
 }
 
 export async function runHealthAlert(payload: Payload): Promise<{ wrote: boolean; alerts: number }> {
@@ -27,6 +38,10 @@ export async function runHealthAlert(payload: Payload): Promise<{ wrote: boolean
     { key: 'keycloak', h: health.keycloak },
     { key: 'login', h: health.login },
     { key: 'database', h: health.database },
+    { key: 'ticketApi', h: health.ticketApi },
+    { key: 'dashboards', h: health.dashboards },
+    { key: 'patris', h: health.patris },
+    { key: 'reporting', h: health.reporting },
   ]
 
   const found = await payload.find({
@@ -63,7 +78,15 @@ export async function runHealthAlert(payload: Payload): Promise<{ wrote: boolean
     collection: 'health-checks',
     data: {
       checkedAt: now.toISOString(),
-      status: { keycloak: health.keycloak, login: health.login, database: health.database },
+      status: {
+        keycloak: health.keycloak,
+        login: health.login,
+        database: health.database,
+        ticketApi: health.ticketApi,
+        dashboards: health.dashboards,
+        patris: health.patris,
+        reporting: health.reporting,
+      },
       failCounts,
       alertedDown: [...alerted],
     },
@@ -81,9 +104,9 @@ export async function runHealthAlert(payload: Payload): Promise<{ wrote: boolean
           : `✓ LüMobil-Cockpit — ${label} wieder verfügbar`
       const text =
         e.type === 'down'
-          ? `Störung erkannt: ${label} ist nicht erreichbar${e.note ? ` (${e.note})` : ''}.\n` +
+          ? `Störung erkannt: ${label}${e.key === 'patris' ? ' ist veraltet' : ' ist nicht erreichbar'}${e.note ? ` (${e.note})` : ''}.\n` +
             `Zeit: ${stamp}\nCockpit: ${base}/cockpit`
-          : `Entwarnung: ${label} ist wieder verfügbar.\nZeit: ${stamp}\nCockpit: ${base}/cockpit`
+          : `Entwarnung: ${label} ist wieder in Ordnung.\nZeit: ${stamp}\nCockpit: ${base}/cockpit`
       try {
         await payload.sendEmail({ to, subject, text })
         payload.logger.info(`Alert-Mail versendet: ${subject}`)
