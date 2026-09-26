@@ -57,12 +57,67 @@ export const CockpitDaily: CollectionConfig = {
     },
     {
       name: 'newUsers',
-      label: 'Neu migriert (föderiert)',
+      label: 'Neu angelegte Konten',
       type: 'number',
       required: true,
       defaultValue: 0,
       min: 0,
-      admin: { readOnly: true },
+      admin: {
+        readOnly: true,
+        description:
+          'Alle an diesem Tag angelegten Konten (createdTimestamp) — migrierte und selbst registrierte zusammen. Erklärt den Kontenbestand vollständig.',
+      },
+    },
+    {
+      name: 'migratedUsers',
+      label: 'Davon aus dem Altsystem übernommen',
+      type: 'number',
+      min: 0,
+      admin: {
+        readOnly: true,
+        description:
+          'Konten mit Verbindung zum Altsystem (federationLink). Wird beim Backfill gesetzt, nicht im Minutentakt.',
+      },
+    },
+    {
+      name: 'totalUsers',
+      label: 'Kontenbestand (Ende des Tages)',
+      type: 'number',
+      min: 0,
+      admin: {
+        readOnly: true,
+        description:
+          'Zahl der Konten im Realm, zuletzt gemessen an diesem Tag. Quelle: Keycloak-Zähler, geschrieben vom Minuten-Job.',
+      },
+    },
+    {
+      name: 'support',
+      label: 'Support-Ereignisse',
+      type: 'json',
+      admin: {
+        readOnly: true,
+        description:
+          'Passwort-Reset, Passwortänderung, Verifizierungs-Mails, Registrierungen — Zahlen dieses Tages.',
+      },
+    },
+    {
+      name: 'availability',
+      label: 'Verfügbarkeit je Dienst',
+      type: 'json',
+      admin: {
+        readOnly: true,
+        description:
+          'Messpunkte, Ausfälle und Uptime je Dienst an diesem Tag — verdichtet aus den Minuten-Checks, damit die Historie erhalten bleibt, wenn die Rohdaten aufgeräumt werden.',
+      },
+    },
+    {
+      name: 'loginsByClient',
+      label: 'Logins je Client',
+      type: 'json',
+      admin: {
+        readOnly: true,
+        description: 'Erfolgreiche Logins und eindeutige Nutzer je Client an diesem Tag.',
+      },
     },
     {
       name: 'registrations',
