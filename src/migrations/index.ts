@@ -7,6 +7,10 @@ import * as migration_20260906_150000_cockpit_registrations from './20260906_150
 import * as migration_20260909_153000_health_checks from './20260909_153000_health_checks';
 import * as migration_20260922_101232_patris from './20260922_101232_patris';
 import * as migration_20260925_092649_users_rolle from './20260925_092649_users_rolle';
+import * as migration_20260925_150000_cockpit_total_users from './20260925_150000_cockpit_total_users';
+import * as migration_20260925_170000_cockpit_support from './20260925_170000_cockpit_support';
+import * as migration_20260925_183000_cockpit_availability from './20260925_183000_cockpit_availability';
+import * as migration_20260925_193000_cockpit_migrated from './20260925_193000_cockpit_migrated';
 
 export const migrations = [
   {
@@ -53,5 +57,25 @@ export const migrations = [
     up: migration_20260925_092649_users_rolle.up,
     down: migration_20260925_092649_users_rolle.down,
     name: '20260925_092649_users_rolle'
+  },
+  {
+    up: migration_20260925_150000_cockpit_total_users.up,
+    down: migration_20260925_150000_cockpit_total_users.down,
+    name: '20260925_150000_cockpit_total_users',
+  },
+  {
+    up: migration_20260925_170000_cockpit_support.up,
+    down: migration_20260925_170000_cockpit_support.down,
+    name: '20260925_170000_cockpit_support',
+  },
+  {
+    up: migration_20260925_183000_cockpit_availability.up,
+    down: migration_20260925_183000_cockpit_availability.down,
+    name: '20260925_183000_cockpit_availability',
+  },
+  {
+    up: migration_20260925_193000_cockpit_migrated.up,
+    down: migration_20260925_193000_cockpit_migrated.down,
+    name: '20260925_193000_cockpit_migrated',
   },
 ];

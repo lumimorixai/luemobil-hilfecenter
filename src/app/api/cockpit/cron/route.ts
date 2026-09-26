@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server'
 import { createHash, timingSafeEqual } from 'node:crypto'
 import { payloadClient } from '@/lib/content'
 import { runHealthAlert } from '@/lib/cockpit/alert'
-import { aggregateToday, backfill } from '@/lib/cockpit/aggregate'
+import { aggregateToday, backfill, backfillKonten } from '@/lib/cockpit/aggregate'
+import { verdichteUndRaeumeAuf } from '@/lib/cockpit/retention'
 import type { ReportPeriod } from '@/lib/cockpit/report'
 
 export const runtime = 'nodejs'
@@ -32,7 +33,18 @@ function readSecret(req: Request): string | null {
  * keine tsx-CLI-Jobs ausführen). Aufruf durch den Host-Cron per curl, z. B.:
  *   curl -fsS -X POST -H "x-cron-secret: $CRON_SECRET" \
  *     "https://…/api/cockpit/cron?job=health"
- * Jobs: health (Monitoring+Alert), aggregate (Tagesreihe), report&period=…
+ * Jobs:
+ *   health              Monitoring + Störungs-Alert (jede Minute)
+ *   aggregate           Tagesreihe fortschreiben (jede Minute); einmal je
+ *                       Stunde zusätzlich Verfügbarkeit verdichten und alte
+ *                       Minuten-Checks aufräumen
+ *   konten              komplette Kontenhistorie ab dem ersten Konto (nachts)
+ *   report&period=…     Bericht per Mail und PDF
+ *
+ * WICHTIG: Das Produktions-Image ist ein Standalone-Build (`node server.js`)
+ * ohne pnpm, tsx und Quelltext — die CLI-Jobs aus src/jobs/ laufen dort NICHT.
+ * Alles, was in Produktion regelmäßig oder einmalig laufen soll, muss hier
+ * erreichbar sein.
  */
 export async function POST(req: Request) {
   if (!process.env.CRON_SECRET) {
@@ -56,7 +68,21 @@ export async function POST(req: Request) {
       case 'aggregate': {
         const filled = await backfill(payload, 14)
         await aggregateToday(payload)
-        return NextResponse.json({ ok: true, job, filled })
+
+        // Einmal je Stunde verdichten und aufräumen. Häufiger wäre Last ohne
+        // Nutzen; ohne diesen Schritt wüchse health-checks unbegrenzt und die
+        // Langfrist-Verfügbarkeit bliebe leer.
+        let aufraeumen: { verdichtet: number; geloescht: number } | undefined
+        if (new Date().getMinutes() === 7) {
+          aufraeumen = await verdichteUndRaeumeAuf(payload)
+        }
+        return NextResponse.json({ ok: true, job, filled, aufraeumen })
+      }
+      case 'konten': {
+        // Rekonstruiert die Kontenzahlen für jeden Tag seit dem ersten Konto.
+        // Braucht keine Events und darf deshalb beliebig weit zurückreichen.
+        const r = await backfillKonten(payload)
+        return NextResponse.json({ ok: r.stimmt, job, ...r })
       }
       case 'report': {
         if (!period || !PERIODS.includes(period)) {
