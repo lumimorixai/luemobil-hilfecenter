@@ -37,7 +37,7 @@ export function AvailabilityStrip({ data }: { data: Availability }) {
           <h3 className="cx-card-h">Verfügbarkeit</h3>
           <div className="cx-card-hint">
             {data.windowLabel}
-            {data.lastCheck ? ` · letzter Check ${data.lastCheck} Uhr` : ''}
+            {data.lastCheck ? ` · letzter Check ${data.lastCheck}` : ''}
           </div>
         </div>
       </div>
@@ -86,7 +86,14 @@ export function AvailabilityStrip({ data }: { data: Availability }) {
                 <span>
                   {s.outages === 0 ? 'keine Störungen' : `${s.outages} Störfenster`}
                 </span>
-                {s.lastOutage && <span>zuletzt gestört: {s.lastOutage} Uhr</span>}
+                {/* Langfristwert aus den verdichteten Tageswerten: bleibt erhalten,
+                    auch wenn die Minuten-Messpunkte aufgeräumt wurden. */}
+                {data.langfrist?.proDienst[s.key] != null && (
+                  <span>
+                    {data.langfrist.tage} Tage: <b>{pct(data.langfrist.proDienst[s.key])} %</b>
+                  </span>
+                )}
+                {s.lastOutage && <span>zuletzt gestört: {s.lastOutage}</span>}
               </div>
             ) : noData ? (
               <div className="cx-avail-facts">

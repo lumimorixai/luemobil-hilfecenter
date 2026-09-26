@@ -2,7 +2,8 @@
 
 /**
  * Live-Systemstatus + Auto-Refresh im Cockpit-Kopf.
- * - Pollt /api/cockpit/health alle 30 s → Ampel (Keycloak/Login/DB/Aboonline).
+ * - Pollt /api/cockpit/health alle 30 s → Ampel (Keycloak, Login, Datenbank,
+ *   Ticket-API, Dashboards, Alter des Patris-Uploads).
  * - Aktualisiert die Seitendaten alle 60 s via router.refresh() (ohne Reload).
  */
 import { useEffect, useState } from 'react'
@@ -13,6 +14,10 @@ const SERVICES: { key: keyof Omit<Health, 'mock'>; label: string }[] = [
   { key: 'keycloak', label: 'Keycloak' },
   { key: 'login', label: 'Login (Test)' },
   { key: 'database', label: 'Datenbank' },
+  { key: 'ticketApi', label: 'Ticket-API' },
+  { key: 'dashboards', label: 'Dashboards' },
+  { key: 'patris', label: 'Patris-Daten' },
+  { key: 'reporting', label: 'Reporting' },
 ]
 
 function dotClass(s?: ServiceHealth): string {
@@ -24,6 +29,9 @@ export function LiveStatus() {
   const router = useRouter()
   const [health, setHealth] = useState<Health | null>(null)
   const [ago, setAgo] = useState(0)
+  // Zeitpunkt der letzten erfolgreichen Abfrage — ohne Datum ist unklar, ob die
+  // Ampel von heute früh oder von gestern Abend stammt.
+  const [stand, setStand] = useState<string | null>(null)
 
   // Ampel alle 30 s
   useEffect(() => {
@@ -31,7 +39,13 @@ export function LiveStatus() {
     const load = async () => {
       try {
         const res = await fetch('/api/cockpit/health', { headers: { Accept: 'application/json' } })
-        if (res.ok && alive) setHealth((await res.json()) as Health)
+        if (res.ok && alive) {
+          setHealth((await res.json()) as Health)
+          const jetzt = new Date()
+          setStand(
+            `${jetzt.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })}, ${jetzt.toLocaleTimeString('de-DE')} Uhr`,
+          )
+        }
       } catch {
         /* still zeigen, was zuletzt bekannt war */
       }
@@ -68,13 +82,16 @@ export function LiveStatus() {
             <span className="cx-status-item" key={s.key} title={h?.note ?? ''}>
               <span className={`cx-dot cx-dot--${dotClass(h)}`} />
               {s.label}
-              {h?.ms != null && <em className="cx-status-ms">{h.ms} ms</em>}
+              {/* Bei Patris zählt nicht die Antwortzeit, sondern das Alter des Uploads. */}
+              {s.key === 'patris'
+                ? h?.note && <em className="cx-status-ms">{h.note}</em>
+                : h?.ms != null && <em className="cx-status-ms">{h.ms} ms</em>}
             </span>
           )
         })}
       </div>
       <span className="cx-live">
-        <span className="cx-live-dot" /> live · aktualisiert vor {ago}s
+        <span className="cx-live-dot" /> live · Stand {stand ?? '—'} · vor {ago}s
       </span>
     </div>
   )

@@ -14,15 +14,22 @@ import type { CountPoint, DailyPoint, IntradayPoint, NewUsers } from '@/lib/cock
 import { shortDe } from '@/lib/cockpit/date'
 import { axisTicks, de, niceMax, smoothPath } from '@/lib/cockpit/chartMath'
 
-const ORANGE = '#ff8200'
-const INK = '#000000'
-const HAIR = '#cfcfcf'
-const GRID = '#e7e7e7'
-const MUTED = '#7a7474'
+/*
+ * Farben kommen aus den Theme-Variablen der Hülle (.cx-app), damit dieselben
+ * Diagramme in der hellen und der dunklen Fassung stimmen. Feste Hex-Werte
+ * würden in einer der beiden falsch aussehen.
+ */
+const ORANGE = 'var(--akzent, #ff8200)'
+const INK = 'var(--t1, #000000)'
+const HAIR = 'var(--kante, #cfcfcf)'
+const GRID = 'var(--linie, #e7e7e7)'
+const MUTED = 'var(--t5, #7a7474)'
+const PINK = 'var(--pink, #f73e5e)'
+const FLAECHE = 'var(--glas, #ffffff)'
 
 /** Hover-Punkt mit weißem Ring (hebt den Messpunkt sauber vom Verlauf ab). */
 function Dot({ cx, cy, fill }: { cx: number; cy: number; fill: string }) {
-  return <circle cx={cx} cy={cy} r={4} fill={fill} stroke="#ffffff" strokeWidth={2} />
+  return <circle cx={cx} cy={cy} r={4} fill={fill} stroke={FLAECHE} strokeWidth={2} />
 }
 
 // ============================================================
@@ -313,7 +320,7 @@ export function DualLineChart({
 }
 
 // ============================================================
-// Balken-Diagramm (Zähler je Bucket) — für „Neue Nutzer"
+// Balken-Diagramm (Zähler je Bucket) — für „Neue Konten"
 // ============================================================
 
 function BarChart({ points, maxTicks = 6 }: { points: CountPoint[]; maxTicks?: number }) {
@@ -341,7 +348,7 @@ function BarChart({ points, maxTicks = 6 }: { points: CountPoint[]; maxTicks?: n
 
   return (
     <div className="cx-chart">
-      <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label="Neue Nutzer je Zeitraum">
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label="Neue Konten je Zeitraum">
         {gridVals.map((v, i) => (
           <g key={i}>
             <line x1={padL} y1={y(v)} x2={W - padR} y2={y(v)} stroke={i === 0 ? HAIR : GRID} />
@@ -388,7 +395,7 @@ function BarChart({ points, maxTicks = 6 }: { points: CountPoint[]; maxTicks?: n
             xPos={cx(hover!)}
             W={W}
             title={hi.label}
-            rows={[{ label: 'Neue Nutzer', value: de(hi.count), color: ORANGE }]}
+            rows={[{ label: 'Neue Konten', value: de(hi.count), color: ORANGE }]}
           />
         )}
       </svg>
@@ -397,14 +404,14 @@ function BarChart({ points, maxTicks = 6 }: { points: CountPoint[]; maxTicks?: n
 }
 
 const NEWUSER_RANGES = [
-  { key: 'hour', label: 'Letzte Stunde' },
-  { key: 'day', label: '24 Stunden' },
   { key: 'week', label: '7 Tage' },
   { key: 'month', label: '30 Tage' },
+  { key: 'quarter', label: '90 Tage' },
+  { key: 'year', label: '1 Jahr' },
 ] as const
 
 export function NewUsersChart({ data }: { data: NewUsers }) {
-  const [range, setRange] = useState<'hour' | 'day' | 'week' | 'month'>('day')
+  const [range, setRange] = useState<'week' | 'month' | 'quarter' | 'year'>('week')
   return (
     <div>
       <div className="cx-range">
@@ -421,6 +428,10 @@ export function NewUsersChart({ data }: { data: NewUsers }) {
         ))}
       </div>
       <BarChart points={data[range]} maxTicks={7} />
+      <div className="cx-card-hint" style={{ marginTop: 8 }}>
+        Heute {de(data.totals.today)} · Bestand {de(data.totalUsers)} Konten · Quelle:
+        Anlagedatum in Keycloak, in der eigenen Datenbank fortgeschrieben
+      </div>
     </div>
   )
 }
@@ -437,8 +448,12 @@ export function LoginsRangeChart({
   hourly: IntradayPoint[] | null
 }) {
   const [range, setRange] = useState<'day' | 'hour'>('day')
+  // Wie viele Tage die Tagesansicht zeigt. Die Reihe reicht ein Jahr zurück;
+  // voreingestellt bleiben 14 Tage, damit der Blick aufs Aktuelle fällt.
+  const [tage, setTage] = useState(14)
   const hasHourly = !!hourly && hourly.length > 0
   const showHour = range === 'hour' && hasHourly
+  const sichtbar = daily.slice(-tage)
   return (
     <div>
       <div className="cx-range">
@@ -447,7 +462,7 @@ export function LoginsRangeChart({
           className={`cx-range-btn${!showHour ? ' active' : ''}`}
           onClick={() => setRange('day')}
         >
-          Pro Tag<span className="cx-range-total">14 Tage</span>
+          Pro Tag<span className="cx-range-total">{tage} Tage</span>
         </button>
         {hasHourly && (
           <button
@@ -459,13 +474,28 @@ export function LoginsRangeChart({
           </button>
         )}
       </div>
+      {!showHour && (
+        <div className="cx-range cx-range--sub">
+          {[14, 30, 90, 365].map((n) => (
+            <button
+              key={n}
+              type="button"
+              className={`cx-range-btn${tage === n ? ' active' : ''}`}
+              onClick={() => setTage(n)}
+              disabled={daily.length < 2}
+            >
+              {n === 365 ? '1 Jahr' : `${n} Tage`}
+            </button>
+          ))}
+        </div>
+      )}
       {showHour ? (
         <DualLineChart
           points={hourly!.map((p) => ({ label: p.label, a: p.logins, b: p.loginErrors }))}
           maxTicks={7}
         />
       ) : (
-        <LoginsChart series={daily} />
+        <LoginsChart series={sichtbar} />
       )}
     </div>
   )
@@ -530,7 +560,15 @@ export function ChartCard({
 // Sparkline (Mini-Trend in KPI-Kacheln)
 // ============================================================
 
-export function Sparkline({ values, color = ORANGE }: { values: number[]; color?: string }) {
+export function Sparkline({
+  values,
+  ton = 'akzent',
+}: {
+  values: number[]
+  /** „akzent" für gewöhnliche Reihen, „no" für Fehlerzahlen. */
+  ton?: 'akzent' | 'no' | 'leise'
+}) {
+  const color = ton === 'no' ? PINK : ton === 'leise' ? MUTED : ORANGE
   const W = 120
   const H = 26
   const n = values.length
@@ -571,7 +609,7 @@ function Tooltip({
   const by = 18
   return (
     <g pointerEvents="none">
-      <rect x={bx} y={by} width={boxW} height={boxH} rx={2} fill="#ffffff" stroke={HAIR} />
+      <rect x={bx} y={by} width={boxW} height={boxH} rx={10} fill={FLAECHE} stroke={HAIR} />
       <text x={bx + 10} y={by + 15} className="cx-tt-title">{title}</text>
       {rows.map((r, i) => (
         <g key={i}>

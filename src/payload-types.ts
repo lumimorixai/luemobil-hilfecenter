@@ -414,7 +414,54 @@ export interface CockpitDaily {
   datum: string;
   logins: number;
   loginErrors: number;
+  /**
+   * Alle an diesem Tag angelegten Konten (createdTimestamp) — migrierte und selbst registrierte zusammen. Erklärt den Kontenbestand vollständig.
+   */
   newUsers: number;
+  /**
+   * Konten mit Verbindung zum Altsystem (federationLink). Wird beim Backfill gesetzt, nicht im Minutentakt.
+   */
+  migratedUsers?: number | null;
+  /**
+   * Zahl der Konten im Realm, zuletzt gemessen an diesem Tag. Quelle: Keycloak-Zähler, geschrieben vom Minuten-Job.
+   */
+  totalUsers?: number | null;
+  /**
+   * Passwort-Reset, Passwortänderung, Verifizierungs-Mails, Registrierungen — Zahlen dieses Tages.
+   */
+  support?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Messpunkte, Ausfälle und Uptime je Dienst an diesem Tag — verdichtet aus den Minuten-Checks, damit die Historie erhalten bleibt, wenn die Rohdaten aufgeräumt werden.
+   */
+  availability?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Erfolgreiche Logins und eindeutige Nutzer je Client an diesem Tag.
+   */
+  loginsByClient?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   registrations: number;
   updatedAt: string;
   createdAt: string;
@@ -834,6 +881,11 @@ export interface CockpitDailySelect<T extends boolean = true> {
   logins?: T;
   loginErrors?: T;
   newUsers?: T;
+  migratedUsers?: T;
+  totalUsers?: T;
+  support?: T;
+  availability?: T;
+  loginsByClient?: T;
   registrations?: T;
   updatedAt?: T;
   createdAt?: T;

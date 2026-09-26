@@ -13,6 +13,7 @@
  * verwendet. Nur im Node-Runtime (nutzt next/headers cookies()).
  */
 import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
 import { SESSION_COOKIE, decodeSession, hasRole, type CockpitSession } from './session'
 
 /** Rolle, die beide Bereiche freischaltet (bisherige Support-Rolle). */
@@ -46,6 +47,27 @@ export function canCockpit(session: CockpitSession | null): boolean {
 /** Mindestens einer der internen Bereiche ist erlaubt. */
 export function isInternal(session: CockpitSession | null): boolean {
   return canKundencheck(session) || canCockpit(session)
+}
+
+/**
+ * Guard für Cockpit-SEITEN (nicht Route-Handler): leitet um statt null zu
+ * liefern — zum Login, oder in den Bereich, den die Person sehen darf.
+ */
+export async function seiteCockpit(next: string): Promise<CockpitSession> {
+  const session = await getCockpitSession()
+  if (!session) redirect(`/api/auth/login?next=${encodeURIComponent(next)}`)
+  if (!canCockpit(session)) {
+    redirect(canKundencheck(session) ? '/cockpit/kundencheck' : '/cockpit')
+  }
+  return session
+}
+
+/** Wie oben, aber für den Kundencheck (auch ohne Cockpit-Berechtigung). */
+export async function seiteKundencheck(next: string): Promise<CockpitSession> {
+  const session = await getCockpitSession()
+  if (!session) redirect(`/api/auth/login?next=${encodeURIComponent(next)}`)
+  if (!canKundencheck(session)) redirect('/cockpit')
+  return session
 }
 
 /** Guard für Route-Handler des Kundenchecks: Session oder null (→ 403). */

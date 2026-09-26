@@ -94,22 +94,29 @@ export async function getReport(period: ReportPeriod): Promise<ReportData> {
     loginSeries = intraday.hourly.map((p) => ({ label: p.label, a: p.logins, b: p.loginErrors }))
     loginSeriesTitle = 'Logins und Fehler je Stunde (letzte 24 Stunden)'
   } else if (stats) {
-    const days = period === 'week' ? stats.series.slice(-7) : stats.series
+    // Die Reihe reicht ein Jahr zurück; der Report zeigt nur den Berichtszeitraum.
+    const days = stats.series.slice(period === 'week' ? -7 : -30)
     loginSeries = days.map((p) => ({ label: shortDe(p.datum), a: p.logins, b: p.loginErrors }))
     loginSeriesTitle =
-      period === 'week' ? 'Logins und Fehler je Tag (7 Tage)' : 'Logins und Fehler je Tag (bis 14 Tage)'
+      period === 'week' ? 'Logins und Fehler je Tag (7 Tage)' : 'Logins und Fehler je Tag (30 Tage)'
   }
 
-  // Neue Nutzer je Periode
-  const nu = newUsers ? newUsers[period] : []
-  const newUsersTotal = newUsers ? newUsers.totals[period] : 0
+  // Neue Nutzer je Periode. Feiner als ein Tag gibt es die Zahl nicht mehr —
+  // für „Stunde" und „Tag" steht deshalb der heutige Tageswert.
+  const nuFenster = period === 'week' ? 'week' : period === 'month' ? 'month' : 'day'
+  const nu = !newUsers ? [] : nuFenster === 'day' ? newUsers.week.slice(-1) : newUsers[nuFenster]
+  const newUsersTotal = !newUsers
+    ? 0
+    : nuFenster === 'day'
+      ? newUsers.totals.today
+      : newUsers.totals[nuFenster]
 
   // KPIs: Logins/Fehler exakt aus der Perioden-Reihe summiert; Bestände als Snapshot
   const logins = loginSeries.reduce((s, p) => s + p.a, 0)
   const errors = loginSeries.reduce((s, p) => s + p.b, 0)
   const errorRatePct = logins + errors > 0 ? Math.round((errors / (logins + errors)) * 1000) / 10 : 0
 
-  // Support-Kennzahlen (Fenster fix 24 h aus den Events)
+  // Support-Kennzahlen (Tageswerte aus der eigenen Datenbank: heute)
   const s = ops?.support24h
   const support = s
     ? [
@@ -150,12 +157,12 @@ export async function getReport(period: ReportPeriod): Promise<ReportData> {
     newUsers: nu,
     newUsersTitle:
       period === 'hour'
-        ? 'Neue Nutzer je Minute (letzte Stunde)'
+        ? 'Neue Konten je Minute (letzte Stunde)'
         : period === 'day'
-          ? 'Neue Nutzer je Stunde (24 Stunden)'
+          ? 'Neue Konten je Stunde (24 Stunden)'
           : period === 'week'
-            ? 'Neue Nutzer je Tag (7 Tage)'
-            : 'Neue Nutzer je Tag (30 Tage)',
+            ? 'Neue Konten je Tag (7 Tage)'
+            : 'Neue Konten je Tag (30 Tage)',
     newUsersTotal,
     support,
     supportWindowLabel: 'letzte 24 Stunden',

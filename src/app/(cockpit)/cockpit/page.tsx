@@ -1,104 +1,53 @@
+/**
+ * Überblick — der Einstieg ins Cockpit.
+ *
+ * Zeigt, was jetzt zu tun ist, die Leitkennzahl des Systemwechsels, den Betrieb
+ * von heute und den Zustand der Dienste. Alles Weitere liegt in den Bereichen
+ * der Seitenleiste.
+ */
 import { redirect } from 'next/navigation'
-import { canCockpit, canKundencheck, cockpitRole, getCockpitSession, supportRole } from '@/lib/auth/guard'
+import Link from 'next/link'
+import { canCockpit, canKundencheck, getCockpitSession } from '@/lib/auth/guard'
 import { cockpitEnv, cockpitEnvLabel, keycloakRealm } from '@/lib/cockpit/config'
-import {
-  getAvailability,
-  getCronStatus,
-  getDayEvents,
-  getIntraday,
-  getNewUsers,
-  getOperations,
-  getStats,
-} from '@/lib/cockpit/stats'
-import type {
-  Availability,
-  CockpitStats,
-  DayEvents,
-  Intraday,
-  Keycloak24hMetrics,
-  NewUsers,
-  Operations,
-} from '@/lib/cockpit/types'
-import {
-  ChartCard,
-  DualLineChart,
-  LoginsRangeChart,
-  NewUsersChart,
-  Sparkline,
-} from '@/components/cockpit/charts'
-import { AvailabilityStrip } from '@/components/cockpit/Availability'
-import { Kundencheck } from '@/components/cockpit/Kundencheck'
-import { LiveStatus } from '@/components/cockpit/LiveStatus'
-import { ReportButtons } from '@/components/cockpit/ReportButtons'
-import { PatrisUpload, type PatrisUploadStatus } from '@/components/cockpit/PatrisUpload'
+import { JOB_STILL_MIN, getAvailability, getCronStatus, getStats } from '@/lib/cockpit/stats'
 import { getPatrisStatus } from '@/lib/cockpit/patris'
+import { getReporting } from '@/lib/reporting/kennzahlen'
+import type { Availability, CockpitStats, CronStatus } from '@/lib/cockpit/types'
+import type { Reporting } from '@/lib/reporting/types'
+import { LiveStatus } from '@/components/cockpit/LiveStatus'
+import {
+  AnkommenSection,
+  Karte,
+  KpiRow,
+  Seitenkopf,
+  StatusKurz,
+  Unavailable,
+  de,
+  euro,
+} from '@/components/cockpit/bausteine'
 
 export const dynamic = 'force-dynamic'
 
-function de(n: number): string {
-  return n.toLocaleString('de-DE')
+/** Tage seit einem Zeitpunkt, für die Warnung zum Patris-Upload. */
+function tageSeit(iso: string | null): number | null {
+  if (!iso) return null
+  return Math.floor((Date.now() - Date.parse(iso)) / (24 * 60 * 60 * 1000))
 }
 
-export default async function CockpitPage() {
+export default async function UeberblickSeite() {
   const session = await getCockpitSession()
   if (!session) redirect('/api/auth/login?next=/cockpit')
   if (!canCockpit(session)) {
-    // Nur Kundencheck erlaubt → direkt dorthin statt „Kein Zugriff".
-    if (canKundencheck(session)) redirect('/kundencheck')
-    return <NoAccess />
+    if (canKundencheck(session)) redirect('/cockpit/kundencheck')
   }
-  const showKundencheck = canKundencheck(session)
 
-  // Robust: Datenfehler dürfen den Kundencheck nicht mitreißen.
+  // Jede Quelle einzeln absichern: Ein stilles Reporting darf den Betrieb nicht
+  // mitreißen, und ein Keycloak-Aussetzer nicht die Geschäftszahlen.
   let stats: CockpitStats | null = null
-  let day: DayEvents | null = null
-  let intraday: Intraday | null = null
   try {
     stats = await getStats()
   } catch {
     stats = null
-  }
-  try {
-    intraday = await getIntraday()
-  } catch {
-    intraday = null
-  }
-  try {
-    day = await getDayEvents()
-  } catch {
-    day = null
-  }
-  let ops: Operations | null = null
-  try {
-    ops = await getOperations()
-  } catch {
-    ops = null
-  }
-  let newUsers: NewUsers | null = null
-  try {
-    newUsers = await getNewUsers()
-  } catch {
-    newUsers = null
-  }
-  let patris: PatrisUploadStatus = { importedAt: null, fileName: null, importedBy: null, rowCount: 0 }
-  try {
-    const st = await getPatrisStatus()
-    patris = {
-      importedAt: st.importedAt
-        ? new Date(st.importedAt).toLocaleString('de-DE', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-          }) + ' Uhr'
-        : null,
-      fileName: st.fileName,
-      importedBy: st.importedBy,
-      rowCount: st.rowCount,
-    }
-  } catch {
-    // Ohne Status bleibt der Upload trotzdem nutzbar.
   }
   let availability: Availability | null = null
   try {
@@ -106,359 +55,149 @@ export default async function CockpitPage() {
   } catch {
     availability = null
   }
-  let cron: { lastHealth: string | null; lastAggregate: string | null } | null = null
+  let reporting: Reporting = { verfuegbar: false, grund: 'nicht konfiguriert' }
+  try {
+    reporting = await getReporting()
+  } catch {
+    reporting = { verfuegbar: false, grund: 'nicht erreichbar' }
+  }
+  let cron: CronStatus | null = null
   try {
     cron = await getCronStatus()
   } catch {
     cron = null
   }
+  let patrisAlter: number | null = null
+  try {
+    patrisAlter = tageSeit((await getPatrisStatus()).importedAt)
+  } catch {
+    patrisAlter = null
+  }
 
-  const stamp = new Date().toLocaleString('de-DE', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
+  const maxAlter = Number(process.env.PATRIS_MAX_AGE_DAYS || 7)
+  const patrisVeraltet = patrisAlter != null && patrisAlter > maxAlter
+  // Steht der Minuten-Job, veralten die Tageswerte still. Das gehört sichtbar
+  // gemacht — Bestand und neue Konten holt die Seite zwar live nach, Logins und
+  // Support-Zahlen aber nicht.
+  const jobSteht = cron?.aggregateAlterMin != null && cron.aggregateAlterMin > JOB_STILL_MIN
 
   return (
     <>
-      <header className="cx-header">
-        <div className="cx-header-in">
-          <div className="cx-brand">
-            LüMobil <span>Migrations-Cockpit</span>
+      <Seitenkopf
+        titel="Überblick"
+        unterzeile={`Realm ${keycloakRealm()} · jede Zahl mit Quelle und Zeitraum`}
+      >
+        <span className={`cx-env cx-env--${cockpitEnv()}`}>{cockpitEnvLabel()}</span>
+        <LiveStatus />
+      </Seitenkopf>
+
+      {patrisVeraltet && (
+        <div className="cx-glas cx-tun cx-tun--warn">
+          <span className="cx-punkt cx-punkt--no" />
+          <div style={{ flexGrow: 1 }}>
+            <div className="cx-tun-titel">
+              Patris-Export ist {patrisAlter} Tage alt
+            </div>
+            <div className="cx-tun-text">
+              Der Kundencheck beantwortet Ticketfragen damit möglicherweise falsch.
+            </div>
           </div>
-          <div className="cx-stamp">
-            Realm {keycloakRealm()} · Stand {stamp} Uhr
+          <Link href="/cockpit/daten" className="cx-knopf cx-knopf--akzent">
+            Neue Datei laden
+          </Link>
+        </div>
+      )}
+
+      {jobSteht && (
+        <div className="cx-glas cx-tun cx-tun--warn">
+          <span className="cx-punkt cx-punkt--warn" />
+          <div style={{ flexGrow: 1 }}>
+            <div className="cx-tun-titel">
+              Die Tageswerte sind {cron?.aggregateAlterMin} Minuten alt
+            </div>
+            <div className="cx-tun-text">
+              Der Minuten-Job schreibt gerade nicht. Kontenbestand und neue Konten stehen trotzdem
+              aktuell hier — Anmeldungen und Support-Zahlen können hinterherhinken.
+            </div>
           </div>
-          <EnvBadge />
-          <a className="cx-back" href="/">
-            ← Zur Hilfe-Center-Seite
-          </a>
-          <a className="cx-logout" href="/api/auth/logout">
-            Abmelden
-          </a>
+          <Link href="/cockpit/daten" className="cx-knopf">
+            Job-Läufe ansehen
+          </Link>
         </div>
-        <div className="cx-header-in cx-header-status">
-          <LiveStatus />
-        </div>
-      </header>
+      )}
 
-      <main className="cx-wrap">
-        {showKundencheck && <Kundencheck />}
+      <h2 className="cx-h2">
+        Ankommen im neuen System <span>· Reporting, nachts aktualisiert</span>
+        <Link href="/cockpit/ankommen" style={{ marginLeft: 'auto', fontSize: 13 }}>
+          Alle Zahlen zur Aktivierung →
+        </Link>
+      </h2>
+      <AnkommenSection data={reporting} kurz />
 
-        {/* Patris-Ticketdaten für den Kundencheck */}
-        <h2 className="cx-h2">
-          Ticketdaten <span>· Patris-CSV für den Kundencheck</span>
-        </h2>
-        <PatrisUpload status={patris} />
+      <h2 className="cx-h2">
+        Betrieb heute <span>· eigene Datenbank, minütlich</span>
+        <Link href="/cockpit/anmeldungen" style={{ marginLeft: 'auto', fontSize: 13 }}>
+          Anmeldungen im Detail →
+        </Link>
+      </h2>
+      {stats ? <KpiRow stats={stats} /> : <Unavailable />}
 
-        {/* KPI */}
-        <h2 className="cx-h2">Letzte 24 Stunden</h2>
-        {stats ? <KpiRow stats={stats} /> : <Unavailable />}
+      <div className="cx-split">
+        <Karte titel="Tickets und Umsatz" quelle="Reporting · seit Start">
+          {reporting.verfuegbar ? (
+            <>
+              <div className="cx-raster cx-raster--2" style={{ gap: 24 }}>
+                <div>
+                  <div className="cx-zahl">{euro(reporting.verkauf.umsatzBrutto)}</div>
+                  <div className="cx-label">Umsatz brutto</div>
+                </div>
+                <div>
+                  <div className="cx-zahl">{de(reporting.verkauf.verkaeufe)}</div>
+                  <div className="cx-label">Verkäufe</div>
+                </div>
+                <div>
+                  <div className="cx-zahl">{de(reporting.verkauf.erfolgPct)} %</div>
+                  <div className="cx-label">Erfolgreich ausgeliefert</div>
+                </div>
+                <div>
+                  <div className="cx-zahl">{de(reporting.verkauf.abbrueche)}</div>
+                  <div className="cx-label">Abgebrochene Bestellungen</div>
+                </div>
+              </div>
+              <div style={{ marginTop: 18 }}>
+                <Link href="/cockpit/umsatz" style={{ fontSize: 13 }}>
+                  Verlauf und Produkte →
+                </Link>
+              </div>
+            </>
+          ) : (
+            <div className="cx-empty">
+              Die Reporting-Datenbank ist nicht angebunden. Siehe docs/REPORTING.md.
+            </div>
+          )}
+        </Karte>
 
-        {/* Verfügbarkeit (Statuspage-Streifen) */}
-        <h2 className="cx-h2">
-          Verfügbarkeit <span>· letzte 24 Stunden</span>
-        </h2>
-        {availability ? <AvailabilityStrip data={availability} /> : <Unavailable />}
+        <Karte titel="Systeme" quelle="24 Stunden">
+          {availability ? (
+            <>
+              <StatusKurz data={availability} />
+              <div style={{ marginTop: 18 }}>
+                <Link href="/cockpit/verfuegbarkeit" style={{ fontSize: 13 }}>
+                  Verfügbarkeit im Detail →
+                </Link>
+              </div>
+            </>
+          ) : (
+            <Unavailable />
+          )}
+        </Karte>
+      </div>
 
-        {/* Keycloak-Kennzahlen: Nutzer & Aktivität */}
-        <h2 className="cx-h2">
-          Keycloak <span>· Nutzer &amp; Aktivität</span>
-        </h2>
-        {intraday && stats ? (
-          <KeycloakStats totalUsers={stats.kpis.totalUsers} m={intraday.metrics} />
-        ) : (
-          <Unavailable />
-        )}
-
-        {/* Neue Nutzer */}
-        <h2 className="cx-h2">
-          Neue Nutzer <span>· Stunde / 24 h / 7 Tage / 30 Tage</span>
-        </h2>
-        {newUsers ? (
-          <ChartCard title="Neu angelegte Nutzer" hint="Neu angelegte Konten je Zeitraum">
-            <NewUsersChart data={newUsers} />
-          </ChartCard>
-        ) : (
-          <Unavailable />
-        )}
-
-        {/* Intraday-Verlauf */}
-        <h2 className="cx-h2">
-          Verlauf <span>· letzte 24 Stunden &amp; letzte Stunde</span>
-        </h2>
-        {intraday ? (
-          <div className="cx-charts cx-charts--even">
-            <ChartCard title="Letzte 24 Stunden" hint="Logins und Fehler je Stunde">
-              <DualLineChart
-                points={intraday.hourly.map((p) => ({ label: p.label, a: p.logins, b: p.loginErrors }))}
-                maxTicks={7}
-              />
-            </ChartCard>
-            <ChartCard title="Letzte Stunde" hint="Logins und Fehler je Minute">
-              <DualLineChart
-                points={intraday.minutely.map((p) => ({ label: p.label, a: p.logins, b: p.loginErrors }))}
-                maxTicks={7}
-              />
-            </ChartCard>
-          </div>
-        ) : (
-          <Unavailable />
-        )}
-
-        {/* Zeitreihen */}
-        <h2 className="cx-h2">
-          Zeitreihen <span>· Tag / Stunde</span>
-        </h2>
-        {stats ? (
-          <ChartCard title="Logins und Fehler" hint="Quelle: Keycloak-Events LOGIN und LOGIN_ERROR · Umschaltbar Tag/Stunde">
-            <LoginsRangeChart daily={stats.series} hourly={intraday?.hourly ?? null} />
-          </ChartCard>
-        ) : (
-          <Unavailable />
-        )}
-
-        {/* Support & Betrieb */}
-        <h2 className="cx-h2">
-          Support &amp; Betrieb <span>· letzte 24 Stunden</span>
-        </h2>
-        {ops ? <OpsSection ops={ops} /> : <Unavailable />}
-
-        {/* Fehler */}
-        <h2 className="cx-h2">
-          Fehlgeschlagene Anmeldungen <span>· heute</span>
-        </h2>
-        {day ? <ErrorSection day={day} /> : <Unavailable />}
-
-        {/* Reports */}
-        <h2 className="cx-h2">
-          Reports <span>· Mail + PDF an die Alert-Adresse</span>
-        </h2>
-        <ReportButtons />
-
-        <div className="cx-cronbar">
-          <span className="cx-cronbar-t">Letzte Job-Läufe</span>
-          <span>
-            Health-Check: <b>{cron?.lastHealth ?? 'noch nie'}</b>
-            {cron?.lastHealth ? ' Uhr' : ''}
-          </span>
-          <span>
-            Aggregation: <b>{cron?.lastAggregate ?? 'noch nie'}</b>
-            {cron?.lastAggregate ? ' Uhr' : ''}
-          </span>
-        </div>
-
-        <footer className="cx-footer">
-          Datenquelle: Keycloak Admin API (Events, Users). Zugriff nur mit Cockpit-Berechtigung;
-          Kundencheck-Abfragen werden nicht protokolliert.
-          {stats?.mock || day?.mock ? ' · Mock-Daten (Entwicklung)' : ''}
-        </footer>
-      </main>
+      <footer className="cx-footer">
+        Quellen: Keycloak (live), eigene Datenbank (minütlich), Reporting (nachts) und der
+        hochgeladene Patris-Export. Kundencheck-Abfragen werden nicht protokolliert.
+        {stats?.mock ? ' · Mock-Daten (Entwicklung)' : ''}
+      </footer>
     </>
-  )
-}
-
-function EnvBadge() {
-  return <span className={`cx-env cx-env--${cockpitEnv()}`}>{cockpitEnvLabel()}</span>
-}
-
-function NoAccess() {
-  return (
-    <main className="cx-wrap">
-      <div className="cx-noaccess">
-        <h1>Kein Zugriff</h1>
-        <p>
-          Für das Migrations-Cockpit ist die Rolle <code>{cockpitRole()}</code> (oder{' '}
-          <code>{supportRole()}</code>) erforderlich. Ihr Konto hat diese Rolle nicht.
-        </p>
-        <a className="cx-btn" href="/api/auth/logout">
-          Abmelden
-        </a>
-      </div>
-    </main>
-  )
-}
-
-function Unavailable() {
-  return <div className="cx-unavailable">Daten derzeit nicht verfügbar.</div>
-}
-
-function KpiRow({ stats }: { stats: CockpitStats }) {
-  const k = stats.kpis
-  const trend = stats.loginTrendPct
-  const rate = k.errorRatePct.toLocaleString('de-DE', {
-    minimumFractionDigits: 1,
-    maximumFractionDigits: 1,
-  })
-  return (
-    <div className="cx-kpis cx-kpis--3">
-      <div className="cx-kpi">
-        <div className="cx-kpi-n">{de(k.successfulLogins)}</div>
-        <div className="cx-kpi-l">Erfolgreiche Logins</div>
-        {trend != null && (
-          <div className={`cx-kpi-t ${trend >= 0 ? 'up' : 'down'}`}>
-            {trend >= 0 ? '+' : ''}
-            {trend} % ggü. Vortag
-          </div>
-        )}
-        <Sparkline values={stats.series.map((p) => p.logins)} />
-      </div>
-      <div className="cx-kpi">
-        <div className="cx-kpi-n">{de(k.failedLogins)}</div>
-        <div className="cx-kpi-l">Fehlgeschlagene Logins</div>
-        <div className="cx-kpi-t down">{rate} % Fehlerquote</div>
-        <Sparkline values={stats.series.map((p) => p.loginErrors)} color="#000000" />
-      </div>
-      <div className="cx-kpi">
-        <div className="cx-kpi-n">{de(k.newUsers24h)}</div>
-        <div className="cx-kpi-l">Neue Nutzer (24 h)</div>
-        <div className="cx-kpi-t flat">neu angelegte Konten</div>
-        <Sparkline values={stats.series.map((p) => p.newUsers)} />
-      </div>
-    </div>
-  )
-}
-
-function KeycloakStats({ totalUsers, m }: { totalUsers: number; m: Keycloak24hMetrics }) {
-  return (
-    <div className="cx-kpis cx-kpis--3">
-      <div className="cx-kpi">
-        <div className="cx-kpi-n">{de(totalUsers)}</div>
-        <div className="cx-kpi-l">Nutzer gesamt (Realm)</div>
-      </div>
-      <div className="cx-kpi">
-        <div className="cx-kpi-n">{de(m.uniqueUsers)}</div>
-        <div className="cx-kpi-l">Eindeutige Nutzer (24 h)</div>
-      </div>
-      <div className="cx-kpi">
-        <div className="cx-kpi-n">{de(m.activeClients)}</div>
-        <div className="cx-kpi-l">Aktive Clients (24 h)</div>
-      </div>
-    </div>
-  )
-}
-
-function OpsSection({ ops }: { ops: Operations }) {
-  const s = ops.support24h
-  const w = ops.support7d
-  const tiles = [
-    { n: s.passwordResetRequested, week: w.passwordResetRequested, l: 'Passwort-Reset angefordert' },
-    { n: s.passwordResetDone, week: w.passwordResetDone, l: 'Passwort-Reset abgeschlossen' },
-    { n: s.passwordChanged, week: w.passwordChanged, l: 'Passwort geändert' },
-    { n: s.verifyEmailSent, week: w.verifyEmailSent, l: 'Verifizierungs-Mail gesendet' },
-    { n: s.verifyEmailDone, week: w.verifyEmailDone, l: 'E-Mail bestätigt' },
-    { n: s.registrations, week: w.registrations, l: 'Neuregistrierungen' },
-  ]
-  const maxClient = Math.max(1, ...ops.loginsByClient.map((c) => c.count))
-  return (
-    <div className="cx-split">
-      <div className="cx-card">
-        <h3 className="cx-card-h">Konto &amp; Passwort</h3>
-        <div className="cx-card-hint">letzte 24 Stunden (darunter: 7 Tage)</div>
-        <div className="cx-kpis cx-kpis--3">
-          {tiles.map((t) => (
-            <div className="cx-kpi" key={t.l}>
-              <div className="cx-kpi-n">{de(t.n)}</div>
-              <div className="cx-kpi-l">{t.l}</div>
-              <div className="cx-kpi-t flat">7 Tage: {de(t.week)}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-      <div>
-        <div className="cx-card">
-          <h3 className="cx-card-h">Logins nach Client</h3>
-          <div className="cx-card-hint">letzte 24 Stunden · Logins &amp; eindeutige Nutzer</div>
-          {ops.loginsByClient.length === 0 ? (
-            <div className="cx-empty">Keine Logins.</div>
-          ) : (
-            <ul className="cx-toplist">
-              {ops.loginsByClient.map((c) => (
-                <li key={c.clientId}>
-                  <div className="cx-toplist-row">
-                    <b>{c.clientId}</b>
-                    <span>
-                      {de(c.count)} <em className="cx-toplist-sub">· {de(c.uniqueUsers)} Nutzer</em>
-                    </span>
-                  </div>
-                  <div className="cx-bar">
-                    <i style={{ width: `${Math.round((c.count / maxClient) * 100)}%` }} />
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function ErrorSection({ day }: { day: DayEvents }) {
-  return (
-    <div className="cx-split">
-      <div className="cx-card">
-        {day.rows.length === 0 ? (
-          <div className="cx-empty">Keine Fehler heute.</div>
-        ) : (
-          <div className="cx-tablewrap">
-            <table className="cx-table">
-              <thead>
-                <tr>
-                  <th>Zeit</th>
-                  <th>Fehler</th>
-                  <th>Client</th>
-                  <th>Benutzer</th>
-                </tr>
-              </thead>
-              <tbody>
-                {day.rows.map((r, i) => (
-                  <tr key={i}>
-                    <td>{r.time}</td>
-                    <td>
-                      <span className={`cx-pill ${r.error === 'invalid_user_credentials' ? 'amber' : 'red'}`}>
-                        {r.error}
-                      </span>
-                    </td>
-                    <td>{r.clientId}</td>
-                    <td className="cx-mono">{r.username}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-      <div>
-        <div className="cx-card">
-          <h3 className="cx-card-h">Fehlerarten heute</h3>
-          {day.byType.length === 0 ? (
-            <div className="cx-empty">Keine Fehler heute.</div>
-          ) : (
-            <ul className="cx-toplist">
-              {day.byType.map((t) => (
-                <li key={t.error}>
-                  <div className="cx-toplist-row">
-                    <b>{t.error}</b>
-                    <span>{t.count}</span>
-                  </div>
-                  <div className="cx-toplist-exp">{t.explanation}</div>
-                </li>
-              ))}
-            </ul>
-          )}
-          {day.anomalies.map((a) => (
-            <div className="cx-sec" key={a.username}>
-              <b>Auffällig</b>
-              {a.count} Fehlversuche mit Benutzername „{a.username}"
-              {a.clientId ? ` über den Client ${a.clientId}` : ''} – kein Treffer. Admin-Zugang ist
-              abgeschottet.
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
   )
 }

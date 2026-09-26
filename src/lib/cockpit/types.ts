@@ -131,10 +131,14 @@ export type DailyPoint = {
   datum: string
   logins: number
   loginErrors: number
-  /** Neu im Realm angelegte Nutzer (createdTimestamp) — migriert + registriert. */
+  /** Alle an diesem Tag angelegten Konten (createdTimestamp) — migriert + registriert. */
   newUsers: number
+  /** Davon aus dem Altsystem übernommen (federationLink); fehlt, solange kein Backfill lief. */
+  migratedUsers?: number
   /** Davon Selbstregistrierungen (REGISTER-Events). */
   registrations: number
+  /** Kontenbestand am Ende des Tages (Keycloak-Zähler); fehlt in alten Zeilen. */
+  totalUsers?: number
 }
 
 /** Ein Zeit-Bucket der Intraday-Reihen (Stunde bzw. Minute). */
@@ -170,6 +174,7 @@ export type CockpitKpis = {
   /** Fehlerquote in Prozent (0–100), eine Nachkommastelle. */
   errorRatePct: number
   /** Neu angelegte Nutzer in den letzten 24 Stunden. */
+  /** Heute neu angelegte Konten (alle, nicht nur migrierte). */
   newUsers24h: number
   /** Alle Realm-Nutzer gesamt. */
   totalUsers: number
@@ -202,13 +207,21 @@ export type ClientLogin = { clientId: string; count: number; uniqueUsers: number
 /** Ein Zeit-Bucket mit Zähler (für den Neue-Nutzer-Graph). */
 export type CountPoint = { label: string; count: number }
 
-/** Neu angelegte Nutzer je Zeitfenster (Buckets + Gesamtsumme). */
+/**
+ * Neu angelegte Konten je Tag — aus der eigenen Datenbank (cockpit-daily).
+ * Eine feinere Auflösung als ein Tag gibt es bewusst nicht mehr: Sie war nur
+ * durch das Durchblättern aller Keycloak-Konten bei jedem Seitenaufruf möglich.
+ */
 export type NewUsers = {
-  hour: CountPoint[]
-  day: CountPoint[]
   week: CountPoint[]
   month: CountPoint[]
-  totals: { hour: number; day: number; week: number; month: number }
+  /** 90 Tage. */
+  quarter: CountPoint[]
+  /** 365 Tage. */
+  year: CountPoint[]
+  totals: { today: number; week: number; month: number; quarter: number; year: number }
+  /** Kontenbestand laut jüngstem Tageswert. */
+  totalUsers: number
   mock: boolean
 }
 
@@ -230,6 +243,14 @@ export type Health = {
   database: ServiceHealth
   /** Synthetischer Login (Testuser) — Ende-zu-Ende-Prüfung. */
   login: ServiceHealth
+  /** LüMobil Ticket-API (Bestellungen im Kundencheck). */
+  ticketApi: ServiceHealth
+  /** Metabase — Grundlage der Kennzahlen-Seite. */
+  dashboards: ServiceHealth
+  /** Alter des hochgeladenen Patris-Exports (keine Erreichbarkeit, sondern Aktualität). */
+  patris: ServiceHealth
+  /** Reporting-Datenbank (Geschäftszahlen). */
+  reporting: ServiceHealth
   mock: boolean
 }
 
@@ -257,7 +278,7 @@ export type AvailabilitySegment = {
 
 /** Verfügbarkeit eines Dienstes im Beobachtungsfenster (aus health-checks). */
 export type AvailabilitySvc = {
-  key: 'keycloak' | 'login' | 'database'
+  key: 'keycloak' | 'login' | 'database' | 'ticketApi' | 'dashboards' | 'patris' | 'reporting'
   label: string
   /** Aktueller Zustand aus dem jüngsten Check. */
   current: 'ok' | 'down' | 'none'
@@ -278,6 +299,16 @@ export type AvailabilitySvc = {
 }
 
 /** Verfügbarkeits-Historie (Statuspage-Streifen) über ein Zeitfenster. */
+/** Verdichteter Tageswert der Verfügbarkeit eines Dienstes. */
+export type AvailabilityDay = {
+  /** Konfigurierte Messpunkte an diesem Tag. */
+  samples: number
+  /** Davon fehlgeschlagen. */
+  downSamples: number
+  /** Uptime in Prozent, eine Nachkommastelle. */
+  uptimePct: number
+}
+
 export type Availability = {
   /** Fenster-Beschriftung, z. B. „letzte 24 Stunden". */
   windowLabel: string
@@ -286,6 +317,13 @@ export type Availability = {
   services: AvailabilitySvc[]
   /** Zeitpunkt des letzten Checks (formatiert) oder null. */
   lastCheck: string | null
+  /** Langfrist-Uptime je Dienst aus den verdichteten Tageswerten. */
+  langfrist: {
+    /** Anzahl Tage, über die verdichtet wurde. */
+    tage: number
+    /** Uptime je Dienstschlüssel in Prozent. */
+    proDienst: Record<string, number>
+  } | null
   mock: boolean
 }
 
@@ -316,4 +354,18 @@ export type DayEvents = {
   byType: ErrorTypeAgg[]
   anomalies: Anomaly[]
   mock: boolean
+}
+
+/**
+ * Stand der Minuten-Jobs. Das Alter in Minuten steht daneben, damit die
+ * Oberfläche selbst melden kann, wenn ein Job steht — vorher fiel das nur auf,
+ * wenn jemand die Zahlen von Hand nachrechnete.
+ */
+export type CronStatus = {
+  /** Formatierter Zeitpunkt des letzten Laufs oder null. */
+  lastHealth: string | null
+  lastAggregate: string | null
+  /** Alter des letzten Laufs in Minuten (null = nie gelaufen). */
+  healthAlterMin: number | null
+  aggregateAlterMin: number | null
 }
