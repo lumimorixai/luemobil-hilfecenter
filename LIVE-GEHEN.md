@@ -325,6 +325,7 @@ SEC=<CRON_SECRET>
 30 6 * * * curl -fsS -X POST -H "x-cron-secret: $SEC" "<DOMAIN>/api/cockpit/cron?job=report&period=day"   >/dev/null
 30 6 * * 1 curl -fsS -X POST -H "x-cron-secret: $SEC" "<DOMAIN>/api/cockpit/cron?job=report&period=week"  >/dev/null
 30 6 1 * * curl -fsS -X POST -H "x-cron-secret: $SEC" "<DOMAIN>/api/cockpit/cron?job=report&period=month" >/dev/null
+15 3 * * *  curl -fsS -X POST -H "x-cron-secret: $SEC" "<DOMAIN>/api/cockpit/cron?job=konten"              >/dev/null
 ```
 
 - `job=health` — prüft Keycloak/Login/Datenbank, füllt die Verfügbarkeits-

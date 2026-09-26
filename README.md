@@ -76,6 +76,8 @@ Anmeldung im Admin: `ADMIN_EMAIL` / `ADMIN_PASSWORD` aus deiner `.env`.
 | `pnpm generate:importmap` | Nach neuen Admin-UI-Komponenten |
 | `pnpm payload migrate:create <name>` | Neue Postgres-Migration (siehe `PAYLOAD-CMS-ANLEITUNG.md`, B3) |
 | `pnpm job:cockpit` | Cockpit-Tageswerte aktualisieren (lokal nur bei gestopptem Dev-Server) |
+| `pnpm job:cockpit backfill [tage]` | Vergangene Tage neu berechnen (inkl. Anmeldezahlen, Standard 14) |
+| `pnpm job:cockpit konten` | Komplette Kontenhistorie ab dem ersten Konto schreiben |
 | `pnpm job:health` | Systemstatus prüfen + Störungs-Alerting |
 | `pnpm job:report <hour\|day\|week\|month>` | Cockpit-Report per Mail versenden |
 

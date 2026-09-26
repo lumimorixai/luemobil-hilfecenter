@@ -105,6 +105,53 @@ Konto, Kundennummer (Attribut `kundennummer` bzw. `customerNumber`) und Events.
 Events sind nur so lange verfügbar, wie Keycloak sie aufbewahrt
 (Realm → Events → Expiration).
 
+### 3.1a Eigene Datenbank (Tageswerte und Verfügbarkeit)
+
+Die Cockpit-Startseite liest ihre Zahlen aus der eigenen Datenbank, nicht live
+aus Keycloak:
+
+- `cockpit-daily` — je Tag: Logins, Fehlversuche, neue Konten, Registrierungen
+  und der **Kontenbestand am Ende des Tages**. Geschrieben vom Minuten-Job
+  `pnpm job:cockpit`.
+- `health-checks` — je Minute der Zustand aller überwachten Dienste; Grundlage
+  für Verfügbarkeitsstreifen, „letzter Check" und die Störungsmails.
+
+Damit bleibt die Historie erhalten, auch wenn Keycloak seine Events nach Ablauf
+der Aufbewahrungsfrist löscht. Vergangene Tage nachtragen:
+
+```bash
+pnpm job:cockpit backfill 14   # 14 Tage neu berechnen, Bestand rückwärts ableiten
+```
+
+Der Kontenbestand wird dabei vom heutigen Keycloak-Zähler rückwärts fortgeschrieben
+(Bestand eines Tages = heutiger Bestand abzüglich der seither neu angelegten Konten).
+
+**Wie weit die Historie reicht.** Zwei Größen mit sehr verschiedener
+Reichweite: Die **Anmeldezahlen** hängen an den Keycloak-Events und enden mit
+deren Aufbewahrungsfrist — was einmal verfallen ist, lässt sich nicht
+rekonstruieren. Die **Kontenzahlen** hängen am Anlagedatum, das dauerhaft am
+Konto steht; `pnpm job:cockpit konten` baut sie deshalb jederzeit vollständig
+auf, vom ersten angelegten Konto bis heute. Tage ohne Event-Daten stehen mit
+null Anmeldungen in der Reihe, tragen aber korrekte Kontenzahlen.
+
+**Was „neue Konten" bedeutet:** alle an dem Tag angelegten Konten, erkannt am
+Anlagedatum in Keycloak (`createdTimestamp`). Davon getrennt ausgewiesen werden
+die aus dem Altsystem übernommenen (`migratedUsers`) und die
+Selbstregistrierungs-Ereignisse (`registrations`). Maßgeblich ist das
+Anlagedatum, nicht das REGISTER-Ereignis: Nur es erklärt den Kontenbestand
+vollständig — die Summe aller Anlagen entspricht exakt dem Keycloak-Zähler.
+
+Bewusste Einschränkung: Neue Konten gibt es nur noch in Tagesauflösung. Die frühere
+Minutenauflösung der letzten Stunde war nur möglich, indem bei **jedem** Seitenaufruf
+die gesamte Keycloak-Nutzerliste durchblättert wurde.
+
+### 3.1b Reporting-Datenbank (Geschäftszahlen)
+
+Die Blöcke „Ankommen im neuen System" und „Tickets und Umsatz" lesen die
+Reporting-Datenbank `lue_reporting` — mit einem eigenen Account, der nur lesen
+darf und nur die vier aggregierten Views ohne Personenbezug sieht. Einrichtung
+und die Gründe dafür: `docs/REPORTING.md`.
+
 ### 3.2 Patris-CSV (Soll: welche Tickets vorgesehen sind)
 
 Upload im **Migrations-Cockpit → Ticketdaten** (Rolle `cockpit`/`support`).
@@ -226,6 +273,23 @@ chmod 400 secrets/luemobil_api_token
 | Neue Server-IP | dem API-Betreiber für die Freigabeliste melden |
 | Person bekommt/verliert Zugriff | Rolle in Keycloak ändern, Person meldet sich neu an |
 | Hinweistext ändern | Admin → Cockpit → Kundencheck-Hinweise |
+| Tageswerte fehlen (Job stand still) | `pnpm job:cockpit backfill 14` |
+| Kontenhistorie unvollständig | Entwicklung: `pnpm job:cockpit konten` · Produktion: `POST /api/cockpit/cron?job=konten` |
+| Reporting-Zahlen fehlen | Lese-Account und `REPORTING_DATABASE_URI` prüfen (`docs/REPORTING.md`); nach einem Neuaufbau der Views gehen die Rechte verloren |
+
+**Aufbewahrung.** Tageswerte (`cockpit-daily`) bleiben dauerhaft — ein Jahr
+kostet rund 40 KB. Die Minuten-Checks (`health-checks`) werden zu einem
+Tageswert je Dienst verdichtet und danach aufgeräumt; wie lange die Rohdaten
+bleiben, steuert `HEALTH_RETENTION_DAYS` (Standard 35 Tage). Die Verfügbarkeit
+ist dadurch jahrelang nachvollziehbar, ohne dass die Datenbank wächst. Das
+Verdichten und Aufräumen erledigt der Minuten-Job einmal je Stunde.
+
+**Überwachte Dienste (Ampel im Cockpit-Kopf, Verfügbarkeit und Alert-Mails):**
+Keycloak, synthetischer Testlogin, Datenbank, Ticket-API, Dashboards (Metabase)
+und das **Alter des Patris-Uploads**. Letzteres ist keine Erreichbarkeit, sondern
+Aktualität: Ab `PATRIS_MAX_AGE_DAYS` (Standard 7) springt die Ampel auf Rot, weil
+ein veralteter Export im Kundencheck zu falschen Auskünften führt. Nicht
+konfigurierte Dienste bleiben grau und lösen keinen Alarm aus.
 
 **Datenschutz:** Der Kundencheck protokolliert die gesuchten E-Mail-Adressen
 nicht. Die Ticket-API protokolliert jede Abfrage auf ihrer Seite (inkl.

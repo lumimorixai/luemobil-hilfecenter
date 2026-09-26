@@ -12,6 +12,9 @@ Hosting: eigener VPS via Docker Compose + Caddy.
 - `pnpm generate:types` – nach JEDER Collection-Änderung ausführen (aktualisiert src/payload-types.ts)
 - `pnpm generate:importmap` – nach Hinzufügen von Admin-UI-Komponenten
 - `pnpm job:cockpit` – Tageswerte für die Cockpit-Zeitreihe aktualisieren (minütlich per Cron; in Dev nur bei gestopptem Dev-Server wegen SQLite-Lock)
+- `pnpm job:cockpit backfill [tage]` – vergangene Tage neu berechnen, inkl. Anmeldezahlen (Standard 14; begrenzt durch die Event-Aufbewahrung in Keycloak)
+- `pnpm job:cockpit konten` – KOMPLETTE Kontenhistorie ab dem ersten angelegten Konto schreiben; braucht keine Events und reicht beliebig weit zurück
+- **Achtung Produktion:** Das Prod-Image ist ein Standalone-Build (`node server.js`) ohne pnpm/tsx/Quelltext — die CLI-Jobs laufen dort NICHT. Alles Regelmäßige und Einmalige muss über `POST /api/cockpit/cron?job=health|aggregate|konten|report` erreichbar sein (Header `x-cron-secret`).
 - `pnpm job:health` – Systemstatus-Check + Störungs-Alerting (minütlich per Cron)
 - `pnpm job:report <hour|day|week|month>` – grafischen Cockpit-Report (HTML-Mail + PDF) an ALERT_EMAIL senden (per Cron oder Button im Cockpit)
 
@@ -22,7 +25,11 @@ Hosting: eigener VPS via Docker Compose + Caddy.
 - `src/app/(frontend)/fragen/actions.ts` – Server Action für öffentliche Fragen-Einreichungen; Collection question-submissions ist REST-gesperrt. Übernahme (Status „uebernommen“) hängt die Frage an eine Offene-Fragen-Gruppe an
 - `src/payload.config.ts` – zentrale Payload-Konfiguration; DB-Adapter wird per DATABASE_URI gewählt (file: → SQLite, postgres → Postgres)
 - `src/app/(frontend)/` – öffentliche Seiten: / (Hilfe-Center), /artikel/[slug], /handbuch, /fragen, /fehler, /stoerungen, /testen, /ausblick, /suche; intern: /kundencheck, /kennzahlen
-- `src/app/(cockpit)/cockpit` + `src/app/api/cockpit/*` – Migrations-Cockpit und interne APIs (Kundencheck, Patris-Upload, Stats, Health, Reports, Cron) → Details in `KUNDENCHECK-COCKPIT.md`
+- `src/app/(cockpit)/cockpit` – Migrations-Cockpit mit Seitenleiste; je Bereich eine eigene Route (`/cockpit`, `/ankommen`, `/umsatz`, `/anmeldungen`, `/verfuegbarkeit`, `/support`, `/dashboards`, `/kundencheck`, `/daten`), damit jede Seite nur ihre Daten lädt; `layout.tsx` prüft die Rolle, `src/components/cockpit/bausteine.tsx` hält die wiederkehrenden Bausteine
+- `src/app/api/cockpit/*` – interne APIs (Kundencheck, Patris-Upload, Stats, Health, Reports, Cron) → Details in `KUNDENCHECK-COCKPIT.md`
+- `/kennzahlen` und `/kundencheck` sind nur noch Weiterleitungen in die entsprechenden Cockpit-Bereiche
+- `src/lib/reporting/` – Leseverbindung zur Reporting-DB `lue_reporting` (nur 4 aggregierte Views ohne Personenbezug) → `docs/REPORTING.md`
+- `src/lib/cockpit/retention.ts` – Aufbewahrung: verdichtet Minuten-Checks zu Tageswerten, räumt Rohdaten nach `HEALTH_RETENTION_DAYS` (35) auf
 - `src/lib/metabase.ts` + `/kennzahlen` – eingebettete LüMobil-Dashboards (Metabase, JWT HS256 serverseitig, 10 min; Rechte je Dashboard) → `docs/KENNZAHLEN.md`
 - `src/lib/auth/` – Keycloak-OIDC-Login, HMAC-Session-Cookie, Rollen-Guards (`guard.ts`: Rolle kundencheck | cockpit | support = beides)
 - `src/lib/cockpit/` – Cockpit-/Kundencheck-Logik: `diagnose.ts` (Ampel), `hints.ts` (Situationen + Standardtexte), `patris.ts` (CSV-Import), `ticketApi.ts` (LüMobil Ticket-API, nur serverseitig); Keycloak-Admin-API in `src/lib/keycloak.ts`
@@ -35,6 +42,7 @@ Hosting: eigener VPS via Docker Compose + Caddy.
 
 ## Konventionen
 - SWL-Design-System ist verbindlich → Skill `.claude/skills/swl-design-system` lesen
+- **Ausnahme Cockpit:** `src/app/(cockpit)/` folgt seit 25.09.2026 einer eigenen, freigegebenen Sprache (Glasflächen, große Radien, Schatten, hell/dunkel umschaltbar). Farben und Abstände dort NUR über die Variablen in `cockpit.css` ändern, nie feste Hex-Werte in Komponenten — sonst bricht eine der beiden Fassungen. Alle öffentlichen Seiten bleiben streng im SWL-System.
 - Datenmodell-Details → Skill `.claude/skills/content-model` lesen
 - Deutsch, formelles „Sie" in allen UI-Texten; Typografie: Inter (self-hosted via @fontsource-variable/inter, KEIN Google-Fonts-Request — DSGVO)
 - Styling über CSS-Klassen in src/app/(frontend)/globals.css mit den SWL-Token-Variablen; keine neuen Farben außerhalb der Tokens

@@ -43,6 +43,21 @@ Ampel-Farben (grün/gelb/pink) sind NUR für Status — nie Dekoration, nie Hove
 - Kein Marketing-Fluff, keine Ausrufezeichen (Ausnahme: Warnlabel „Achtung!").
 - Keine Emojis.
 
+## Ausnahme: Migrations-Cockpit (intern)
+
+Das Cockpit unter `src/app/(cockpit)/` weicht seit dem 25.09.2026 bewusst ab
+(freigegeben von Jan Hedtfeld): halbtransparente Glasflächen mit Unschärfe,
+Eckenradien bis 28px, weiche Schatten, Farbverläufe in Diagrammen, hell und
+dunkel umschaltbar. Grund: Es ist ein internes Werkzeug, kein Kundenkontakt.
+
+Verbindlich bleibt auch dort: Inter, das SWL-Orange als einziger Akzent,
+Ampelfarben nur für Status, deutsche Sprache im formellen „Sie".
+
+**Für alle öffentlichen Seiten gilt dieses Dokument unverändert.** Wer im
+Cockpit arbeitet, ändert Farben und Maße ausschließlich über die Variablen in
+`src/app/(cockpit)/cockpit.css` — feste Hex-Werte in Komponenten brechen eine
+der beiden Fassungen.
+
 ## Umsetzung in diesem Projekt
 - Alle Tokens liegen in `src/app/(frontend)/globals.css` unter `:root`.
 - Neue UI-Elemente: vorhandene `.lm-*`-Klassen wiederverwenden oder im gleichen Stil ergänzen.
