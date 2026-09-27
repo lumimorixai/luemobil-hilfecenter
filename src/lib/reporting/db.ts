@@ -83,14 +83,29 @@ function getPool(): Pool | null {
  * konfiguriert oder nicht erreichbar ist — der Aufrufer zeigt dann einen
  * Hinweis statt einer Fehlerseite.
  */
+let letzterAbfragefehler = ''
+
 export async function abfrage<T>(sql: string, params: unknown[] = []): Promise<T[] | null> {
   const p = getPool()
   if (!p) return null
   try {
     const res = await p.query(sql, params)
+    letzterAbfragefehler = ''
     return res.rows as T[]
-  } catch {
-    // Kein Logging der Abfrage: sie könnte Parameter enthalten.
+  } catch (err) {
+    /*
+     * Grund und Fehlercode ins Log — aber weder die Abfrage noch ihre
+     * Parameter, die Personenbezug haben könnten. Postgres-Meldungen nennen
+     * die Ursache ohne Werte („password authentication failed for user …",
+     * „permission denied for view …"), und genau die fehlte vorher: Im Cockpit
+     * stand nur „antwortet gerade nicht", was für die Suche nichts hergibt.
+     */
+    const e = err as NodeJS.ErrnoException & { code?: string }
+    const kennung = `${e.code ?? '-'}|${e.message}`
+    if (kennung !== letzterAbfragefehler) {
+      letzterAbfragefehler = kennung
+      console.warn(`[reporting] Abfrage fehlgeschlagen (${e.code ?? '-'}): ${e.message}`)
+    }
     return null
   }
 }

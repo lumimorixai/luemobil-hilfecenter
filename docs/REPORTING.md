@@ -150,6 +150,57 @@ grün, sobald die Verbindung steht.
 
 ---
 
+## 3a. Wenn es nicht geht
+
+Im Cockpit steht nur, *dass* es nicht geht. Den Grund nennt das Log:
+
+```bash
+cd /opt/luemobil
+docker compose logs --tail=200 app | grep reporting
+```
+
+Direkt nachstellen, genau wie das Cockpit es tut:
+
+```bash
+docker compose exec -T app node -e "
+const fs=require('fs');const {Client}=require('pg');
+const c=new Client({connectionString:fs.readFileSync('/run/secrets/app/reporting_db_uri','utf8').trim()});
+c.connect()
+ .then(()=>c.query('select sum(berechtigte) from rpt.aktivierung_segment'))
+ .then(r=>console.log('OK:',JSON.stringify(r.rows)))
+ .catch(e=>console.log('FEHLER:',e.code||'-','|',e.message))
+ .finally(()=>process.exit(0));
+"
+```
+
+| Meldung | Ursache |
+|---|---|
+| `28P01 password authentication failed` | Passwort in der Datei und in der Rolle weichen ab |
+| `3D000 database … does not exist` | Datenbankname falsch |
+| `ENOTFOUND` / `ECONNREFUSED` | Host `postgres` nicht erreichbar |
+| `42501 permission denied for view …` | ein GRANT fehlt (nach nächtlichem View-Aufbau) |
+| `EACCES` beim Lesen der Datei | Eigentümer/Rechte — siehe Schritt 3 |
+
+Passwort sicher an beiden Stellen gleich setzen:
+
+```bash
+cd /opt/luemobil
+NEU=$(openssl rand -base64 30 | tr -dc 'A-Za-z0-9' | cut -c1-32)
+docker compose exec -T postgres psql -U luemobil -d lue_reporting \
+  -c "ALTER ROLE hilfecenter_ro PASSWORD '$NEU'"
+printf 'postgres://hilfecenter_ro:%s@postgres:5432/lue_reporting' "$NEU" \
+  > secrets/reporting_db_uri
+sudo chown "$(docker compose exec -T app id -u):$(docker compose exec -T app id -g)" \
+  secrets/reporting_db_uri
+chmod 600 secrets/reporting_db_uri
+unset NEU
+```
+
+Ein Passwort ohne Sonderzeichen, aus derselben Variablen an beiden Stellen —
+so können die Werte nicht auseinanderlaufen.
+
+---
+
 ## 4. Verhalten im Betrieb
 
 - Die Werte werden **10 Minuten zwischengespeichert**. Die Reporting-Datenbank
