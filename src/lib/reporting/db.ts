@@ -18,12 +18,26 @@ import { Pool } from 'pg'
 
 const STATEMENT_TIMEOUT_MS = 8000
 
+/** Merkt sich, warum das Lesen der Datei scheiterte — einmal je Grund. */
+let letzterLesefehler = ''
+
 function verbindungsString(): string {
   const datei = process.env.REPORTING_DATABASE_URI_FILE
   if (datei) {
     try {
       return readFileSync(datei, 'utf8').trim()
-    } catch {
+    } catch (err) {
+      // Ohne Hinweis sah ein Rechteproblem genauso aus wie „nicht eingerichtet".
+      // Der Container läuft nicht als root; gehört die Datei root und ist sie
+      // 600, kann er sie nicht lesen. Das gehört ins Log, nicht verschwiegen.
+      const grund = (err as NodeJS.ErrnoException).code ?? 'unbekannt'
+      if (grund !== letzterLesefehler) {
+        letzterLesefehler = grund
+        console.warn(
+          `[reporting] Zugangsdatei nicht lesbar (${grund}): ${datei} — ` +
+            'Pfad und Eigentümer prüfen, siehe docs/REPORTING.md.',
+        )
+      }
       return ''
     }
   }

@@ -123,8 +123,24 @@ standardmäßig unter `/run/secrets/app/reporting_db_uri`; dorthin wird der Ordn
 cd /opt/luemobil
 printf 'postgres://hilfecenter_ro:DAS-PASSWORT@postgres:5432/lue_reporting' \
   > secrets/reporting_db_uri
+
+# Der Container läuft als Benutzer „nextjs", nicht als root. Ohne diesen
+# Schritt kann er die Datei nicht lesen und meldet „nicht hinterlegt".
+sudo chown "$(docker compose exec -T app id -u):$(docker compose exec -T app id -g)" \
+  secrets/reporting_db_uri
 chmod 600 secrets/reporting_db_uri
 ```
+
+Prüfen, dass der Container sie wirklich lesen kann:
+
+```bash
+docker compose exec -T app sh -lc \
+  'cat /run/secrets/app/reporting_db_uri | sed "s/:[^:@]*@/:***@/"'
+```
+
+Zeigt die Zeichenfolge mit maskiertem Passwort. Kommt „No such file" oder
+„Permission denied", stimmen Pfad oder Rechte nicht. Ein Neustart ist nicht
+nötig — die Datei wird bei jedem Aufruf frisch gelesen.
 
 Ein Eintrag in der `.env` ist dann nicht nötig — der Pfad steht als Vorgabewert
 im Compose. Abweichender Ort: `REPORTING_DATABASE_URI_FILE` in der `.env` setzen.
