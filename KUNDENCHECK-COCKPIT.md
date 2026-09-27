@@ -8,11 +8,45 @@ Konfiguration funktionieren und was im Betrieb zu tun ist.
   einer E-Mail-Adresse, ob der Kunde ein Ticket hat, ob ein Konto besteht und was
   ihm zu sagen ist — als Ampel mit Hinweistext.
 - **Migrations-Cockpit** (`/cockpit`): Monitoring der Keycloak-Migration
-  (Kennzahlen, Verfügbarkeit, Fehler, Reports) und Upload der Patris-Ticketdaten.
+  (Kennzahlen, Verfügbarkeit, Fehler, Reports), Geschäftszahlen aus dem
+  Reporting, die eingebetteten Dashboards und der Upload der Patris-Ticketdaten.
+  Der Kundencheck ist einer seiner Bereiche.
 
 Server-Einrichtung (Cron, `.env`): `LIVE-GEHEN.md`, Abschnitt 9 · Keycloak:
 `docs/KEYCLOAK-EINRICHTUNG.md` · Anleitung für Mitarbeitende:
 `docs/SERVICECENTER.md` · Datenschutz: `docs/DATENSCHUTZ.md`.
+
+---
+
+## 0. Aufbau der Oberfläche
+
+Das Cockpit ist seit dem 25.09.2026 in Bereiche gegliedert, jeder mit eigener
+Adresse. Dadurch lädt jede Seite nur ihre eigenen Daten — vorher holte jeder
+Aufruf sämtliche Kennzahlen.
+
+| Gruppe | Bereich | Adresse |
+|---|---|---|
+| Lage | Überblick | `/cockpit` |
+| | D-Ticket Migration | `/cockpit/ankommen` |
+| | Tickets und Umsatz | `/cockpit/umsatz` |
+| Betrieb | Anmeldungen | `/cockpit/anmeldungen` |
+| | Verfügbarkeit | `/cockpit/verfuegbarkeit` |
+| | Support | `/cockpit/support` |
+| Auswertungen | Dashboards (Metabase) | `/cockpit/dashboards` |
+| Werkzeuge | Kundencheck | `/cockpit/kundencheck` |
+| | Daten und Jobs | `/cockpit/daten` |
+
+`/kennzahlen` und `/kundencheck` leiten auf die entsprechenden Bereiche weiter.
+Wer nur die Kundencheck-Berechtigung hat, sieht ausschließlich die Gruppe
+„Werkzeuge".
+
+**Gestaltung.** Eigene Sprache, freigegeben am 25.09.2026: Glasflächen mit
+Tiefenunschärfe, große Radien, weiche Schatten, Diagramme ohne Achsen und
+Gitter. Hell ist voreingestellt, Dunkel ein Umschalter unten in der
+Seitenleiste; die Wahl bleibt im Browser der jeweiligen Person. Beide Fassungen
+teilen sich denselben Satz Variablen in `src/app/(cockpit)/cockpit.css`. Das ist
+eine bewusste Abweichung vom SWL-Design-System, die nur fürs interne Cockpit
+gilt — alle öffentlichen Seiten bleiben unverändert.
 
 ---
 
@@ -147,7 +181,7 @@ die gesamte Keycloak-Nutzerliste durchblättert wurde.
 
 ### 3.1b Reporting-Datenbank (Geschäftszahlen)
 
-Die Blöcke „Ankommen im neuen System" und „Tickets und Umsatz" lesen die
+Die Blöcke „D-Ticket Migration" und „Tickets und Umsatz" lesen die
 Reporting-Datenbank `lue_reporting` — mit einem eigenen Account, der nur lesen
 darf und nur die vier aggregierten Views ohne Personenbezug sieht. Einrichtung
 und die Gründe dafür: `docs/REPORTING.md`.

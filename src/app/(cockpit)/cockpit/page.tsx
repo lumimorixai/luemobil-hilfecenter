@@ -127,7 +127,7 @@ export default async function UeberblickSeite() {
       )}
 
       <h2 className="cx-h2">
-        Ankommen im neuen System <span>· Reporting, nachts aktualisiert</span>
+        D-Ticket Migration <span>· Reporting, nachts aktualisiert</span>
         <Link href="/cockpit/ankommen" style={{ marginLeft: 'auto', fontSize: 13 }}>
           Alle Zahlen zur Aktivierung →
         </Link>

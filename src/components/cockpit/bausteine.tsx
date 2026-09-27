@@ -163,7 +163,7 @@ export function ReportingFehlt({ grund }: { grund: 'nicht konfiguriert' | 'nicht
   )
 }
 
-/** Wie viele der Berechtigten sind im neuen System angekommen? */
+/** D-Ticket Migration: Wie viele der Berechtigten nutzen die App? */
 export function AnkommenSection({ data, kurz = false }: { data: Reporting; kurz?: boolean }) {
   if (!data.verfuegbar) return <ReportingFehlt grund={data.grund} />
   const a = data.aktivierung

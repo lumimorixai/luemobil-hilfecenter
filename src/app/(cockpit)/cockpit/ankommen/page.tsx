@@ -1,4 +1,9 @@
-/** Ankommen im neuen System — Aktivierung der Abo-Berechtigten (Reporting). */
+/**
+ * D-Ticket Migration — wie viele der Abo-Berechtigten die App nutzen.
+ *
+ * Die Adresse bleibt /cockpit/ankommen, damit Lesezeichen und verlinkte
+ * Anleitungen weiter funktionieren.
+ */
 import { seiteCockpit } from '@/lib/auth/guard'
 import { getReporting } from '@/lib/reporting/kennzahlen'
 import type { Reporting } from '@/lib/reporting/types'
@@ -29,8 +34,8 @@ export default async function AnkommenSeite() {
   return (
     <>
       <Seitenkopf
-        titel="Ankommen im neuen System"
-        unterzeile={`Wie viele der Abo-Berechtigten die App wirklich nutzen · Reporting, abgefragt ${stand}`}
+        titel="D-Ticket Migration"
+        unterzeile={`Wie viele der Berechtigten das Deutschlandticket in der App nutzen · Reporting, abgefragt ${stand}`}
       />
       <AnkommenSection data={reporting} />
     </>

@@ -19,7 +19,7 @@ const GRUPPEN: Gruppe[] = [
     titel: 'Lage',
     punkte: [
       { href: '/cockpit', label: 'Überblick', icon: 'ueberblick', nurCockpit: true },
-      { href: '/cockpit/ankommen', label: 'Ankommen', icon: 'ankommen', nurCockpit: true },
+      { href: '/cockpit/ankommen', label: 'D-Ticket Migration', icon: 'ankommen', nurCockpit: true },
       { href: '/cockpit/umsatz', label: 'Tickets & Umsatz', icon: 'umsatz', nurCockpit: true },
     ],
   },

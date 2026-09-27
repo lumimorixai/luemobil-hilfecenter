@@ -4,7 +4,7 @@ Das Migrations-Cockpit zeigt zwei Blöcke, deren Zahlen nicht aus Keycloak
 stammen, sondern aus der Reporting-Datenbank `lue_reporting` des Projekts
 `luemobil_reporting`:
 
-- **Ankommen im neuen System** — Aktivierungsquote, mit Konto, berechtigt ohne
+- **D-Ticket Migration** — Aktivierungsquote, mit Konto, berechtigt ohne
   Konto, Berechtigte gesamt, neue Konten der letzten 7 Tage, Aktivierung je
   Segment, schwächste Postleitzahlen.
 - **Tickets und Umsatz** — Verkäufe, Bruttoumsatz, Anteil erfolgreich

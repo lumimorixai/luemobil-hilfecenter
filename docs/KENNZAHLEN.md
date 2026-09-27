@@ -1,6 +1,11 @@
 # Kennzahlen — LüMobil-Dashboards (Metabase)
 
-Die Seite **`/kennzahlen`** zeigt die LüMobil-Dashboards aus Metabase im
+Die Dashboards liegen seit dem 25.09.2026 im Cockpit unter
+**`/cockpit/dashboards`** (Bereich „Auswertungen"). Die alte Adresse
+`/kennzahlen` leitet dorthin weiter; ein angefragtes Dashboard (`?d=…`) wird
+mitgenommen.
+
+Der Bereich zeigt die LüMobil-Dashboards aus Metabase im
 Hilfecenter. Metabase selbst bleibt nicht öffentlich; niemand braucht ein
 eigenes Metabase-Konto. Vorgaben des LüMobil-Betriebs:
 `EINBINDUNG_DASHBOARDS_HILFECENTER.md` (im LüMobil-Projekt, `metabase-setup/`).
