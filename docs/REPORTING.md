@@ -44,11 +44,15 @@ aus, damit sich aus einer kleinen Zelle keine einzelne Person ableiten lässt.
 ## 2. Lese-Account anlegen (auf dem Server)
 
 Das folgende SQL legt eine Rolle an, die **nur lesen** darf und **nur diese vier
-Views** sieht. Ausführen als Datenbank-Superuser auf dem Postgres-Container des
-Reporting-Stacks:
+Views** sieht.
+
+**Wo ausführen:** Der Reporting-Stack hat keinen eigenen PostgreSQL — er nutzt
+den Container des Hilfecenters mit. Der Befehl läuft deshalb in
+`/opt/luemobil`, und der Datenbank-Benutzer heißt `luemobil`, nicht `postgres`.
 
 ```bash
-docker compose exec -T postgres psql -U postgres -d lue_reporting <<'SQL'
+cd /opt/luemobil
+docker compose exec -T postgres psql -U luemobil -d lue_reporting <<'SQL'
 -- 1. Rolle anlegen. Passwort vorher ersetzen (siehe Schritt 3).
 CREATE ROLE hilfecenter_ro LOGIN PASSWORD 'HIER-EIN-LANGES-ZUFALLSPASSWORT';
 
@@ -89,17 +93,22 @@ das Aufbau-Skript des Reporting-Stacks an.
 Probe, dass die Sperre wirkt (muss einen Fehler geben):
 
 ```bash
-docker compose exec -T postgres \
-  psql -U hilfecenter_ro -d lue_reporting -c 'SELECT count(*) FROM rpt.kunde_360;'
+cd /opt/luemobil
+docker compose exec -T postgres psql -U luemobil -d lue_reporting -c \
+  'SET ROLE hilfecenter_ro; SELECT count(*) FROM rpt.kunde_360;'
 # erwartet: FEHLER: keine Berechtigung für View kunde_360
 ```
+
+Über `SET ROLE` statt direktem Login, weil der neue Benutzer über den
+Unix-Socket im Container kein Passwort-Login hat.
 
 ---
 
 ## 3. Zugangsdaten im Hilfecenter hinterlegen
 
-Beide Container liegen im selben Docker-Netz, der Verkehr verlässt den Host also
-nicht. In der `.env` des Hilfecenters:
+Beide Stacks teilen sich denselben PostgreSQL-Container, der Verkehr verlässt
+den Host also nicht — der Hostname `postgres` stimmt unverändert. In der `.env`
+des Hilfecenters:
 
 ```env
 REPORTING_DATABASE_URI=postgres://hilfecenter_ro:DAS-PASSWORT@postgres:5432/lue_reporting
