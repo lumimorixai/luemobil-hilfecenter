@@ -77,6 +77,18 @@ services:
       METABASE_EMBED_SECRET_FILE: ${METABASE_EMBED_SECRET_FILE:-/run/secrets/app/metabase_embed_secret}
       METABASE_DASHBOARDS: ${METABASE_DASHBOARDS:-}
       METABASE_DASHBOARD_ROLES: ${METABASE_DASHBOARD_ROLES:-}
+      # --- Reporting-Datenbank (Geschäftszahlen im Cockpit) ---
+      # Nur-Lese-Zugang zu lue_reporting, beschränkt auf vier aggregierte Views
+      # ohne Personenbezug. Verbindungszeichenfolge als Datei in ./secrets;
+      # Austausch wirkt beim nächsten Aufruf, ohne Neustart. Einrichtung:
+      # docs/REPORTING.md
+      REPORTING_DATABASE_URI_FILE: ${REPORTING_DATABASE_URI_FILE:-/run/secrets/app/reporting_db_uri}
+      REPORTING_DATABASE_URI: ${REPORTING_DATABASE_URI:-}
+      # --- Aufbewahrung und Schwellen ---
+      # Minuten-Checks werden vorher zu Tageswerten verdichtet und dann gelöscht.
+      HEALTH_RETENTION_DAYS: ${HEALTH_RETENTION_DAYS:-35}
+      # Ab diesem Alter gilt der Patris-Upload als veraltet (Ampel rot).
+      PATRIS_MAX_AGE_DAYS: ${PATRIS_MAX_AGE_DAYS:-7}
     volumes:
       - media:/app/media
       # Verzeichnis (nicht Einzeldatei) mounten, damit ein Austausch der Datei im Container ankommt.

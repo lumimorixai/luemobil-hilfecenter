@@ -106,19 +106,19 @@ REPORTING_DATABASE_URI=postgres://hilfecenter_ro:DAS-PASSWORT@postgres:5432/lue_
 ```
 
 Besser, weil die Zugangsdaten dann nicht in der Prozessumgebung stehen und sich
-ohne Deployment austauschen lassen — als Datei:
-
-```env
-REPORTING_DATABASE_URI_FILE=/run/secrets/reporting-db-uri
-```
-
-Die Datei enthält nur die Verbindungszeichenfolge, ohne Zeilenumbruch am Ende:
+ohne Deployment austauschen lassen — als Datei. Das Compose erwartet sie
+standardmäßig unter `/run/secrets/app/reporting_db_uri`; dorthin wird der Ordner
+`./secrets` gemountet. Es genügt also, die Datei anzulegen:
 
 ```bash
+cd /opt/luemobil
 printf 'postgres://hilfecenter_ro:DAS-PASSWORT@postgres:5432/lue_reporting' \
-  > secrets/reporting-db-uri
-chmod 600 secrets/reporting-db-uri
+  > secrets/reporting_db_uri
+chmod 600 secrets/reporting_db_uri
 ```
+
+Ein Eintrag in der `.env` ist dann nicht nötig — der Pfad steht als Vorgabewert
+im Compose. Abweichender Ort: `REPORTING_DATABASE_URI_FILE` in der `.env` setzen.
 
 Danach `docker compose up -d app`. Die Ampel im Cockpit-Kopf zeigt „Reporting"
 grün, sobald die Verbindung steht.
