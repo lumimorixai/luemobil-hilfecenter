@@ -81,6 +81,20 @@ export function metabaseUrl(): string {
 }
 
 /**
+ * Adresse für die Erreichbarkeitsprüfung — nicht die öffentliche.
+ *
+ * Über den Reverse Proxy sind absichtlich nur die Einbettungspfade
+ * (/embed/*, /api/embed/*, /app/*) erreichbar; /api/health beantwortet er mit
+ * 404. Die Ampel stand deshalb auf Rot, obwohl Metabase lief. Geprüft wird
+ * daher im Docker-Netz (http://metabase:3000), wo beide Container ohnehin
+ * miteinander sprechen. Ohne METABASE_HEALTH_URL gilt die öffentliche Adresse —
+ * das passt für die Entwicklung, wo Metabase direkt erreichbar ist.
+ */
+export function metabaseHealthUrl(): string {
+  return (process.env.METABASE_HEALTH_URL || process.env.METABASE_URL || '').replace(/\/+$/, '')
+}
+
+/**
  * Schlüssel frisch lesen (Datei bevorzugt), damit ein Austausch sofort wirkt.
  * Leerzeichen und Umbrüche werden entfernt — der Schlüssel enthält keine, beim
  * Einfügen ins Terminal entstehen sie aber leicht.

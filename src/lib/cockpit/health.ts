@@ -15,7 +15,7 @@ import {
   synthClientSecret,
   synthLoginRealm,
 } from './config'
-import { metabaseConfigured, metabaseUrl } from '../metabase'
+import { metabaseConfigured, metabaseHealthUrl } from '../metabase'
 import { getPatrisStatus } from './patris'
 import { pingTicketApi } from './ticketApi'
 import { reportingConfigured, reportingErreichbar } from '../reporting/db'
@@ -83,7 +83,9 @@ async function checkDashboards(): Promise<ServiceHealth> {
   if (!metabaseConfigured()) return notConfigured
   const start = Date.now()
   try {
-    const res = await fetch(`${metabaseUrl()}/api/health`, { signal: AbortSignal.timeout(TIMEOUT) })
+    const res = await fetch(`${metabaseHealthUrl()}/api/health`, {
+      signal: AbortSignal.timeout(TIMEOUT),
+    })
     const ms = Date.now() - start
     return res.ok ? ok(ms) : fail(`HTTP ${res.status}`, ms)
   } catch {

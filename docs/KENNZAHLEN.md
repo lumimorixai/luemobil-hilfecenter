@@ -140,3 +140,23 @@ letzten Nacht.
 | „Einbettung ist für dieses Objekt nicht aktiviert." | falsche Dashboard-ID in `METABASE_DASHBOARDS` oder nicht freigegeben |
 | Leere Fläche, Konsole „refused to frame" | Hilfecenter-Adresse bei Metabase nicht freigegeben |
 | Leere Fläche lokal | Demo-Metabase läuft nicht |
+
+---
+
+## Ampel „Dashboards"
+
+Die Erreichbarkeitsprüfung im Cockpit ruft `/api/health` von Metabase — aber
+**nicht** über die öffentliche Adresse. Der Reverse Proxy gibt dort absichtlich
+nur die Einbettungspfade frei (`/embed/*`, `/api/embed/*`, `/app/*`) und
+antwortet auf alles andere mit 404. Die Ampel stand deshalb auf Rot, obwohl
+Metabase lief.
+
+Geprüft wird daher im Docker-Netz. Vorgabe im Compose:
+
+```env
+METABASE_HEALTH_URL=http://metabase:3000
+```
+
+Dafür müssen beide Stacks dasselbe Netz nutzen — das ist beim Reporting-Stack
+ohnehin der Fall (`networks: [hilfecenter]`, `external: true`). In der
+Entwicklung bleibt die Variable leer; dann gilt `METABASE_URL`.

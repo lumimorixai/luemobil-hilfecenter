@@ -76,6 +76,9 @@ services:
       METABASE_URL: ${METABASE_URL:-}
       METABASE_EMBED_SECRET_FILE: ${METABASE_EMBED_SECRET_FILE:-/run/secrets/app/metabase_embed_secret}
       METABASE_DASHBOARDS: ${METABASE_DASHBOARDS:-}
+      # Erreichbarkeitsprüfung im Docker-Netz: Der Reverse Proxy gibt öffentlich
+      # nur die Einbettungspfade frei, /api/health antwortet dort mit 404.
+      METABASE_HEALTH_URL: ${METABASE_HEALTH_URL:-http://metabase:3000}
       METABASE_DASHBOARD_ROLES: ${METABASE_DASHBOARD_ROLES:-}
       # --- Reporting-Datenbank (Geschäftszahlen im Cockpit) ---
       # Nur-Lese-Zugang zu lue_reporting, beschränkt auf vier aggregierte Views
