@@ -7,6 +7,7 @@
  * sieht ausschließlich die Gruppe „Werkzeuge" — die Rollentrennung bleibt
  * unverändert, sie wird nur sichtbar.
  */
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { ThemeSchalter } from './ThemeSchalter'
@@ -98,6 +99,35 @@ const ICONS = {
   ),
 }
 
+/** Drei Striche bzw. Kreuz — je nachdem, ob das Menü offen ist. */
+function BurgerIcon({ offen }: { offen: boolean }) {
+  return (
+    <svg
+      viewBox="0 0 20 20"
+      width="20"
+      height="20"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      aria-hidden="true"
+    >
+      {offen ? (
+        <>
+          <path d="M5 5l10 10" />
+          <path d="M15 5L5 15" />
+        </>
+      ) : (
+        <>
+          <path d="M3 6h14" />
+          <path d="M3 10h14" />
+          <path d="M3 14h14" />
+        </>
+      )}
+    </svg>
+  )
+}
+
 function Icon({ name }: { name: keyof typeof ICONS }) {
   return (
     <svg
@@ -169,15 +199,56 @@ export function CockpitNav({
   const pfad = usePathname()
   const aktiv = (href: string) => (href === '/cockpit' ? pfad === href : pfad.startsWith(href))
 
+  /*
+   * Auf schmalen Schirmen klappt die Navigation zusammen. Ohne das standen
+   * neun Punkte als Wolke nebeneinander, ohne Gruppen — auf dem Handy
+   * unbrauchbar. Auf breiten Schirmen ändert sich nichts: Das Menü ist dort
+   * immer offen und der Knopf ausgeblendet.
+   */
+  const [offen, setOffen] = useState(false)
+
+  // Nach jedem Wechsel schließen, sonst verdeckt das Menü die neue Seite.
+  useEffect(() => {
+    setOffen(false)
+  }, [pfad])
+
+  // Escape schließt — erwartetes Verhalten bei allem, was sich überlagert.
+  useEffect(() => {
+    if (!offen) return
+    const zu = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOffen(false)
+    }
+    window.addEventListener('keydown', zu)
+    return () => window.removeEventListener('keydown', zu)
+  }, [offen])
+
+  const aktuellerBereich =
+    GRUPPEN.flatMap((g) => g.punkte).find((p) => aktiv(p.href))?.label ?? 'Cockpit'
+
   return (
-    <nav className="cx-nav cx-glas" aria-label="Bereiche">
-      <div className="cx-nav-marke">
-        <LuemobilZeichen />
-        <div>
-          <div className="cx-nav-name">LüMobil</div>
-          <div className="cx-nav-sub">Cockpit</div>
+    <nav className="cx-nav cx-glas" aria-label="Bereiche" data-offen={offen}>
+      <div className="cx-nav-kopf">
+        <div className="cx-nav-marke">
+          <LuemobilZeichen />
+          <div>
+            <div className="cx-nav-name">LüMobil</div>
+            <div className="cx-nav-sub">Cockpit</div>
+          </div>
         </div>
+        <span className="cx-nav-hier">{aktuellerBereich}</span>
+        <button
+          type="button"
+          className="cx-nav-burger"
+          onClick={() => setOffen((o) => !o)}
+          aria-expanded={offen}
+          aria-controls="cx-nav-body"
+          aria-label={offen ? 'Menü schließen' : 'Menü öffnen'}
+        >
+          <BurgerIcon offen={offen} />
+        </button>
       </div>
+
+      <div className="cx-nav-body" id="cx-nav-body">
 
       {GRUPPEN.map((g) => {
         const sichtbar = g.punkte.filter((p) => darfCockpit || !p.nurCockpit)
@@ -208,16 +279,17 @@ export function CockpitNav({
         )
       })}
 
-      <span style={{ flexGrow: 1 }} />
+        <span className="cx-nav-luft" />
 
-      <div className="cx-nav-fuss cx-glas-2">
-        <b>{person}</b>
-        <span>{rollen}</span>
-        <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
-          <ThemeSchalter />
-          <a href="/api/auth/logout" style={{ fontSize: 12 }}>
-            Abmelden
-          </a>
+        <div className="cx-nav-fuss cx-glas-2">
+          <b>{person}</b>
+          <span>{rollen}</span>
+          <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
+            <ThemeSchalter />
+            <a href="/api/auth/logout" style={{ fontSize: 12 }}>
+              Abmelden
+            </a>
+          </div>
         </div>
       </div>
     </nav>

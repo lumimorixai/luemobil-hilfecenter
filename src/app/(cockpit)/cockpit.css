@@ -159,11 +159,30 @@ body:has(.cx-app) .lm-topbar {
   max-height: calc(100vh - 52px);
   overflow-y: auto;
 }
+.cx-nav-kopf {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
 .cx-nav-marke {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 0 14px 18px;
+}
+.cx-nav-body {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  min-height: 0;
+}
+.cx-nav-luft {
+  flex-grow: 1;
+}
+/* Nur auf schmalen Schirmen: aktueller Bereich im Kopf, Knopf zum Aufklappen. */
+.cx-nav-hier,
+.cx-nav-burger {
+  display: none;
 }
 /* Das LüMobil-Zeichen, wie im Kopf des Hilfe-Centers. */
 .cx-nav-logo {
@@ -1596,27 +1615,79 @@ body:has(.cx-app) .lm-topbar {
     padding: 16px;
     gap: 16px;
   }
+  /*
+   * Handy und schmale Fenster: Die Navigation klappt zusammen. Vorher standen
+   * neun Punkte als Wolke nebeneinander, ohne Gruppen und ohne Untereinträge —
+   * auf dem Handy nicht benutzbar.
+   */
   .cx-nav {
     width: auto;
-    position: static;
+    position: sticky;
+    top: 16px;
+    z-index: 40;
     max-height: none;
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: center;
-    padding: 14px;
-    gap: 6px;
+    overflow: visible;
+    padding: 12px 14px;
+    gap: 0;
   }
   .cx-nav-marke {
-    padding: 0 10px 0 4px;
+    padding: 0;
+    flex-grow: 1;
+    min-width: 0;
   }
-  .cx-navgrp,
-  .cx-nav-fuss,
-  .cx-navsub {
+  .cx-nav-hier {
+    display: block;
+    font-size: 13px;
+    color: var(--t5);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 40%;
+  }
+  .cx-nav-burger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    /* Mindestens 44 px, damit der Knopf mit dem Daumen zu treffen ist. */
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    border-radius: 999px;
+    border: 1px solid var(--kante);
+    background: var(--pille);
+    color: var(--t1);
+    cursor: pointer;
+    box-shadow: inset 0 1px 0 var(--glanz);
+  }
+  .cx-nav-burger:hover {
+    background: var(--aktiv);
+  }
+
+  /* Zugeklappt unsichtbar, aufgeklappt eine scrollbare Liste. */
+  .cx-nav-body {
     display: none;
   }
+  .cx-nav[data-offen='true'] .cx-nav-body {
+    display: flex;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--linie);
+    max-height: 70vh;
+    overflow-y: auto;
+  }
   .cx-navlink {
-    padding: 8px 12px;
-    font-size: 13px;
+    padding: 12px 14px;
+    font-size: 15px;
+  }
+  .cx-navsub {
+    padding: 10px 14px 10px 44px;
+    font-size: 14px;
+  }
+  .cx-nav-luft {
+    display: none;
+  }
+  .cx-nav-fuss {
+    margin: 14px 0 0;
   }
   .cx-kpis,
   .cx-kpis--3,
