@@ -12,6 +12,28 @@
  * Der technische Code bleibt zusätzlich sichtbar — für Rückfragen an uns.
  */
 
+/**
+ * Technischer Client-Name → Anwendung, wie sie am Telefon genannt wird.
+ *
+ * „Erfolgreich angemeldet" allein hilft nicht weiter: Ob sich jemand in der
+ * App oder in der Aboverwaltung angemeldet hat, ist für die Auskunft ein
+ * Unterschied. Der Abgleich ist absichtlich unabhängig von Groß- und
+ * Kleinschreibung — die Schreibweisen in Keycloak sind uneinheitlich.
+ *
+ * Weitere Clients hier ergänzen; unbekannte erscheinen ohne Zusatz.
+ */
+const ANWENDUNGEN: Record<string, string> = {
+  luemaas: 'LüMobil',
+  abooonline: 'der Aboverwaltung',
+  aboonline: 'der Aboverwaltung',
+}
+
+/** Anwendungsname zu einem Client, oder null wenn unbekannt. */
+export function anwendung(clientId?: string): string | null {
+  if (!clientId) return null
+  return ANWENDUNGEN[clientId.toLowerCase()] ?? null
+}
+
 export type Ereignisdeutung = {
   label: string
   erklaerung: string
@@ -137,9 +159,22 @@ const SONSTIGE: Record<string, Ereignisdeutung> = {
  * Unbekannte Typen werden nicht verschwiegen, sondern mit ihrem Rohnamen
  * gezeigt — besser ein technischer Begriff als eine Lücke in der Liste.
  */
-export function deuteEreignis(type: string, error?: string): Ereignisdeutung {
+export function deuteEreignis(
+  type: string,
+  error?: string,
+  clientId?: string,
+): Ereignisdeutung {
+  const wo = anwendung(clientId)
+
   if (type === 'LOGIN_ERROR') {
-    if (error && LOGIN_FEHLER[error]) return LOGIN_FEHLER[error]
+    const deutung = error && LOGIN_FEHLER[error] ? LOGIN_FEHLER[error] : null
+    if (deutung) {
+      // Bei Fehlern bleibt der Grund die Hauptsache; die Anwendung gehört in
+      // die Erklärung, sonst wird die Überschrift unlesbar lang.
+      return wo
+        ? { ...deutung, erklaerung: `${deutung.erklaerung} Versucht wurde es in ${wo}.` }
+        : deutung
+    }
     return {
       label: 'Anmeldung fehlgeschlagen',
       erklaerung: error
@@ -150,7 +185,18 @@ export function deuteEreignis(type: string, error?: string): Ereignisdeutung {
       kind: 'no',
     }
   }
-  if (SONSTIGE[type]) return SONSTIGE[type]
+
+  if (SONSTIGE[type]) {
+    const deutung = SONSTIGE[type]
+    // An- und Abmeldung sagen erst mit der Anwendung etwas aus.
+    if (wo && type === 'LOGIN') {
+      return { ...deutung, label: `Erfolgreich angemeldet in ${wo}` }
+    }
+    if (wo && type === 'LOGOUT') {
+      return { ...deutung, label: `Abgemeldet von ${wo}` }
+    }
+    return deutung
+  }
 
   const fehler = type.endsWith('_ERROR')
   return {
