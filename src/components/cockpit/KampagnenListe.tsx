@@ -221,6 +221,11 @@ function KampagneKarte({ k }: { k: KampagnenAnsicht }) {
         <KampagnenAktionen kampagne={k.id} name={k.name} aktivierbar={aktivierbar} />
 
         <div className="cx-knopfreihe">
+          {k.status === 'aktiv' && k.faelleOffen > 0 && (
+            <a className="cx-knopf cx-knopf--akzent" href="/cockpit/kampagnen/arbeiten">
+              Fälle abarbeiten
+            </a>
+          )}
           <button type="button" className="cx-knopf" onClick={() => setBearbeiten(true)}>
             Bearbeiten
           </button>

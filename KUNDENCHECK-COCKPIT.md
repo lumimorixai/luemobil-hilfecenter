@@ -35,6 +35,7 @@ Aufruf sämtliche Kennzahlen.
 | Auswertungen | Dashboards (Metabase) | `/cockpit/dashboards` |
 | Werkzeuge | Kundencheck | `/cockpit/kundencheck` |
 | | Kampagnen | `/cockpit/kampagnen` |
+| | Fälle abarbeiten | `/cockpit/kampagnen/arbeiten` |
 | | Daten und Jobs | `/cockpit/daten` |
 
 `/kennzahlen` und `/kundencheck` leiten auf die entsprechenden Bereiche weiter.
@@ -56,13 +57,18 @@ gilt — alle öffentlichen Seiten bleiben unverändert.
 Beide Bereiche liegen hinter dem **Keycloak-Login** (Mitarbeiter-Realm). Welche
 Bereiche jemand sieht, steuern **Realm-Rollen**:
 
-| Rolle (Standardname) | Env-Variable | Kundencheck | Migrations-Cockpit |
-|---|---|---|---|
-| `kundencheck` | `COCKPIT_ROLE_KUNDENCHECK` | ✓ | – |
-| `cockpit` | `COCKPIT_ROLE_MIGRATION` | – | ✓ (inkl. Patris-Upload, Reports) |
-| `support` | `COCKPIT_SUPPORT_ROLE` | ✓ | ✓ |
+| Rolle (Standardname) | Env-Variable | Kundencheck | Migrations-Cockpit | Fälle abarbeiten |
+|---|---|---|---|---|
+| `kundencheck` | `COCKPIT_ROLE_KUNDENCHECK` | ✓ | – | – |
+| `cockpit` | `COCKPIT_ROLE_MIGRATION` | – | ✓ (inkl. Patris-Upload, Reports) | ✓ |
+| `callcenter` | `COCKPIT_ROLE_CALLCENTER` | – | – | ✓ |
+| `support` | `COCKPIT_SUPPORT_ROLE` | ✓ | ✓ | ✓ |
 
-- `support` schaltet aus Kompatibilitätsgründen weiterhin **beides** frei.
+- `support` schaltet aus Kompatibilitätsgründen weiterhin **alles** frei.
+- `callcenter` ist die engste Rolle: Fälle bearbeiten ja, Kampagnen anlegen
+  oder Listen erzeugen nein. Sie sieht Namen und Telefonnummern der
+  zugeteilten Person — aber keine Liste zum Durchstöbern und keine
+  Patris-Daten im CMS.
 - Reiter, Seiten **und** alle Endpunkte unter `/api/cockpit/*` prüfen die Rolle
   serverseitig (ohne Recht: Weiterleitung bzw. HTTP 403). Ausgeblendete Reiter
   sind nur Komfort, nicht die Sicherheitsgrenze.
@@ -70,8 +76,10 @@ Bereiche jemand sieht, steuern **Realm-Rollen**:
   umgekehrt.
 - Rollen stecken im Session-Cookie: Nach einer Rollenänderung in Keycloak muss
   sich die Person **neu anmelden**.
+- Wer nur `callcenter` hat, landet direkt auf `/cockpit/kampagnen/arbeiten`.
 - Code: `src/lib/auth/guard.ts` (`canKundencheck`, `canCockpit`,
-  `requireKundencheck`, `requireCockpit`).
+  `canCallcenter`, `requireKundencheck`, `requireCockpit`,
+  `requireCallcenter`).
 
 **Lokal testen ohne Keycloak** (nur `COCKPIT_MOCK=true`):
 `/api/auth/dev-login?as=kundencheck`, `?as=cockpit` oder ohne Parameter (beides).
@@ -342,7 +350,9 @@ liegen in der Hilfecenter-Datenbank, bis sie beim nächsten Upload ersetzt werde
 |---|---|---|---|
 | `/api/cockpit/check` | POST (JSON `{email}`) | Kundencheck | Kundencheck (Rate-Limit 30/min je Person); E-Mail bewusst im Body, nicht in der URL |
 | `/api/cockpit/patris` | POST (multipart `file`) | Cockpit | Patris-CSV-Upload |
+| `/api/cockpit/kampagnen` | POST/PATCH/DELETE | Cockpit | Kampagne anlegen, ändern, löschen (nur ohne Fälle) |
 | `/api/cockpit/kampagnen/erzeugen` | POST (JSON `{kampagne, probe}`) | Cockpit | Arbeitsliste durchrechnen (`probe: true`) oder anlegen |
+| `/api/cockpit/kampagnen/arbeiten` | POST (JSON `{was}`) | Callcenter | `naechster` · `ergebnis` · `freigeben` |
 | `/api/cockpit/stats` | GET | Cockpit | Kennzahlen |
 | `/api/cockpit/events` | GET | Cockpit | Fehler-Events |
 | `/api/cockpit/health` | GET | Cockpit | Live-Status (Ampel im Cockpit-Kopf) |
@@ -441,7 +451,47 @@ E-Mail-Adressen des Realms in einem Durchgang geholt (rund 50 Anfragen, etwa
 Abfrage je Person. Beim späteren Zuteilen eines Falls entscheidet dagegen die
 Einzelabfrage, weil dort der aktuelle Stand zählt.
 
-### 7.5 Datenschutz
+### 7.5 Fälle abarbeiten
+
+Auf `/cockpit/kampagnen/arbeiten`, mit der Rolle `callcenter` (oder `cockpit`
+bzw. `support`).
+
+**Zugeteilt, nicht ausgesucht.** „Nächster Fall" holt den nächsten offenen —
+es gibt keine Liste zum Durchstöbern. Reihenfolge: fällige Wiedervorlagen
+zuerst, dann die mit den wenigsten Versuchen.
+
+**Zwei Personen bekommen nie denselben Fall.** Gesperrt und gelesen wird in
+einer einzigen Anweisung, unter PostgreSQL mit `FOR UPDATE SKIP LOCKED` —
+zwei gleichzeitige Anfragen überspringen einander, statt zu warten.
+
+**Haltefrist.** Ein zugeteilter Fall gehört der Person für die eingestellte
+Zeit (Vorgabe 15 Minuten); danach wird er wieder ausgegeben. Wer die Seite
+verlässt, gibt ihn sofort frei. So blockiert ein geschlossener Browser die
+Liste nicht.
+
+**Vor der Anzeige wird zweimal geprüft** — und der Fall still übersprungen,
+wenn eines zutrifft:
+1. Steht die Person inzwischen auf der Sperrliste? → entfällt (Widerspruch).
+2. Gibt es inzwischen ein Konto in Keycloak? → entfällt (Anlass weggefallen).
+   Hier zählt der Einzelabruf, nicht der gecachte Sammelabgleich.
+
+Ist Keycloak nicht erreichbar, wird der Fall trotzdem ausgegeben und der Grund
+protokolliert: Ein stiller Ausfall des Arbeitsplatzes wäre schlimmer als ein
+Anruf bei jemandem, der vielleicht schon ein Konto hat.
+
+**Was ein Ergebnis bewirkt, steht an der Kampagne**, nicht im Code:
+
+| Wirkung | Folge für den Fall |
+|---|---|
+| `abschluss` | erledigt |
+| `wiedervorlage` | wieder offen, mit Datum (Vorgabe aus dem Ergebnis, im Arbeitsplatz überschreibbar) |
+| `erneut` | wieder offen — außer die Höchstzahl Versuche ist erreicht, dann entfällt er |
+| `entfaellt` | entfällt, Grund „keine Kontaktmöglichkeit" |
+| `sperren` | entfällt **und** trägt E-Mail und Telefonnummer in die Sperrliste ein |
+
+Jeder Versuch wird protokolliert: Zeitpunkt, Person, Ergebnis, Notiz und Dauer.
+
+### 7.6 Datenschutz
 
 Fälle und Kontaktversuche enthalten Namen, Telefonnummern, Geburtsdaten und
 Gesprächsnotizen. Beide Collections sind im Admin nur für Administratoren

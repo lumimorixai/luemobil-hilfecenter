@@ -7,7 +7,14 @@
  */
 import React from 'react'
 import { redirect } from 'next/navigation'
-import { canCockpit, canKundencheck, cockpitRole, getCockpitSession, supportRole } from '@/lib/auth/guard'
+import {
+  canCallcenter,
+  canCockpit,
+  canKundencheck,
+  cockpitRole,
+  getCockpitSession,
+  supportRole,
+} from '@/lib/auth/guard'
 import { visibleDashboards } from '@/lib/metabase'
 import { CockpitNav } from '@/components/cockpit/CockpitNav'
 
@@ -19,7 +26,8 @@ export default async function CockpitBereichsLayout({ children }: { children: Re
 
   const darfCockpit = canCockpit(session)
   const darfKundencheck = canKundencheck(session)
-  if (!darfCockpit && !darfKundencheck) {
+  const darfCallcenter = canCallcenter(session)
+  if (!darfCockpit && !darfKundencheck && !darfCallcenter) {
     return (
       <div className="cx-app">
         <main className="cx-noaccess cx-glas">
@@ -45,6 +53,7 @@ export default async function CockpitBereichsLayout({ children }: { children: Re
         person={person}
         rollen={rollen}
         darfCockpit={darfCockpit}
+        darfCallcenter={darfCallcenter}
         dashboards={visibleDashboards(session).map((d) => ({ key: d.key, title: d.title }))}
       />
       <main className="cx-main">{children}</main>

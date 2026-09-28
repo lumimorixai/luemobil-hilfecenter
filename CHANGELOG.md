@@ -4,6 +4,44 @@ Neueste Änderungen oben. Je Eintrag: was neu ist und **was beim Update von Hand
 zu tun ist**. Allgemeiner Update-Ablauf: `LIVE-GEHEN.md`, „Später: Updates
 einspielen".
 
+## 2026-09-28 — Kampagnen: Arbeitsplatz zum Abarbeiten
+
+Unter **`/cockpit/kampagnen/arbeiten`** werden Fälle bearbeitet. Erreichbar
+über den Menüpunkt „Fälle abarbeiten" und über den Knopf an jeder aktiven
+Kampagne mit offenen Fällen.
+
+- **Zugeteilt statt ausgesucht.** Ein Klick auf „Nächster Fall" holt den
+  nächsten — es gibt keine Liste zum Durchstöbern. Das verhindert
+  Rosinenpicken und macht die Zuteilung nachvollziehbar.
+- **Zwei Personen bekommen nie denselben Fall.** Gesperrt und gelesen wird in
+  einer einzigen Datenbankanweisung; unter PostgreSQL mit
+  `FOR UPDATE SKIP LOCKED`. Geprüft mit zwei gleichzeitigen Zuteilungen.
+- **Haltefrist.** Ein zugeteilter Fall gehört der Person für die an der
+  Kampagne eingestellte Zeit (Vorgabe 15 Minuten). Danach wird er wieder
+  ausgegeben — ein geschlossener Browser blockiert also niemanden dauerhaft.
+  Beim Verlassen der Seite wird er zusätzlich sofort freigegeben.
+- **Niemand wird kontaktiert, der schon ein Konto hat.** Beim Zuteilen wird
+  einzeln gegen Keycloak geprüft; wer inzwischen eines hat, entfällt still und
+  wird übersprungen. Dasselbe gilt für Einträge auf der Sperrliste.
+- **Widerspruch wirkt dauerhaft.** Das Ergebnis mit der Wirkung „Sperren"
+  trägt E-Mail und Telefonnummer in die kampagnenübergreifende Sperrliste ein
+  (Art. 21 DSGVO) — die nächste Kampagne kennt den Widerspruch.
+- **Höchstzahl Versuche** wird eingehalten: Nach dem letzten erfolglosen
+  Versuch entfällt der Fall, statt endlos wiederzukehren.
+- Was ein Ergebnis bewirkt, steht an der Kampagne, nicht im Code. Jeder
+  Kontaktversuch wird mit Zeitpunkt, Person, Ergebnis und Notiz protokolliert.
+
+**Neue Rolle**
+- `callcenter` (überschreibbar mit `COCKPIT_ROLE_CALLCENTER`): darf Fälle
+  abarbeiten, aber keine Kampagne anlegen, keine Liste erzeugen und die
+  Patris-Daten im CMS nicht lesen. `cockpit` und `support` schließen sie ein.
+- **In Keycloak anzulegen**, bevor Servicecenter-Konten damit arbeiten. Ohne
+  die Rolle sieht ein Konto den Arbeitsplatz nicht.
+
+**Beim Update**
+- Keine Migration, keine neuen Pflicht-Variablen.
+- Eine Kampagne gibt Fälle erst aus, wenn ihr Status **Aktiv** ist.
+
 ## 2026-09-28 — Kampagnen vollständig im Cockpit pflegen
 
 Nachtrag zur Listenerzeugung: Kampagnen entstehen und ändern sich jetzt auf

@@ -12,7 +12,14 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { ThemeSchalter } from './ThemeSchalter'
 
-type Punkt = { href: string; label: string; icon: keyof typeof ICONS; nurCockpit?: boolean }
+type Punkt = {
+  href: string
+  label: string
+  icon: keyof typeof ICONS
+  nurCockpit?: boolean
+  /** Auch für Konten sichtbar, die nur Fälle abarbeiten dürfen. */
+  callcenter?: boolean
+}
 type Gruppe = { titel: string; punkte: Punkt[] }
 
 const GRUPPEN: Gruppe[] = [
@@ -41,6 +48,12 @@ const GRUPPEN: Gruppe[] = [
     punkte: [
       { href: '/cockpit/kundencheck', label: 'Kundencheck', icon: 'kundencheck' },
       { href: '/cockpit/kampagnen', label: 'Kampagnen', icon: 'kampagnen', nurCockpit: true },
+      {
+        href: '/cockpit/kampagnen/arbeiten',
+        label: 'Fälle abarbeiten',
+        icon: 'arbeiten',
+        callcenter: true,
+      },
       { href: '/cockpit/daten', label: 'Daten & Jobs', icon: 'daten', nurCockpit: true },
     ],
   },
@@ -96,6 +109,13 @@ const ICONS = {
     <>
       <path d="M3.4 6.2h2.2l4.6-2.8v9.2L5.6 9.8H3.4z" />
       <path d="M12.2 6.4a2.6 2.6 0 0 1 0 3.2" />
+    </>
+  ),
+  arbeiten: (
+    <>
+      <path d="M3.2 12.8V9.6a4.8 4.8 0 0 1 9.6 0v3.2" />
+      <rect x="2" y="9.4" width="2.6" height="3.8" rx="1.2" />
+      <rect x="11.4" y="9.4" width="2.6" height="3.8" rx="1.2" />
     </>
   ),
   daten: (
@@ -196,15 +216,26 @@ export function CockpitNav({
   person,
   rollen,
   darfCockpit,
+  darfCallcenter,
   dashboards,
 }: {
   person: string
   rollen: string
   darfCockpit: boolean
+  darfCallcenter: boolean
   dashboards: { key: string; title: string }[]
 }) {
   const pfad = usePathname()
-  const aktiv = (href: string) => (href === '/cockpit' ? pfad === href : pfad.startsWith(href))
+
+  /*
+   * Aktiv ist der am längsten passende Punkt, nicht jeder, dessen Adresse
+   * vorne steht: Sonst leuchteten bei /cockpit/kampagnen/arbeiten auch
+   * „Kampagnen" und bei jeder Unterseite zusätzlich „Überblick".
+   */
+  const treffer = GRUPPEN.flatMap((g) => g.punkte)
+    .filter((p) => pfad === p.href || pfad.startsWith(p.href + '/'))
+    .sort((a, b) => b.href.length - a.href.length)[0]
+  const aktiv = (href: string) => treffer?.href === href
 
   /*
    * Auf schmalen Schirmen klappt die Navigation zusammen. Ohne das standen
@@ -229,8 +260,7 @@ export function CockpitNav({
     return () => window.removeEventListener('keydown', zu)
   }, [offen])
 
-  const aktuellerBereich =
-    GRUPPEN.flatMap((g) => g.punkte).find((p) => aktiv(p.href))?.label ?? 'Cockpit'
+  const aktuellerBereich = treffer?.label ?? 'Cockpit'
 
   return (
     <nav className="cx-nav cx-glas" aria-label="Bereiche" data-offen={offen}>
@@ -258,7 +288,9 @@ export function CockpitNav({
       <div className="cx-nav-body" id="cx-nav-body">
 
       {GRUPPEN.map((g) => {
-        const sichtbar = g.punkte.filter((p) => darfCockpit || !p.nurCockpit)
+        const sichtbar = g.punkte.filter(
+          (p) => (darfCockpit || !p.nurCockpit) && (!p.callcenter || darfCallcenter),
+        )
         if (sichtbar.length === 0) return null
         return (
           <div key={g.titel}>

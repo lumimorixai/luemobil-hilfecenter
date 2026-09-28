@@ -7,7 +7,7 @@
  */
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { canCockpit, canKundencheck, getCockpitSession } from '@/lib/auth/guard'
+import { ARBEITSPLATZ, canCallcenter, canCockpit, canKundencheck, getCockpitSession } from '@/lib/auth/guard'
 import { cockpitEnv, cockpitEnvLabel, keycloakRealm } from '@/lib/cockpit/config'
 import { JOB_STILL_MIN, getAvailability, getCronStatus, getStats } from '@/lib/cockpit/stats'
 import { getPatrisStatus } from '@/lib/cockpit/patris'
@@ -39,6 +39,7 @@ export default async function UeberblickSeite() {
   if (!session) redirect('/api/auth/login?next=/cockpit')
   if (!canCockpit(session)) {
     if (canKundencheck(session)) redirect('/cockpit/kundencheck')
+    if (canCallcenter(session)) redirect(ARBEITSPLATZ)
   }
 
   // Jede Quelle einzeln absichern: Ein stilles Reporting darf den Betrieb nicht
