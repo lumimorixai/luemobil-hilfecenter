@@ -4,6 +4,28 @@ Neueste Änderungen oben. Je Eintrag: was neu ist und **was beim Update von Hand
 zu tun ist**. Allgemeiner Update-Ablauf: `LIVE-GEHEN.md`, „Später: Updates
 einspielen".
 
+## 2026-09-28 — Telefonnummer und Geburtsdatum im Patris-Import
+
+Vorbereitung der Anruflisten: Beide Spalten werden wieder übernommen. Sie waren
+im September kurz implementiert und dann zurückgebaut worden — die Dokumentation
+behauptete seitdem fälschlich, die Nummern würden gespeichert.
+
+- Neue Spalten in `patris-entitlements`: `phone` (Aliase telefon, telephone,
+  mobile, mobil, handy) und `birthday` — letzteres für die Regel, Minderjährige
+  von Anrufen auszunehmen. 2.790 der 6.517 Nichtaktivierten sind minderjährig.
+- **Beide sind optional**: Fehlen sie im Export, bleiben die Felder leer und der
+  Upload läuft normal weiter. Ältere Exporte funktionieren unverändert.
+- **Im Kundencheck bleiben sie unsichtbar.** Der Anzeigetyp `PatrisTicket` ist
+  jetzt `Omit<PatrisRow, 'phone' | 'birthday'>` — das verhindert schon der
+  Compiler, nicht erst die Sorgfalt beim Programmieren.
+
+**Beim Update**
+- Migration `20260928_120000_patris_telefon` läuft automatisch. Sie nutzt
+  `ADD COLUMN IF NOT EXISTS`, weil unklar ist, ob die Spalte `phone` in
+  Produktion schon existiert: Ein Schema-Snapshot vom September führt sie,
+  ein passendes ALTER TABLE gab es aber nie.
+- Die Nummern sind erst nach dem nächsten Patris-Upload da.
+
 ## 2026-09-26 — Kundencheck im Material des Cockpits, LüMobil-Zeichen in der Leiste
 
 - **Kundencheck neu aufgebaut:** Suchzeile als Pille mit großem Eingabefeld, das

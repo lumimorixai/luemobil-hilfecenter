@@ -522,6 +522,14 @@ export interface PatrisEntitlement {
   email?: string | null;
   firstName?: string | null;
   lastName?: string | null;
+  /**
+   * Grundlage der Anruflisten (Kampagnen). Im Kundencheck wird die Nummer NICHT angezeigt. Fehlt die Spalte im Export, bleibt das Feld leer.
+   */
+  phone?: string | null;
+  /**
+   * Nur für die Volljährigkeitsregel der Kampagnen — Minderjährige werden von Anrufen ausgenommen.
+   */
+  birthday?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -916,6 +924,8 @@ export interface PatrisEntitlementsSelect<T extends boolean = true> {
   email?: T;
   firstName?: T;
   lastName?: T;
+  phone?: T;
+  birthday?: T;
   updatedAt?: T;
   createdAt?: T;
 }

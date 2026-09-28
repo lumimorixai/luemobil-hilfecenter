@@ -9,7 +9,15 @@
 import { payloadClient } from '../content'
 import { HINT_SITUATIONS, type HintSituationKey } from './hints'
 
-/** Zielfeld → akzeptierte CSV-Spaltennamen (klein geschrieben). */
+/**
+ * Zielfeld → akzeptierte CSV-Spaltennamen (klein geschrieben).
+ *
+ * `phone` ist die Grundlage der Anruflisten (Kampagnen). Fehlt die Spalte im
+ * Export, bleibt das Feld leer und der Import läuft normal weiter — die
+ * Kampagne zeigt dann, bei wie vielen Fällen eine Nummer fehlt. Im Kundencheck
+ * wird die Nummer NICHT angezeigt: `toTicketItem` in diagnose.ts baut das
+ * Anzeigeobjekt Feld für Feld auf und lässt sie bewusst aus.
+ */
 const COLUMNS = {
   entitlementId: ['entitlement_id'],
   validFrom: ['display_validity_begin'],
@@ -20,9 +28,18 @@ const COLUMNS = {
   email: ['email'],
   firstName: ['first_name'],
   lastName: ['last_name'],
+  phone: ['phone', 'telefon', 'telephone', 'mobile', 'mobil', 'handy'],
+  birthday: ['birthday', 'geburtsdatum', 'date_of_birth'],
 } as const
 
 type Field = keyof typeof COLUMNS
+
+/**
+ * Spalten, ohne die der Import trotzdem läuft. Sie kamen später dazu (für die
+ * Anruflisten); ältere Exporte kennen sie nicht, und daran soll ein Upload
+ * nicht scheitern.
+ */
+const OPTIONAL = new Set<Field>(['phone', 'birthday'])
 
 export type PatrisRow = {
   entitlementId: string
@@ -34,9 +51,20 @@ export type PatrisRow = {
   email: string
   firstName: string
   lastName: string
+  /** Nur für Anruflisten; im Kundencheck bewusst nicht angezeigt. */
+  phone: string
+  /** Für die Volljährigkeitsregel der Kampagnen. */
+  birthday: string | null
 }
 
-export type PatrisTicket = PatrisRow
+/**
+ * Ticket für den Kundencheck — bewusst OHNE Telefonnummer und Geburtsdatum.
+ *
+ * Die Trennung vom Import-Typ ist Absicht: So verhindert schon der Compiler,
+ * dass die Nummer über den Kundencheck in den Browser gelangt. Wer sie für
+ * Anruflisten braucht, liest sie über die Kampagnen-Funktionen.
+ */
+export type PatrisTicket = Omit<PatrisRow, 'phone' | 'birthday'>
 
 export type PatrisStatus = {
   importedAt: string | null
@@ -172,7 +200,9 @@ export function rowsFromCsv(text: string): { rows: PatrisRow[]; skippedRows: num
   const missing: string[] = []
   for (const [field, names] of Object.entries(COLUMNS) as [Field, readonly string[]][]) {
     const i = header.findIndex((h) => names.includes(h))
-    if (i === -1) missing.push(names[0])
+    // Fehlt eine optionale Spalte, bleibt das Feld leer — ein Export ohne
+    // Telefonnummer soll sich weiterhin hochladen lassen.
+    if (i === -1 && !OPTIONAL.has(field)) missing.push(names[0])
     index[field] = i
   }
   if (missing.length) {
@@ -183,7 +213,8 @@ export function rowsFromCsv(text: string): { rows: PatrisRow[]; skippedRows: num
   let skippedRows = 0
   let invalidDates = 0
   for (const cells of table.slice(1)) {
-    const get = (f: Field) => (cells[index[f]] ?? '').trim().slice(0, MAX_LEN)
+    // index[f] === -1 bei fehlender optionaler Spalte → leerer Wert.
+    const get = (f: Field) => (index[f] === -1 ? '' : (cells[index[f]] ?? '').trim().slice(0, MAX_LEN))
     const entitlementId = get('entitlementId')
     if (!entitlementId) {
       skippedRows++
@@ -202,6 +233,8 @@ export function rowsFromCsv(text: string): { rows: PatrisRow[]; skippedRows: num
       email: get('email').toLowerCase(),
       firstName: get('firstName'),
       lastName: get('lastName'),
+      phone: get('phone'),
+      birthday: parseDate(get('birthday'), false) ?? null,
     })
   }
   if (rows.length === 0) throw new PatrisImportError('Die Datei enthält keine gültigen Zeilen (entitlement_id leer).')

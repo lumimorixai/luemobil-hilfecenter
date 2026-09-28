@@ -214,8 +214,11 @@ Upload im **Migrations-Cockpit → Ticketdaten** (Rolle `cockpit`/`support`).
   — beides wird nach dem Upload gezählt angezeigt.
 - Fehlt eine der **Pflicht**spalten, wird die Datei komplett abgelehnt. Fehlt die
   optionale Telefonspalte, läuft der Import normal weiter und das Feld bleibt leer.
-- Die Telefonnummer wird gespeichert, aber im Kundencheck **nicht angezeigt**. Sie ist
-  die Grundlage für die geplante Anrufaktion des Callcenters.
+- Telefonnummer und Geburtsdatum werden gespeichert, im Kundencheck aber **nicht
+  angezeigt**: Der Anzeigetyp `PatrisTicket` schließt beide aus, das verhindert
+  schon der Compiler. Sie sind die Grundlage der Anruflisten (Kampagnen) und der
+  Regel, Minderjährige von Anrufen auszunehmen. Fehlen die Spalten im Export,
+  bleiben die Felder leer und der Upload läuft trotzdem.
 - Speicher: Tabelle `patris_entitlements` (Postgres in Produktion), Stand des
   Uploads im Global `patris-import`. Im Admin nur lesbar.
 - Code: `src/lib/cockpit/patris.ts`, `src/app/api/cockpit/patris/route.ts`.

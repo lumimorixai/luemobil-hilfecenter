@@ -11,6 +11,7 @@ import * as migration_20260925_150000_cockpit_total_users from './20260925_15000
 import * as migration_20260925_170000_cockpit_support from './20260925_170000_cockpit_support';
 import * as migration_20260925_183000_cockpit_availability from './20260925_183000_cockpit_availability';
 import * as migration_20260925_193000_cockpit_migrated from './20260925_193000_cockpit_migrated';
+import * as migration_20260928_120000_patris_telefon from './20260928_120000_patris_telefon';
 
 export const migrations = [
   {
@@ -77,5 +78,10 @@ export const migrations = [
     up: migration_20260925_193000_cockpit_migrated.up,
     down: migration_20260925_193000_cockpit_migrated.down,
     name: '20260925_193000_cockpit_migrated',
+  },
+  {
+    up: migration_20260928_120000_patris_telefon.up,
+    down: migration_20260928_120000_patris_telefon.down,
+    name: '20260928_120000_patris_telefon',
   },
 ];

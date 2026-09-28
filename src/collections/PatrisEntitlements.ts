@@ -36,5 +36,25 @@ export const PatrisEntitlements: CollectionConfig = {
     { name: 'email', label: 'E-Mail', type: 'text', index: true },
     { name: 'firstName', label: 'Vorname', type: 'text' },
     { name: 'lastName', label: 'Nachname', type: 'text' },
+    {
+      name: 'phone',
+      label: 'Telefonnummer',
+      type: 'text',
+      admin: {
+        readOnly: true,
+        description:
+          'Grundlage der Anruflisten (Kampagnen). Im Kundencheck wird die Nummer NICHT angezeigt. Fehlt die Spalte im Export, bleibt das Feld leer.',
+      },
+    },
+    {
+      name: 'birthday',
+      label: 'Geburtsdatum',
+      type: 'date',
+      admin: {
+        readOnly: true,
+        description:
+          'Nur für die Volljährigkeitsregel der Kampagnen — Minderjährige werden von Anrufen ausgenommen.',
+      },
+    },
   ],
 }
