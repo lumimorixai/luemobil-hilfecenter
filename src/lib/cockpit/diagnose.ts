@@ -8,6 +8,7 @@
  * und kann später wieder als zweite Stufe eingehängt werden.
  */
 import { findUserByEmail, getRecentUserEvents } from '../keycloak'
+import { KUNDENCHECK_TYPEN, deuteEreignis } from './ereignisse'
 import { keycloakRealm } from './config'
 import { HINT_SITUATIONS, fillPlaceholders, type HintSituationKey } from './hints'
 import { findTickets, getHints, getPatrisStatus, type PatrisTicket } from './patris'
@@ -60,18 +61,29 @@ export async function runCustomerCheck(email: string, bearbeiter = ''): Promise<
         detail: `Kein Konto im Realm ${keycloakRealm()}`,
       }
 
-  // Letzte Ereignisse — bis zu 10, neueste zuerst
-  const raw = await getRecentUserEvents(email, kcUser?.id, 10)
+  /*
+   * Alles zeigen, was zu dieser Person noch da ist — nicht nur die letzten
+   * zehn Anmeldungen. Mit Konto filtert Keycloak nach der Benutzer-ID, die
+   * Abfrage ist also günstig; und für die Beratung zählt oft gerade das, was
+   * zwischen den Anmeldungen passierte: angeforderte Passwort-Mails,
+   * Bestätigungen, Profiländerungen.
+   */
+  const raw = await getRecentUserEvents(email, kcUser?.id, 200, KUNDENCHECK_TYPEN)
   const events: EventItem[] = raw
     .slice()
     .sort((a, b) => b.time.localeCompare(a.time))
-    .slice(0, 10)
-    .map((e) => ({
-      time: deDateTime(e.time),
-      kind: e.type === 'LOGIN' ? 'ok' : 'no',
-      label: e.type === 'LOGIN' ? 'Erfolgreicher Login' : e.error ?? 'Login-Fehler',
-      clientId: e.clientId,
-    }))
+    .map((e) => {
+      const d = deuteEreignis(e.type, e.error)
+      return {
+        time: deDateTime(e.time),
+        kind: d.kind,
+        label: d.label,
+        erklaerung: d.erklaerung,
+        grund: d.grund,
+        code: e.error || e.type,
+        clientId: e.clientId,
+      }
+    })
 
   // Ticket laut Patris — Fehler hier dürfen den übrigen Check nicht mitreißen.
   let imported = false

@@ -135,26 +135,7 @@ export function Kundencheck() {
             </section>
           </div>
 
-          <section className="cx-step cx-glas">
-            <div className="cx-step-who">
-              <h3>Letzte Ereignisse</h3>
-              <span className="quelle">live aus Keycloak · höchstens zehn</span>
-            </div>
-            {result.events.length === 0 ? (
-              <div className="cx-ev-empty">Keine Ereignisse registriert.</div>
-            ) : (
-              <ul className="cx-evlist">
-                {result.events.map((ev, i) => (
-                  <li className="cx-ev" key={i}>
-                    <span className={`cx-punkt cx-punkt--${ev.kind}`} />
-                    <span className="cx-ev-time">{ev.time}</span>
-                    <span className="cx-ev-label">{ev.label}</span>
-                    {ev.clientId && <span className="cx-ev-client">{ev.clientId}</span>}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
+          <Ereignisse events={result.events} />
 
           <div className="cx-asof">
             Datenstand Patris: {result.ticket.dataAsOf ?? 'noch keine Daten hochgeladen'}
@@ -162,6 +143,70 @@ export function Kundencheck() {
         </div>
       )}
     </>
+  )
+}
+
+/** Wie viele Ereignisse zunächst sichtbar sind, bevor „alle anzeigen" kommt. */
+const EREIGNISSE_KURZ = 12
+
+/**
+ * Was zu dieser Person im Anmeldesystem passiert ist — mit Erklärung und
+ * vermutlichem Grund, damit es ohne Keycloak-Wissen zu lesen ist.
+ */
+function Ereignisse({ events }: { events: Diagnosis['events'] }) {
+  const [alle, setAlle] = useState(false)
+  const sichtbar = alle ? events : events.slice(0, EREIGNISSE_KURZ)
+  const fehler = events.filter((e) => e.kind === 'no').length
+
+  return (
+    <section className="cx-step cx-glas">
+      <div className="cx-step-who">
+        <h3>Was bisher passiert ist</h3>
+        <span className="quelle">
+          {events.length === 0
+            ? 'live aus Keycloak'
+            : `${events.length} Ereignis${events.length === 1 ? '' : 'se'}${
+                fehler > 0 ? `, davon ${fehler} fehlgeschlagen` : ''
+              } · live aus Keycloak`}
+        </span>
+      </div>
+
+      {events.length === 0 ? (
+        <div className="cx-ev-empty">
+          Zu dieser Adresse ist nichts verzeichnet. Entweder gab es noch keinen
+          Anmeldeversuch, oder die Ereignisse sind älter als die Aufbewahrungsfrist.
+        </div>
+      ) : (
+        <>
+          <ol className="cx-evliste">
+            {sichtbar.map((ev, i) => (
+              <li key={i}>
+                <div className="cx-ev-kopf">
+                  <span className={`cx-punkt cx-punkt--${ev.kind}`} />
+                  <span className="cx-ev-label">{ev.label}</span>
+                  <span className="cx-ev-zeit">{ev.time}</span>
+                </div>
+                {ev.erklaerung && <p className="cx-ev-text">{ev.erklaerung}</p>}
+                {ev.grund && (
+                  <p className="cx-ev-grund">
+                    <span>Vermutlich</span> {ev.grund}
+                  </p>
+                )}
+                <div className="cx-ev-fuss">
+                  {ev.clientId && <span className="cx-ev-client">{ev.clientId}</span>}
+                  {ev.code && <span className="cx-ev-code cx-mono">{ev.code}</span>}
+                </div>
+              </li>
+            ))}
+          </ol>
+          {events.length > EREIGNISSE_KURZ && (
+            <button type="button" className="cx-buy-more" onClick={() => setAlle((v) => !v)}>
+              {alle ? 'Weniger anzeigen' : `Alle ${events.length} Ereignisse anzeigen`}
+            </button>
+          )}
+        </>
+      )}
+    </section>
   )
 }
 

@@ -55,9 +55,15 @@ export type VerdictKind = 'ok' | 'warn' | 'no'
 export type EventItem = {
   /** Formatiert „TT.MM., HH:MM Uhr". */
   time: string
-  kind: 'ok' | 'no'
-  /** z. B. „Erfolgreicher Login" oder der Fehlername. */
+  kind: 'ok' | 'warn' | 'no'
+  /** Was passiert ist, in einem Halbsatz. */
   label: string
+  /** Was das technisch bedeutet — für Menschen ohne Keycloak-Wissen. */
+  erklaerung?: string
+  /** Was erfahrungsgemäß dahintersteckt und was zu tun ist. */
+  grund?: string
+  /** Technischer Name des Ereignisses bzw. Fehlers, für Rückfragen. */
+  code?: string
   clientId?: string
 }
 

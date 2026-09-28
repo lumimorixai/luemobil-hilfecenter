@@ -208,17 +208,25 @@ export async function getEventsSince(sinceMs: number): Promise<KcEvent[]> {
 export async function getRecentUserEvents(
   email: string,
   userId?: string,
-  max = 5,
+  max = 200,
+  typen: string[] = LOGIN_TYPES,
 ): Promise<KcEvent[]> {
   if (isMock()) return mockRecentUserEvents(email)
-  const from = isoDate(new Date(Date.now() - 14 * 24 * 60 * 60 * 1000))
+
+  /*
+   * Mit Konto filtert Keycloak selbst nach der Benutzer-ID. Die Abfrage ist
+   * dann so günstig, dass wir alles zeigen können, was der Realm noch hat —
+   * der Zeitraum reicht deshalb bis an die übliche Aufbewahrungsfrist heran.
+   * Ohne Konto bleibt nur der Abgleich über den Benutzernamen; dabei muss die
+   * Event-Liste durchsucht werden, also ein engerer Zeitraum und eine Grenze.
+   */
+  const tageZurueck = userId ? 365 : 30
+  const from = isoDate(new Date(Date.now() - tageZurueck * 24 * 60 * 60 * 1000))
   const to = isoDate(new Date(Date.now() + 24 * 60 * 60 * 1000))
+
   const events = userId
-    ? await fetchEvents(from, to, LOGIN_TYPES, max, userId)
-    : // Ohne Konto bleibt nur der Abgleich über den Benutzernamen. Bewusst auf
-      // die jüngsten 2.000 Ereignisse begrenzt: Der Kundencheck soll nicht die
-      // gesamte Event-Historie durchblättern.
-      (await fetchEvents(from, to, LOGIN_TYPES, 2000)).filter(
+    ? await fetchEvents(from, to, typen, max, userId)
+    : (await fetchEvents(from, to, typen, 3000)).filter(
         (e) => (e.username ?? '').toLowerCase() === email.toLowerCase(),
       )
   return events.sort((a, b) => b.time.localeCompare(a.time)).slice(0, max)
