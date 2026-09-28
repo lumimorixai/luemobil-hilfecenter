@@ -20,6 +20,7 @@ import { QuestionSubmissions } from './collections/QuestionSubmissions'
 import { RoadmapGroups } from './collections/RoadmapGroups'
 import { CockpitDaily } from './collections/CockpitDaily'
 import { HealthChecks } from './collections/HealthChecks'
+import { Kampagnen, KampagnenFaelle, KampagnenKontakte, KampagnenSperrliste } from './collections/Kampagnen'
 import { PatrisEntitlements } from './collections/PatrisEntitlements'
 import { KundencheckHinweise } from './globals/KundencheckHinweise'
 import { PatrisImport } from './globals/PatrisImport'
@@ -79,6 +80,10 @@ export default buildConfig({
     CockpitDaily,
     HealthChecks,
     PatrisEntitlements,
+    Kampagnen,
+    KampagnenFaelle,
+    KampagnenKontakte,
+    KampagnenSperrliste,
     Media,
     Users,
   ],

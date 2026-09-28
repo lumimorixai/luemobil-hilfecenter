@@ -78,6 +78,10 @@ export interface Config {
     'cockpit-daily': CockpitDaily;
     'health-checks': HealthCheck;
     'patris-entitlements': PatrisEntitlement;
+    kampagnen: Kampagnen;
+    'kampagnen-faelle': KampagnenFaelle;
+    'kampagnen-kontakte': KampagnenKontakte;
+    'kampagnen-sperrliste': KampagnenSperrliste;
     media: Media;
     users: User;
     'payload-kv': PayloadKv;
@@ -98,6 +102,10 @@ export interface Config {
     'cockpit-daily': CockpitDailySelect<false> | CockpitDailySelect<true>;
     'health-checks': HealthChecksSelect<false> | HealthChecksSelect<true>;
     'patris-entitlements': PatrisEntitlementsSelect<false> | PatrisEntitlementsSelect<true>;
+    kampagnen: KampagnenSelect<false> | KampagnenSelect<true>;
+    'kampagnen-faelle': KampagnenFaelleSelect<false> | KampagnenFaelleSelect<true>;
+    'kampagnen-kontakte': KampagnenKontakteSelect<false> | KampagnenKontakteSelect<true>;
+    'kampagnen-sperrliste': KampagnenSperrlisteSelect<false> | KampagnenSperrlisteSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
@@ -534,6 +542,200 @@ export interface PatrisEntitlement {
   createdAt: string;
 }
 /**
+ * Kontaktaktionen: Zielgruppenregeln, Gesprächsleitfaden, Ergebniskatalog. Fälle werden im Cockpit erzeugt.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "kampagnen".
+ */
+export interface Kampagnen {
+  id: number;
+  name: string;
+  /**
+   * Technischer Name für Adressen und Jobs, z. B. dticket-2026-10.
+   */
+  kennung: string;
+  /**
+   * Worum es geht — erscheint in der Auswertung, nicht im Gespräch.
+   */
+  beschreibung?: string | null;
+  /**
+   * Wird dem Agent bei jedem Fall angezeigt. Gehört hierher: Anrede, Anlass, Hinweis nach Art. 13/14 DSGVO.
+   */
+  gespraechsleitfaden?: string | null;
+  /**
+   * Bestimmt, welches Kontaktfeld ein Fall zwingend braucht.
+   */
+  kanal: 'telefon' | 'email';
+  /**
+   * Nur aktive Kampagnen geben Fälle aus.
+   */
+  status: 'entwurf' | 'aktiv' | 'pausiert' | 'beendet';
+  /**
+   * Pflicht vor dem Aktivieren. Bei Telefonaktionen gegenüber Verbrauchern ist § 7 UWG zu beachten, nicht nur die DSGVO.
+   */
+  rechtsgrundlage?: string | null;
+  /**
+   * Pflicht bei hochgeladenen Listen: woher sie stammt und auf welcher Grundlage kontaktiert werden darf.
+   */
+  herkunft?: string | null;
+  /**
+   * Gerechnet ab Ende der Kampagne. Der Nachtjob räumt danach auf.
+   */
+  loeschenNachTagen: number;
+  maxVersuche: number;
+  /**
+   * So lange gehört ein zugeteilter Fall einer Person. Danach wird er wieder ausgegeben — verhindert, dass ein geschlossener Browser Fälle blockiert.
+   */
+  sperreMinuten: number;
+  regelVerknuepfung?: ('und' | 'oder') | null;
+  /**
+   * Bestimmen, wer in die Liste kommt. Leer lassen, wenn die Liste hochgeladen wird.
+   */
+  regeln?:
+    | {
+        feld:
+          | 'produktnummer'
+          | 'produktname'
+          | 'email'
+          | 'kundennummer'
+          | 'gueltigJetzt'
+          | 'telefonVorhanden'
+          | 'volljaehrig'
+          | 'kontoVorhanden';
+        operator: 'ist' | 'ist_nicht' | 'ist_eines_von' | 'enthaelt' | 'ist_gesetzt' | 'ist_leer';
+        /**
+         * Bei Ja/Nein-Feldern: ja oder nein.
+         */
+        wert?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Die Knöpfe, die der Agent nach dem Gespräch sieht. Reihenfolge = Reihenfolge in der Oberfläche.
+   */
+  ergebnisse?:
+    | {
+        code: string;
+        label: string;
+        wirkung: 'abschluss' | 'wiedervorlage' | 'erneut' | 'entfaellt' | 'sperren';
+        standardWiedervorlageTage?: number | null;
+        notizPflicht?: boolean | null;
+        id?: string | null;
+      }[]
+    | null;
+  quelle?: ('regel' | 'csv' | 'beides') | null;
+  erzeugtAm?: string | null;
+  erzeugtVon?: string | null;
+  faelleGesamt?: number | null;
+  faelleOffen?: number | null;
+  faelleErledigt?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Arbeitsliste einer Kampagne. Enthält personenbezogene Daten; Befüllung nur über das Cockpit.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "kampagnen-faelle".
+ */
+export interface KampagnenFaelle {
+  id: number;
+  kampagne: number | Kampagnen;
+  /**
+   * Normalisierter Wert für die Dublettenprüfung innerhalb der Kampagne, z. B. mail:anna@example.de.
+   */
+  schluessel: string;
+  email?: string | null;
+  /**
+   * Normalisiert (+49…).
+   */
+  telefon?: string | null;
+  telefonRoh?: string | null;
+  vorname?: string | null;
+  nachname?: string | null;
+  kundennummer?: string | null;
+  entitlementId?: string | null;
+  produktnummer?: string | null;
+  geburtsdatum?: string | null;
+  /**
+   * Zusätzliche Spalten einer hochgeladenen Liste — damit fremde Listen ohne Schemaänderung nutzbar sind.
+   */
+  merkmale?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  quelle?: ('regel' | 'csv') | null;
+  status: 'offen' | 'in_arbeit' | 'erledigt' | 'entfaellt';
+  ergebnis?: string | null;
+  entfallenGrund?: ('konto_vorhanden' | 'kein_kontakt' | 'widerspruch' | 'max_versuche' | 'dublette') | null;
+  versuche: number;
+  letzterVersuchAm?: string | null;
+  wiedervorlageAm?: string | null;
+  /**
+   * Keycloak-Kennung, wenn jemand den Fall selbst weiterführen will.
+   */
+  wiedervorlageFuer?: string | null;
+  gesperrtVon?: string | null;
+  gesperrtBis?: string | null;
+  kontoVorhanden?: boolean | null;
+  kontoGeprueftAm?: string | null;
+  abschlussAm?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Protokoll der Kontaktversuche. Enthält Gesprächsnotizen.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "kampagnen-kontakte".
+ */
+export interface KampagnenKontakte {
+  id: number;
+  fall: number | KampagnenFaelle;
+  /**
+   * Doppelt geführt, damit Auswertung und Löschung ohne Umweg laufen.
+   */
+  kampagne?: (number | null) | Kampagnen;
+  zeitpunkt: string;
+  bearbeiter: string;
+  bearbeiterName?: string | null;
+  kanal?: ('telefon' | 'email' | 'notiz') | null;
+  ergebnisCode: string;
+  /**
+   * Nur sachbezogene Vermerke zum Anliegen. Keine Angaben zu Gesundheit, Herkunft oder Ähnlichem, keine Werturteile.
+   */
+  notiz?: string | null;
+  dauerSekunden?: number | null;
+  naechsteWiedervorlage?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Personen, die nicht mehr kontaktiert werden möchten. Gilt für alle Kampagnen und wird nicht automatisch gelöscht.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "kampagnen-sperrliste".
+ */
+export interface KampagnenSperrliste {
+  id: number;
+  /**
+   * mail:… oder tel:… — derselbe Aufbau wie am Fall.
+   */
+  schluessel: string;
+  art?: ('email' | 'telefon') | null;
+  grund: 'widerspruch' | 'falsche_nummer' | 'verstorben' | 'sonstiges';
+  gueltigAb: string;
+  angelegtVon?: string | null;
+  notiz?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
@@ -634,6 +836,22 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'patris-entitlements';
         value: number | PatrisEntitlement;
+      } | null)
+    | ({
+        relationTo: 'kampagnen';
+        value: number | Kampagnen;
+      } | null)
+    | ({
+        relationTo: 'kampagnen-faelle';
+        value: number | KampagnenFaelle;
+      } | null)
+    | ({
+        relationTo: 'kampagnen-kontakte';
+        value: number | KampagnenKontakte;
+      } | null)
+    | ({
+        relationTo: 'kampagnen-sperrliste';
+        value: number | KampagnenSperrliste;
       } | null)
     | ({
         relationTo: 'media';
@@ -926,6 +1144,115 @@ export interface PatrisEntitlementsSelect<T extends boolean = true> {
   lastName?: T;
   phone?: T;
   birthday?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "kampagnen_select".
+ */
+export interface KampagnenSelect<T extends boolean = true> {
+  name?: T;
+  kennung?: T;
+  beschreibung?: T;
+  gespraechsleitfaden?: T;
+  kanal?: T;
+  status?: T;
+  rechtsgrundlage?: T;
+  herkunft?: T;
+  loeschenNachTagen?: T;
+  maxVersuche?: T;
+  sperreMinuten?: T;
+  regelVerknuepfung?: T;
+  regeln?:
+    | T
+    | {
+        feld?: T;
+        operator?: T;
+        wert?: T;
+        id?: T;
+      };
+  ergebnisse?:
+    | T
+    | {
+        code?: T;
+        label?: T;
+        wirkung?: T;
+        standardWiedervorlageTage?: T;
+        notizPflicht?: T;
+        id?: T;
+      };
+  quelle?: T;
+  erzeugtAm?: T;
+  erzeugtVon?: T;
+  faelleGesamt?: T;
+  faelleOffen?: T;
+  faelleErledigt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "kampagnen-faelle_select".
+ */
+export interface KampagnenFaelleSelect<T extends boolean = true> {
+  kampagne?: T;
+  schluessel?: T;
+  email?: T;
+  telefon?: T;
+  telefonRoh?: T;
+  vorname?: T;
+  nachname?: T;
+  kundennummer?: T;
+  entitlementId?: T;
+  produktnummer?: T;
+  geburtsdatum?: T;
+  merkmale?: T;
+  quelle?: T;
+  status?: T;
+  ergebnis?: T;
+  entfallenGrund?: T;
+  versuche?: T;
+  letzterVersuchAm?: T;
+  wiedervorlageAm?: T;
+  wiedervorlageFuer?: T;
+  gesperrtVon?: T;
+  gesperrtBis?: T;
+  kontoVorhanden?: T;
+  kontoGeprueftAm?: T;
+  abschlussAm?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "kampagnen-kontakte_select".
+ */
+export interface KampagnenKontakteSelect<T extends boolean = true> {
+  fall?: T;
+  kampagne?: T;
+  zeitpunkt?: T;
+  bearbeiter?: T;
+  bearbeiterName?: T;
+  kanal?: T;
+  ergebnisCode?: T;
+  notiz?: T;
+  dauerSekunden?: T;
+  naechsteWiedervorlage?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "kampagnen-sperrliste_select".
+ */
+export interface KampagnenSperrlisteSelect<T extends boolean = true> {
+  schluessel?: T;
+  art?: T;
+  grund?: T;
+  gueltigAb?: T;
+  angelegtVon?: T;
+  notiz?: T;
   updatedAt?: T;
   createdAt?: T;
 }

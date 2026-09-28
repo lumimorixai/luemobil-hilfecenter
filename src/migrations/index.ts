@@ -12,6 +12,7 @@ import * as migration_20260925_170000_cockpit_support from './20260925_170000_co
 import * as migration_20260925_183000_cockpit_availability from './20260925_183000_cockpit_availability';
 import * as migration_20260925_193000_cockpit_migrated from './20260925_193000_cockpit_migrated';
 import * as migration_20260928_120000_patris_telefon from './20260928_120000_patris_telefon';
+import * as migration_20260928_172208_kampagnen from './20260928_172208_kampagnen';
 
 export const migrations = [
   {
@@ -57,7 +58,7 @@ export const migrations = [
   {
     up: migration_20260925_092649_users_rolle.up,
     down: migration_20260925_092649_users_rolle.down,
-    name: '20260925_092649_users_rolle'
+    name: '20260925_092649_users_rolle',
   },
   {
     up: migration_20260925_150000_cockpit_total_users.up,
@@ -83,5 +84,10 @@ export const migrations = [
     up: migration_20260928_120000_patris_telefon.up,
     down: migration_20260928_120000_patris_telefon.down,
     name: '20260928_120000_patris_telefon',
+  },
+  {
+    up: migration_20260928_172208_kampagnen.up,
+    down: migration_20260928_172208_kampagnen.down,
+    name: '20260928_172208_kampagnen'
   },
 ];
