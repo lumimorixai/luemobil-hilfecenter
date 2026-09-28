@@ -16,18 +16,24 @@
 
 /** Eine Regelzeile, wie sie an der Kampagne gespeichert ist. */
 export type Regel = {
+  aktiv?: boolean | null
   feld?: string | null
   operator?: string | null
   wert?: string | null
 }
 
-/** Die Felder, auf die sich Regeln beziehen dürfen. */
+/**
+ * Die Felder des Ticketbestands, auf die sich Regeln beziehen dürfen.
+ *
+ * Daneben ist jedes Merkmal einer hochgeladenen Liste als `merkmal:<spalte>`
+ * ansprechbar — sonst wäre jede fremde Liste eine Codeänderung.
+ */
 export const FELDER = {
   produktnummer: { label: 'Produktnummer (Segment)', art: 'text' },
   produktname: { label: 'Produkt', art: 'text' },
   email: { label: 'E-Mail', art: 'text' },
   kundennummer: { label: 'Kundennummer', art: 'text' },
-  gueltigJetzt: { label: 'Ticket heute gültig', art: 'bool' },
+  gueltigJetzt: { label: 'Berechtigung heute gültig', art: 'bool' },
   telefonVorhanden: { label: 'Telefonnummer vorhanden', art: 'bool' },
   volljaehrig: { label: 'Volljährig', art: 'bool' },
   kontoVorhanden: { label: 'Konto in der App vorhanden', art: 'bool' },
@@ -35,7 +41,38 @@ export const FELDER = {
 
 export type Feldname = keyof typeof FELDER
 
-/** Eine Zeile aus dem Patris-Bestand, wie die Regeln sie sehen. */
+/** Vorsatz, mit dem eine Regel eine Spalte aus einer hochgeladenen Liste anspricht. */
+export const MERKMAL = 'merkmal:'
+
+/** Beschriftung eines Feldes — auch für Merkmale, die der Code nicht kennt. */
+export function feldLabel(feld: string): string {
+  if (feld.startsWith(MERKMAL)) return `Merkmal „${feld.slice(MERKMAL.length)}"`
+  return FELDER[feld as Feldname]?.label ?? feld
+}
+
+/** Ist das Feld überhaupt auswertbar? */
+export function feldBekannt(feld: string): boolean {
+  if (feld.startsWith(MERKMAL)) return feld.length > MERKMAL.length
+  return feld in FELDER
+}
+
+export const OPERATOREN = {
+  ist: 'ist',
+  ist_nicht: 'ist nicht',
+  ist_eines_von: 'ist eines von (Komma)',
+  enthaelt: 'enthält',
+  ist_gesetzt: 'ist gesetzt',
+  ist_leer: 'ist leer',
+} as const
+
+/** Vergleiche, die keinen Wert brauchen. */
+export const OHNE_WERT = new Set(['ist_gesetzt', 'ist_leer'])
+
+/**
+ * Eine Person, wie die Regeln sie sehen — gleich ob aus dem Ticketbestand oder
+ * aus einer hochgeladenen Liste. `merkmale` nimmt auf, was das feste Schema
+ * nicht kennt.
+ */
 export type Kandidat = {
   email: string
   telefon: string
@@ -48,6 +85,7 @@ export type Kandidat = {
   gueltigAb: string | null
   gueltigBis: string | null
   geburtsdatum: string | null
+  merkmale?: Record<string, string>
 }
 
 /** Volljährig zum Stichtag? Ohne Geburtsdatum: unbekannt → nicht volljährig. */
@@ -72,8 +110,15 @@ export function istGueltig(k: Kandidat, stichtag = Date.now()): boolean {
  * Wert eines Feldes für einen Kandidaten. Ja/Nein-Felder liefern 'ja'/'nein',
  * damit ein einziger Vergleichsweg für alle Feldarten genügt.
  */
-function wertVon(feld: Feldname, k: Kandidat, kontoEmails: Set<string> | null): string {
-  switch (feld) {
+function wertVon(feld: string, k: Kandidat, kontoEmails: Set<string> | null): string {
+  if (feld.startsWith(MERKMAL)) {
+    const name = feld.slice(MERKMAL.length)
+    const treffer = Object.entries(k.merkmale ?? {}).find(
+      ([schluessel]) => schluessel.toLowerCase() === name.toLowerCase(),
+    )
+    return treffer?.[1] ?? ''
+  }
+  switch (feld as Feldname) {
     case 'produktnummer':
       return k.produktnummer
     case 'produktname':
@@ -94,6 +139,8 @@ function wertVon(feld: Feldname, k: Kandidat, kontoEmails: Set<string> | null): 
     case 'kontoVorhanden':
       if (!kontoEmails) return 'nein'
       return k.email && kontoEmails.has(k.email.toLowerCase()) ? 'ja' : 'nein'
+    default:
+      return ''
   }
 }
 
@@ -122,14 +169,24 @@ function vergleiche(ist: string, operator: string, soll: string): boolean {
   }
 }
 
-/** Braucht mindestens eine Regel den Abgleich mit Keycloak? */
+/**
+ * Die Regeln, die tatsächlich gelten: eingeschaltet, mit bekanntem Feld und
+ * einem Vergleich. Ausgeschaltete bleiben gespeichert, zählen aber nicht.
+ */
+export function wirksameRegeln(regeln: Regel[]): Regel[] {
+  return regeln.filter(
+    (r) => r.aktiv !== false && r.feld && r.operator && feldBekannt(r.feld),
+  )
+}
+
+/** Braucht mindestens eine wirksame Regel den Abgleich mit Keycloak? */
 export function brauchtKontoAbgleich(regeln: Regel[]): boolean {
-  return regeln.some((r) => r.feld === 'kontoVorhanden')
+  return wirksameRegeln(regeln).some((r) => r.feld === 'kontoVorhanden')
 }
 
 /**
- * Trifft der Kandidat die Regeln? Ohne Regeln: nein — eine Kampagne ohne
- * Auswahl soll nicht versehentlich den gesamten Bestand anrufen.
+ * Trifft der Kandidat die Regeln? Ohne wirksame Regel: nein — eine Kampagne
+ * ohne Auswahl soll nicht versehentlich den gesamten Bestand kontaktieren.
  */
 export function trifftZu(
   regeln: Regel[],
@@ -137,11 +194,11 @@ export function trifftZu(
   kontoEmails: Set<string> | null,
   verknuepfung: 'und' | 'oder' = 'und',
 ): boolean {
-  const gueltige = regeln.filter((r) => r.feld && r.operator && r.feld in FELDER)
+  const gueltige = wirksameRegeln(regeln)
   if (gueltige.length === 0) return false
 
   const ergebnisse = gueltige.map((r) =>
-    vergleiche(wertVon(r.feld as Feldname, k, kontoEmails), r.operator as string, r.wert ?? ''),
+    vergleiche(wertVon(r.feld as string, k, kontoEmails), r.operator as string, r.wert ?? ''),
   )
   return verknuepfung === 'oder' ? ergebnisse.some(Boolean) : ergebnisse.every(Boolean)
 }

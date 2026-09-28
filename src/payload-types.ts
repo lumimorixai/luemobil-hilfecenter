@@ -563,9 +563,9 @@ export interface Kampagnen {
    */
   gespraechsleitfaden?: string | null;
   /**
-   * Bestimmt, welches Kontaktfeld ein Fall zwingend braucht.
+   * Telefon und E-Mail verlangen den jeweiligen Kontaktweg an jedem Fall; Brief und „Anderer Weg" genügen sich mit einer Kennung.
    */
-  kanal: 'telefon' | 'email';
+  kanal: 'telefon' | 'email' | 'brief' | 'sonstiges';
   /**
    * Nur aktive Kampagnen geben Fälle aus.
    */
@@ -593,16 +593,18 @@ export interface Kampagnen {
    */
   regeln?:
     | {
-        feld:
-          | 'produktnummer'
-          | 'produktname'
-          | 'email'
-          | 'kundennummer'
-          | 'gueltigJetzt'
-          | 'telefonVorhanden'
-          | 'volljaehrig'
-          | 'kontoVorhanden';
-        operator: 'ist' | 'ist_nicht' | 'ist_eines_von' | 'enthaelt' | 'ist_gesetzt' | 'ist_leer';
+        /**
+         * Ausgeschaltete Regeln bleiben erhalten, zählen aber nicht — zum Ausprobieren einer Zielgruppe, ohne sie neu eintippen zu müssen.
+         */
+        aktiv?: boolean | null;
+        /**
+         * Bestandsfeld (siehe FELDER in src/lib/kampagnen/regeln.ts) oder merkmal:<spalte> für eine Spalte aus einer hochgeladenen Liste. Bewusst Freitext statt Auswahlliste: Sonst müsste jedes neue Merkmal einer fremden Liste als Datenbank-Migration nachgezogen werden.
+         */
+        feld: string;
+        /**
+         * ist, ist_nicht, ist_eines_von, enthaelt, ist_gesetzt, ist_leer.
+         */
+        operator: string;
         /**
          * Bei Ja/Nein-Feldern: ja oder nein.
          */
@@ -1167,6 +1169,7 @@ export interface KampagnenSelect<T extends boolean = true> {
   regeln?:
     | T
     | {
+        aktiv?: T;
         feld?: T;
         operator?: T;
         wert?: T;

@@ -368,9 +368,13 @@ CSV-Upload, Auswertung und Nachtjob folgen.
 
 ### 7.2 Eine Kampagne anlegen
 
-Im Admin unter **Aktionen → Kampagnen**. Pflicht vor der Listenerzeugung sind
-**Rechtsgrundlage** und mindestens eine **Auswahlregel**; ohne beides bleibt
-das Anlegen im Cockpit gesperrt.
+Auf `/cockpit/kampagnen` über **Neue Kampagne**. Der Payload-Admin zeigt
+Kampagnen nur an; geschrieben wird ausschließlich über das Cockpit, damit die
+Prüfungen an einer Stelle stehen.
+
+Pflicht vor der Listenerzeugung sind **Rechtsgrundlage** und mindestens eine
+eingeschaltete **Auswahlregel**; ohne beides bleibt das Anlegen gesperrt.
+Aktivieren verlangt zusätzlich mindestens ein mögliches Ergebnis.
 
 Der **Gesprächsleitfaden** wird dem Agent bei jedem Fall angezeigt und gehört
 deshalb ausformuliert — samt dem Hinweis nach Art. 14 DSGVO, woher die
@@ -382,7 +386,11 @@ hat eine Wirkung: `abschluss`, `wiedervorlage`, `erneut`, `entfaellt` oder
 
 ### 7.3 Auswahlregeln
 
-Acht Felder, sechs Vergleiche, UND- oder ODER-verknüpft:
+Jede Regel ist eine Zeile mit **eigenem Schalter**: Ausgeschaltete Regeln
+bleiben gespeichert, zählen aber nicht. Das ist der übliche Arbeitsweg — erst
+weit fassen, dann nachschärfen, dazwischen durchrechnen.
+
+Acht Bestandsfelder, sechs Vergleiche, UND- oder ODER-verknüpft:
 
 | Feld | Werte |
 |---|---|
@@ -394,6 +402,14 @@ Acht Felder, sechs Vergleiche, UND- oder ODER-verknüpft:
 
 Vergleiche: `ist`, `ist nicht`, `ist eines von` (Komma), `enthält`,
 `ist gesetzt`, `ist leer`.
+
+Dazu kommt **jedes Merkmal einer hochgeladenen Liste** als `merkmal:<spalte>`
+— etwa `merkmal:plz`. Ohne das wäre jede fremde Liste eine Schemaänderung.
+Aus dem Ticketbestand entstehen für solche Regeln keine Fälle; sie greifen erst
+beim CSV-Upload.
+
+**Kanal.** Telefon und E-Mail verlangen den jeweiligen Kontaktweg an jedem
+Fall; Brief und „anderer Weg" genügen sich mit einer Kennung.
 
 Ausgewertet wird **im Speicher**, nicht in der Datenbank: Der Patris-Bestand
 umfasst gut 8.000 Zeilen, und ein Abfrage-Übersetzer müsste bei jedem neuen

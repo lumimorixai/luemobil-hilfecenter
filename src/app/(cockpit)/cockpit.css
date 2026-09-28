@@ -1855,3 +1855,235 @@ body:has(.cx-app) .lm-topbar {
   font-size: 13.5px;
   line-height: 1.6;
 }
+
+/* --- Kampagnen: Formular und Regelzeilen -------------------------------- */
+
+.cx-form {
+  display: grid;
+  gap: 16px;
+}
+.cx-form-titel {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.cx-form-zeile {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+.cx-form-zeile > .cx-feld {
+  flex: 1 1 180px;
+}
+.cx-form-zeile > .cx-feld--breit {
+  flex: 2 1 320px;
+}
+.cx-feld {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+.cx-feld > span {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--t2);
+}
+.cx-feld > em {
+  font-style: normal;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--t6);
+}
+.cx-feld input,
+.cx-feld select,
+.cx-feld textarea,
+.cx-regelzeile input,
+.cx-regelzeile select,
+.cx-ergebniszeile input,
+.cx-ergebniszeile select {
+  font: inherit;
+  font-size: 13.5px;
+  padding: 9px 12px;
+  border-radius: var(--radius-s, 12px);
+  border: 1px solid var(--kante);
+  background: var(--pille);
+  color: var(--t1);
+  min-width: 0;
+  max-width: 100%;
+}
+.cx-feld textarea {
+  resize: vertical;
+  line-height: 1.5;
+}
+.cx-feld input:focus,
+.cx-feld select:focus,
+.cx-feld textarea:focus,
+.cx-regelzeile input:focus,
+.cx-regelzeile select:focus,
+.cx-ergebniszeile input:focus,
+.cx-ergebniszeile select:focus {
+  outline: 2px solid var(--akzent);
+  outline-offset: 1px;
+}
+.cx-form-abschnitt {
+  margin-top: 6px;
+  padding-top: 16px;
+  border-top: 1px solid var(--kante);
+}
+.cx-form-abschnitt h4 {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.cx-form-abschnitt p {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--t6);
+}
+
+.cx-regelliste {
+  display: grid;
+  gap: 8px;
+}
+.cx-regelzeile,
+.cx-ergebniszeile {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--kante);
+  border-radius: var(--radius-m);
+  background: var(--glas-2);
+}
+.cx-regelzeile.aus {
+  opacity: 0.55;
+}
+.cx-regelzeile select,
+.cx-ergebniszeile select {
+  flex: 1 1 160px;
+}
+.cx-regelzeile > input,
+.cx-ergebniszeile > input[type='text'],
+.cx-ergebniszeile > input:not([type]) {
+  flex: 1 1 140px;
+}
+.cx-regelzeile .cx-merkmal {
+  flex: 1 1 140px;
+}
+.cx-ergebniszeile .cx-tage {
+  flex: 0 0 90px;
+}
+.cx-weg {
+  flex: 0 0 auto;
+  margin-left: auto;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  border: 1px solid var(--kante);
+  background: var(--pille);
+  color: var(--t6);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+}
+.cx-weg:hover {
+  color: var(--pink);
+  border-color: color-mix(in srgb, var(--pink) 40%, transparent);
+}
+.cx-mini {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--t2);
+  white-space: nowrap;
+}
+
+/* Schalter: sichtbarer Ein-/Aus-Zustand einer Regel */
+.cx-schalter {
+  position: relative;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+.cx-schalter input {
+  position: absolute;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  cursor: pointer;
+}
+.cx-schalter > span {
+  width: 36px;
+  height: 21px;
+  border-radius: 999px;
+  background: var(--spur);
+  border: 1px solid var(--kante);
+  position: relative;
+  transition: background 0.15s ease;
+}
+.cx-schalter > span::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 15px;
+  height: 15px;
+  border-radius: 999px;
+  background: var(--t1);
+  opacity: 0.5;
+  transition:
+    transform 0.15s ease,
+    opacity 0.15s ease;
+}
+.cx-schalter input:checked + span {
+  background: color-mix(in srgb, var(--akzent) 30%, transparent);
+  border-color: color-mix(in srgb, var(--akzent) 55%, transparent);
+}
+.cx-schalter input:checked + span::after {
+  transform: translateX(15px);
+  background: var(--akzent);
+  opacity: 1;
+}
+.cx-schalter input:focus-visible + span {
+  outline: 2px solid var(--akzent);
+  outline-offset: 2px;
+}
+.cx-nur-vorleser {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.cx-regel.aus {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+.cx-regel em {
+  font-style: normal;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--t6);
+}
+.cx-regel-verknuepfung {
+  align-self: center;
+  font-size: 12px;
+  color: var(--t6);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cx-schalter > span,
+  .cx-schalter > span::after {
+    transition: none;
+  }
+}

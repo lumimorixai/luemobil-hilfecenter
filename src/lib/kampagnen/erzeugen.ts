@@ -19,6 +19,7 @@ import {
   normalisiereTelefon,
   schluesselVon,
   trifftZu,
+  wirksameRegeln,
   type Kandidat,
   type Regel,
 } from './regeln'
@@ -134,14 +135,16 @@ export async function ermittleFaelle(
   if (!kampagne) throw new KampagnenFehler('Kampagne nicht gefunden.')
 
   const regeln = (kampagne.regeln ?? []) as Regel[]
-  if (regeln.length === 0) {
+  if (wirksameRegeln(regeln).length === 0) {
     throw new KampagnenFehler(
-      'Die Kampagne hat keine Auswahlregeln. Ohne Regeln wird keine Liste erzeugt — sonst stünde versehentlich der gesamte Bestand darin.',
+      regeln.length === 0
+        ? 'Die Kampagne hat keine Auswahlregeln. Ohne Regeln wird keine Liste erzeugt — sonst stünde versehentlich der gesamte Bestand darin.'
+        : 'Es ist keine Regel eingeschaltet. Schalten Sie mindestens eine ein, sonst stünde der gesamte Bestand in der Liste.',
     )
   }
 
   const verknuepfung = (kampagne.regelVerknuepfung === 'oder' ? 'oder' : 'und') as 'und' | 'oder'
-  const kanal = kampagne.kanal === 'email' ? 'email' : 'telefon'
+  const kanal = String(kampagne.kanal ?? 'telefon')
 
   const kontoEmails = brauchtKontoAbgleich(regeln) ? await alleKontoEmails() : null
   const gesperrt = await sperrSchluessel(payload)
@@ -171,7 +174,8 @@ export async function ermittleFaelle(
       const telefon = normalisiereTelefon(k.telefon)
 
       // Ein Fall ohne den Kontaktweg der Kampagne ist wertlos — und im
-      // Arbeitsplatz würde er nur immer wieder ausgegeben.
+      // Arbeitsplatz würde er nur immer wieder ausgegeben. Brief und „anderer
+      // Weg" verlangen keinen der beiden; dort genügt eine Kennung.
       if (kanal === 'telefon' && !telefon) {
         bilanz.ohneKontakt++
         continue

@@ -1,23 +1,9 @@
 import { MigrateUpArgs, MigrateDownArgs, sql } from '@payloadcms/db-postgres'
 
-/**
- * Kampagnen: Kontaktaktionen mit Arbeitsliste, Versuchsprotokoll und Sperrliste.
- *
- * Sechs Tabellen — vier Collections plus zwei, die Payload für die Arrays
- * `regeln` und `ergebnisse` anlegt.
- *
- * Aus der erzeugten Fassung wurden Anweisungen zu cockpit_daily und
- * patris_entitlements entfernt: Der Generator kennt die handgeschriebenen
- * Vorgänger-Migrationen nicht (sie haben keine JSON-Schnappschüsse) und hätte
- * bereits vorhandene Spalten erneut angelegt.
- */
-
 export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   await db.execute(sql`
-   CREATE TYPE "public"."enum_kampagnen_regeln_feld" AS ENUM('produktnummer', 'produktname', 'email', 'kundennummer', 'gueltigJetzt', 'telefonVorhanden', 'volljaehrig', 'kontoVorhanden');
-  CREATE TYPE "public"."enum_kampagnen_regeln_operator" AS ENUM('ist', 'ist_nicht', 'ist_eines_von', 'enthaelt', 'ist_gesetzt', 'ist_leer');
-  CREATE TYPE "public"."enum_kampagnen_ergebnisse_wirkung" AS ENUM('abschluss', 'wiedervorlage', 'erneut', 'entfaellt', 'sperren');
-  CREATE TYPE "public"."enum_kampagnen_kanal" AS ENUM('telefon', 'email');
+   CREATE TYPE "public"."enum_kampagnen_ergebnisse_wirkung" AS ENUM('abschluss', 'wiedervorlage', 'erneut', 'entfaellt', 'sperren');
+  CREATE TYPE "public"."enum_kampagnen_kanal" AS ENUM('telefon', 'email', 'brief', 'sonstiges');
   CREATE TYPE "public"."enum_kampagnen_status" AS ENUM('entwurf', 'aktiv', 'pausiert', 'beendet');
   CREATE TYPE "public"."enum_kampagnen_regel_verknuepfung" AS ENUM('und', 'oder');
   CREATE TYPE "public"."enum_kampagnen_quelle" AS ENUM('regel', 'csv', 'beides');
@@ -31,8 +17,9 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   	"_order" integer NOT NULL,
   	"_parent_id" integer NOT NULL,
   	"id" varchar PRIMARY KEY NOT NULL,
-  	"feld" "enum_kampagnen_regeln_feld" NOT NULL,
-  	"operator" "enum_kampagnen_regeln_operator" DEFAULT 'ist' NOT NULL,
+  	"aktiv" boolean DEFAULT true,
+  	"feld" varchar NOT NULL,
+  	"operator" varchar DEFAULT 'ist' NOT NULL,
   	"wert" varchar
   );
   
@@ -182,34 +169,34 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
 
 export async function down({ db, payload, req }: MigrateDownArgs): Promise<void> {
   await db.execute(sql`
-   -- Erst die Verweise lösen, dann die Tabellen: andersherum sind die
-  -- Fremdschlüssel durch CASCADE bereits fort und DROP CONSTRAINT scheitert.
-  ALTER TABLE "payload_locked_documents_rels" DROP CONSTRAINT IF EXISTS "payload_locked_documents_rels_kampagnen_fk";
-  ALTER TABLE "payload_locked_documents_rels" DROP CONSTRAINT IF EXISTS "payload_locked_documents_rels_kampagnen_faelle_fk";
-  ALTER TABLE "payload_locked_documents_rels" DROP CONSTRAINT IF EXISTS "payload_locked_documents_rels_kampagnen_kontakte_fk";
-  ALTER TABLE "payload_locked_documents_rels" DROP CONSTRAINT IF EXISTS "payload_locked_documents_rels_kampagnen_sperrliste_fk";
-  DROP INDEX IF EXISTS "payload_locked_documents_rels_kampagnen_id_idx";
-  DROP INDEX IF EXISTS "payload_locked_documents_rels_kampagnen_faelle_id_idx";
-  DROP INDEX IF EXISTS "payload_locked_documents_rels_kampagnen_kontakte_id_idx";
-  DROP INDEX IF EXISTS "payload_locked_documents_rels_kampagnen_sperrliste_id_idx";
-  ALTER TABLE "payload_locked_documents_rels" DROP COLUMN IF EXISTS "kampagnen_id";
-  ALTER TABLE "payload_locked_documents_rels" DROP COLUMN IF EXISTS "kampagnen_faelle_id";
-  ALTER TABLE "payload_locked_documents_rels" DROP COLUMN IF EXISTS "kampagnen_kontakte_id";
-  ALTER TABLE "payload_locked_documents_rels" DROP COLUMN IF EXISTS "kampagnen_sperrliste_id";
-  ALTER TABLE "kampagnen_regeln" DISABLE ROW LEVEL SECURITY;
+   ALTER TABLE "kampagnen_regeln" DISABLE ROW LEVEL SECURITY;
   ALTER TABLE "kampagnen_ergebnisse" DISABLE ROW LEVEL SECURITY;
   ALTER TABLE "kampagnen" DISABLE ROW LEVEL SECURITY;
   ALTER TABLE "kampagnen_faelle" DISABLE ROW LEVEL SECURITY;
   ALTER TABLE "kampagnen_kontakte" DISABLE ROW LEVEL SECURITY;
   ALTER TABLE "kampagnen_sperrliste" DISABLE ROW LEVEL SECURITY;
+  
+  
+  
+  
+  ALTER TABLE "payload_locked_documents_rels" DROP CONSTRAINT "payload_locked_documents_rels_kampagnen_fk";
+  ALTER TABLE "payload_locked_documents_rels" DROP CONSTRAINT "payload_locked_documents_rels_kampagnen_faelle_fk";
+  ALTER TABLE "payload_locked_documents_rels" DROP CONSTRAINT "payload_locked_documents_rels_kampagnen_kontakte_fk";
+  ALTER TABLE "payload_locked_documents_rels" DROP CONSTRAINT "payload_locked_documents_rels_kampagnen_sperrliste_fk";
+  DROP INDEX "payload_locked_documents_rels_kampagnen_id_idx";
+  DROP INDEX "payload_locked_documents_rels_kampagnen_faelle_id_idx";
+  DROP INDEX "payload_locked_documents_rels_kampagnen_kontakte_id_idx";
+  DROP INDEX "payload_locked_documents_rels_kampagnen_sperrliste_id_idx";
+  ALTER TABLE "payload_locked_documents_rels" DROP COLUMN "kampagnen_id";
+  ALTER TABLE "payload_locked_documents_rels" DROP COLUMN "kampagnen_faelle_id";
+  ALTER TABLE "payload_locked_documents_rels" DROP COLUMN "kampagnen_kontakte_id";
+  ALTER TABLE "payload_locked_documents_rels" DROP COLUMN "kampagnen_sperrliste_id";
   DROP TABLE "kampagnen_regeln" CASCADE;
   DROP TABLE "kampagnen_ergebnisse" CASCADE;
   DROP TABLE "kampagnen" CASCADE;
   DROP TABLE "kampagnen_faelle" CASCADE;
   DROP TABLE "kampagnen_kontakte" CASCADE;
   DROP TABLE "kampagnen_sperrliste" CASCADE;
-  DROP TYPE "public"."enum_kampagnen_regeln_feld";
-  DROP TYPE "public"."enum_kampagnen_regeln_operator";
   DROP TYPE "public"."enum_kampagnen_ergebnisse_wirkung";
   DROP TYPE "public"."enum_kampagnen_kanal";
   DROP TYPE "public"."enum_kampagnen_status";

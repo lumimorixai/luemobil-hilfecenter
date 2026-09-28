@@ -65,8 +65,13 @@ export const Kampagnen: CollectionConfig = {
       options: [
         { label: 'Telefon', value: 'telefon' },
         { label: 'E-Mail', value: 'email' },
+        { label: 'Brief', value: 'brief' },
+        { label: 'Anderer Weg', value: 'sonstiges' },
       ],
-      admin: { description: 'Bestimmt, welches Kontaktfeld ein Fall zwingend braucht.' },
+      admin: {
+        description:
+          'Telefon und E-Mail verlangen den jeweiligen Kontaktweg an jedem Fall; Brief und „Anderer Weg" genügen sich mit einer Kennung.',
+      },
     },
     {
       name: 'status',
@@ -150,35 +155,32 @@ export const Kampagnen: CollectionConfig = {
       },
       fields: [
         {
+          name: 'aktiv',
+          label: 'Regel anwenden',
+          type: 'checkbox',
+          defaultValue: true,
+          admin: {
+            description:
+              'Ausgeschaltete Regeln bleiben erhalten, zählen aber nicht — zum Ausprobieren einer Zielgruppe, ohne sie neu eintippen zu müssen.',
+          },
+        },
+        {
           name: 'feld',
           label: 'Feld',
-          type: 'select',
+          type: 'text',
           required: true,
-          options: [
-            { label: 'Produktnummer (Segment)', value: 'produktnummer' },
-            { label: 'Produkt', value: 'produktname' },
-            { label: 'E-Mail', value: 'email' },
-            { label: 'Kundennummer', value: 'kundennummer' },
-            { label: 'Ticket heute gültig', value: 'gueltigJetzt' },
-            { label: 'Telefonnummer vorhanden', value: 'telefonVorhanden' },
-            { label: 'Volljährig', value: 'volljaehrig' },
-            { label: 'Konto in der App vorhanden', value: 'kontoVorhanden' },
-          ],
+          admin: {
+            description:
+              'Bestandsfeld (siehe FELDER in src/lib/kampagnen/regeln.ts) oder merkmal:<spalte> für eine Spalte aus einer hochgeladenen Liste. Bewusst Freitext statt Auswahlliste: Sonst müsste jedes neue Merkmal einer fremden Liste als Datenbank-Migration nachgezogen werden.',
+          },
         },
         {
           name: 'operator',
           label: 'Vergleich',
-          type: 'select',
+          type: 'text',
           required: true,
           defaultValue: 'ist',
-          options: [
-            { label: 'ist', value: 'ist' },
-            { label: 'ist nicht', value: 'ist_nicht' },
-            { label: 'ist eines von (Komma)', value: 'ist_eines_von' },
-            { label: 'enthält', value: 'enthaelt' },
-            { label: 'ist gesetzt', value: 'ist_gesetzt' },
-            { label: 'ist leer', value: 'ist_leer' },
-          ],
+          admin: { description: 'ist, ist_nicht, ist_eines_von, enthaelt, ist_gesetzt, ist_leer.' },
         },
         {
           name: 'wert',

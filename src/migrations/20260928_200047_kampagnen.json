@@ -2934,17 +2934,22 @@
           "primaryKey": true,
           "notNull": true
         },
+        "aktiv": {
+          "name": "aktiv",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": true
+        },
         "feld": {
           "name": "feld",
-          "type": "enum_kampagnen_regeln_feld",
-          "typeSchema": "public",
+          "type": "varchar",
           "primaryKey": false,
           "notNull": true
         },
         "operator": {
           "name": "operator",
-          "type": "enum_kampagnen_regeln_operator",
-          "typeSchema": "public",
+          "type": "varchar",
           "primaryKey": false,
           "notNull": true,
           "default": "'ist'"
@@ -5836,32 +5841,6 @@
         "in Vorbereitung"
       ]
     },
-    "public.enum_kampagnen_regeln_feld": {
-      "name": "enum_kampagnen_regeln_feld",
-      "schema": "public",
-      "values": [
-        "produktnummer",
-        "produktname",
-        "email",
-        "kundennummer",
-        "gueltigJetzt",
-        "telefonVorhanden",
-        "volljaehrig",
-        "kontoVorhanden"
-      ]
-    },
-    "public.enum_kampagnen_regeln_operator": {
-      "name": "enum_kampagnen_regeln_operator",
-      "schema": "public",
-      "values": [
-        "ist",
-        "ist_nicht",
-        "ist_eines_von",
-        "enthaelt",
-        "ist_gesetzt",
-        "ist_leer"
-      ]
-    },
     "public.enum_kampagnen_ergebnisse_wirkung": {
       "name": "enum_kampagnen_ergebnisse_wirkung",
       "schema": "public",
@@ -5878,7 +5857,9 @@
       "schema": "public",
       "values": [
         "telefon",
-        "email"
+        "email",
+        "brief",
+        "sonstiges"
       ]
     },
     "public.enum_kampagnen_status": {
@@ -5983,6 +5964,6 @@
     "tables": {},
     "columns": {}
   },
-  "id": "37821b13-5808-48de-8177-4436b9a1ee39",
+  "id": "a319fcce-5c1b-4834-8737-f2153682ef36",
   "prevId": "00000000-0000-0000-0000-000000000000"
 }

@@ -4,6 +4,38 @@ Neueste Änderungen oben. Je Eintrag: was neu ist und **was beim Update von Hand
 zu tun ist**. Allgemeiner Update-Ablauf: `LIVE-GEHEN.md`, „Später: Updates
 einspielen".
 
+## 2026-09-28 — Kampagnen vollständig im Cockpit pflegen
+
+Nachtrag zur Listenerzeugung: Kampagnen entstehen und ändern sich jetzt auf
+`/cockpit/kampagnen`. Der Payload-Admin ist nur noch Nachschau — wer Aktionen
+führt, braucht keinen CMS-Zugang.
+
+- **Regeln zusammenklicken statt eintippen.** Feld, Vergleich und Wert je Zeile,
+  hinzufügen und entfernen, UND/ODER umschalten. Jede Regel hat einen eigenen
+  **Schalter**: Sie lässt sich abschalten, ohne sie zu verlieren — so wird eine
+  Zielgruppe schrittweise eingegrenzt und zwischendurch durchgerechnet.
+- **Nicht mehr auf einen Fall zugeschnitten:**
+  - *Merkmale fremder Listen.* Eine Regel kann sich auf `merkmal:<spalte>`
+    beziehen, also auf eine beliebige Spalte einer hochgeladenen Liste. Ohne
+    das wäre jede fremde Liste eine Schemaänderung gewesen.
+  - *Vier Kanäle* statt zwei: Telefon, E-Mail, Brief, anderer Weg. Brief und
+    „anderer Weg" verlangen keinen festen Kontaktweg am Fall.
+  - *Ergebniskatalog frei zusammenstellbar*, mit drei Vorlagen zum Übernehmen
+    (Gespräch geführt, Nicht erreicht, Widerspruch) statt fester Vorgaben.
+  - Die Texte sprechen von Kontaktaufnahme, nicht mehr von Anrufen.
+- **Prüfungen an einer Stelle.** Aktivieren geht nur mit Rechtsgrundlage und
+  mindestens einem Ergebnis; geprüft wird gegen den Stand *nach* der Änderung,
+  nicht gegen die Eingabe allein. Löschen nur, solange die Kampagne keine Fälle
+  hat — sonst rissen Gesprächsprotokolle mit, die aufbewahrt werden müssen.
+
+**Beim Update**
+- Die Migration heißt jetzt `20260928_200047_kampagnen` und ersetzt die nie
+  ausgelieferte `20260928_172208_kampagnen`. Wer die alte Fassung bereits
+  eingespielt hat — was nur bei einem Stand aus dem lokalen Zweig möglich ist —
+  muss sie vorher zurückrollen.
+- Regelfelder sind in der Datenbank jetzt Text statt Auswahllisten. Sonst
+  erforderte jedes neue Merkmal einer fremden Liste eine Migration.
+
 ## 2026-09-28 — Kampagnen: Auswahlregeln und Listenerzeugung
 
 Dritte Etappe der Kontaktaktionen. Aus dem Patris-Bestand entsteht jetzt die
