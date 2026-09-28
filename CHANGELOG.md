@@ -4,6 +4,42 @@ Neueste Änderungen oben. Je Eintrag: was neu ist und **was beim Update von Hand
 zu tun ist**. Allgemeiner Update-Ablauf: `LIVE-GEHEN.md`, „Später: Updates
 einspielen".
 
+## 2026-09-28 — Kampagnen: Auswahlregeln und Listenerzeugung
+
+Dritte Etappe der Kontaktaktionen. Aus dem Patris-Bestand entsteht jetzt die
+Arbeitsliste einer Kampagne — noch ohne Arbeitsplatz, der folgt in Etappe 4.
+
+- **Neue Seite `/cockpit/kampagnen`** (Rolle cockpit oder support): zeigt je
+  Kampagne Status, Kanal, Regeln und den Bearbeitungsstand.
+- **Trockenlauf vor jeder Erzeugung.** Der Knopf „Liste durchrechnen" rechnet
+  mit demselben Code, der später schreibt, und nennt jede Zahl — auch die
+  aussortierten: ohne Kontaktweg, mehrfach in der Auswahl, auf der Sperrliste,
+  schon in der Kampagne. Erst danach lässt sich die Liste anlegen, und auch
+  dann erst nach einer Rückfrage.
+- **Regeln ohne Programmierung.** Acht Felder (Produktnummer, Produkt, E-Mail,
+  Kundennummer, Ticket heute gültig, Telefon vorhanden, Volljährig, Konto
+  vorhanden) mit sechs Vergleichen, UND- oder ODER-verknüpft. Ein neues
+  Szenario ist ein neuer Datensatz im Admin, kein neuer Code.
+- **Ohne Rechtsgrundlage keine Liste.** Fehlt die Angabe an der Kampagne oder
+  fehlen die Regeln, bleibt das Anlegen gesperrt.
+- **Volljährigkeit im Zweifel gegen den Anruf:** Wer kein Geburtsdatum hat,
+  gilt nicht als volljährig und fällt aus der Auswahl.
+- **Sperrliste greift schon bei der Erzeugung.** Wer einmal widersprochen hat,
+  kommt in keine neue Liste — über E-Mail-Schlüssel und Telefonschlüssel.
+- **Wiederholbar:** Ein zweiter Lauf legt nur an, was noch fehlt; bestehende
+  Fälle behalten ihren Bearbeitungsstand.
+- Der Abgleich gegen Keycloak läuft in einem Durchgang (`alleKontoEmails`,
+  zehn Minuten gecacht) statt mit einer Abfrage je Person — bei mehreren
+  tausend Kandidaten der Unterschied zwischen 25 Sekunden und Stunden.
+
+**Beim Update**
+- Keine Migration, keine neuen Umgebungsvariablen.
+- Eine Kampagne wird im Admin unter **Aktionen → Kampagnen** angelegt
+  (Name, Kennung, Kanal, Rechtsgrundlage, Gesprächsleitfaden, Regeln,
+  Ergebniskatalog), die Liste dann im Cockpit erzeugt.
+- **Noch offen vor der ersten echten Liste:** der Wortlaut der Rechtsgrundlage
+  und der Eintrag V12 in `docs/DATENSCHUTZ.md`.
+
 ## 2026-09-28 — Telefonnummer und Geburtsdatum im Patris-Import
 
 Vorbereitung der Anruflisten: Beide Spalten werden wieder übernommen. Sie waren

@@ -105,6 +105,47 @@ export async function usersCount(): Promise<number> {
 }
 
 
+// --- Konto-Abgleich in einem Durchgang ---------------------------------------
+
+let kontoCache: { emails: Set<string>; stand: number } | null = null
+const KONTO_CACHE_MS = 10 * 60 * 1000
+
+/**
+ * Alle E-Mail-Adressen, zu denen ein Konto im Realm existiert — kleingeschrieben.
+ *
+ * Für die Listenerzeugung: Bei 8.000 Kandidaten wäre eine Einzelabfrage je
+ * Person nicht vertretbar (8.000 Anfragen gegen Keycloak, mehrere Minuten). Ein
+ * Durchgang über /users kostet rund 50 Anfragen.
+ *
+ * Zehn Minuten gecacht. Für den Einzelfall beim Zuteilen bleibt
+ * findUserByEmail() zuständig — dort zählt der aktuelle Stand, nicht der
+ * schnelle.
+ */
+export async function alleKontoEmails(): Promise<Set<string>> {
+  if (kontoCache && Date.now() - kontoCache.stand < KONTO_CACHE_MS) return kontoCache.emails
+
+  const emails = new Set<string>()
+  if (isMock()) {
+    emails.add('anna.albers@example.de')
+    kontoCache = { emails, stand: Date.now() }
+    return emails
+  }
+
+  const PAGE = 100
+  const MAX_PAGES = 1000
+  let first = 0
+  for (let page = 0; page < MAX_PAGES; page++) {
+    const res = await adminFetch(`/users?first=${first}&max=${PAGE}&briefRepresentation=true`)
+    if (!res.ok) throw new Error(`Keycloak-Nutzerliste fehlgeschlagen (HTTP ${res.status})`)
+    const users = (await res.json()) as KcRawUser[]
+    if (users.length === 0) break
+    for (const u of users) if (u.email) emails.add(u.email.trim().toLowerCase())
+    first += users.length
+    if (users.length < PAGE) break
+  }
+  kontoCache = { emails, stand: Date.now() }
+  return emails
+}
 
 // --- Events ------------------------------------------------------------------
 

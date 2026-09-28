@@ -34,6 +34,7 @@ Aufruf sämtliche Kennzahlen.
 | | Support | `/cockpit/support` |
 | Auswertungen | Dashboards (Metabase) | `/cockpit/dashboards` |
 | Werkzeuge | Kundencheck | `/cockpit/kundencheck` |
+| | Kampagnen | `/cockpit/kampagnen` |
 | | Daten und Jobs | `/cockpit/daten` |
 
 `/kennzahlen` und `/kundencheck` leiten auf die entsprechenden Bereiche weiter.
@@ -341,9 +342,97 @@ liegen in der Hilfecenter-Datenbank, bis sie beim nächsten Upload ersetzt werde
 |---|---|---|---|
 | `/api/cockpit/check` | POST (JSON `{email}`) | Kundencheck | Kundencheck (Rate-Limit 30/min je Person); E-Mail bewusst im Body, nicht in der URL |
 | `/api/cockpit/patris` | POST (multipart `file`) | Cockpit | Patris-CSV-Upload |
+| `/api/cockpit/kampagnen/erzeugen` | POST (JSON `{kampagne, probe}`) | Cockpit | Arbeitsliste durchrechnen (`probe: true`) oder anlegen |
 | `/api/cockpit/stats` | GET | Cockpit | Kennzahlen |
 | `/api/cockpit/events` | GET | Cockpit | Fehler-Events |
 | `/api/cockpit/health` | GET | Cockpit | Live-Status (Ampel im Cockpit-Kopf) |
 | `/api/cockpit/report` | POST | Cockpit | Report sofort versenden |
 | `/api/cockpit/cron?job=…` | POST | Header `x-cron-secret` | Health/Aggregat/Report per Host-Cron |
 | `/api/auth/login`, `/callback`, `/logout` | GET | – | Keycloak-OIDC-Login |
+
+---
+
+## 7. Kampagnen (Kontaktaktionen)
+
+Stand 28.09.2026: Datenmodell und Listenerzeugung stehen. Arbeitsplatz,
+CSV-Upload, Auswertung und Nachtjob folgen.
+
+### 7.1 Begriffe
+
+| Begriff | Bedeutung |
+|---|---|
+| **Kampagne** | Der Rahmen: Zweck, Kanal, Rechtsgrundlage, Leitfaden, Auswahlregeln, Ergebniskatalog. Enthält selbst keine personenbezogenen Daten. |
+| **Fall** | Eine Person in einer Kampagne. Die Personendaten sind eine **Momentaufnahme** aus Patris, keine Beziehung — der nächste Patris-Upload ersetzt dort den gesamten Bestand. |
+| **Kontaktversuch** | Jede Wahl, jede Mail eine eigene Zeile, mit Ergebnis und Notiz. |
+| **Sperrliste** | Wer nicht kontaktiert werden möchte — kampagnenübergreifend und dauerhaft (Art. 21 DSGVO). |
+
+### 7.2 Eine Kampagne anlegen
+
+Im Admin unter **Aktionen → Kampagnen**. Pflicht vor der Listenerzeugung sind
+**Rechtsgrundlage** und mindestens eine **Auswahlregel**; ohne beides bleibt
+das Anlegen im Cockpit gesperrt.
+
+Der **Gesprächsleitfaden** wird dem Agent bei jedem Fall angezeigt und gehört
+deshalb ausformuliert — samt dem Hinweis nach Art. 14 DSGVO, woher die
+Telefonnummer stammt.
+
+Der **Ergebniskatalog** bestimmt die Knöpfe nach dem Gespräch. Jedes Ergebnis
+hat eine Wirkung: `abschluss`, `wiedervorlage`, `erneut`, `entfaellt` oder
+`sperren` (trägt in die Sperrliste ein).
+
+### 7.3 Auswahlregeln
+
+Acht Felder, sechs Vergleiche, UND- oder ODER-verknüpft:
+
+| Feld | Werte |
+|---|---|
+| Produktnummer, Produkt, E-Mail, Kundennummer | Text |
+| Ticket heute gültig | `ja` / `nein` — gegen `validFrom`/`validUntil` |
+| Telefonnummer vorhanden | `ja` / `nein` |
+| Volljährig | `ja` / `nein` — **ohne Geburtsdatum gilt „nein"** |
+| Konto in der App vorhanden | `ja` / `nein` — Abgleich mit Keycloak |
+
+Vergleiche: `ist`, `ist nicht`, `ist eines von` (Komma), `enthält`,
+`ist gesetzt`, `ist leer`.
+
+Ausgewertet wird **im Speicher**, nicht in der Datenbank: Der Patris-Bestand
+umfasst gut 8.000 Zeilen, und ein Abfrage-Übersetzer müsste bei jedem neuen
+Feld mitwachsen. Ein neues Auswahlkriterium ist damit ein Eintrag in `FELDER`
+plus ein Zweig in `wertVon` (`src/lib/kampagnen/regeln.ts`).
+
+### 7.4 Liste erzeugen
+
+Auf `/cockpit/kampagnen`, in zwei Schritten:
+
+1. **Liste durchrechnen** — schreibt nichts und zeigt die vollständige Bilanz:
+   geprüft, getroffen, und wie viele warum herausfallen (ohne Kontaktweg,
+   mehrfach in der Auswahl, auf der Sperrliste, schon in der Kampagne).
+2. **Fälle anlegen** — nach einer Rückfrage, die die Zahl noch einmal nennt.
+
+Beide Wege rechnen mit demselben Code; die angezeigte Zahl kann also nicht von
+der tatsächlich erzeugten abweichen.
+
+Aussortiert wird in fester Reihenfolge: kein Kontaktweg für den Kanal der
+Kampagne → Dublette innerhalb des Laufs (mehrere Berechtigungen derselben
+Person ergeben **einen** Anruf) → Sperrliste → schon in der Kampagne.
+
+Der Lauf ist **wiederholbar**: Ein zweiter Durchgang legt nur an, was noch
+fehlt. Bestehende Fälle werden nie überschrieben, ihr Bearbeitungsstand bleibt.
+
+**Konto-Abgleich.** Verlangt eine Regel „Konto vorhanden", werden alle
+E-Mail-Adressen des Realms in einem Durchgang geholt (rund 50 Anfragen, etwa
+25 Sekunden bei 4.900 Konten) und zehn Minuten zwischengespeichert — nicht eine
+Abfrage je Person. Beim späteren Zuteilen eines Falls entscheidet dagegen die
+Einzelabfrage, weil dort der aktuelle Stand zählt.
+
+### 7.5 Datenschutz
+
+Fälle und Kontaktversuche enthalten Namen, Telefonnummern, Geburtsdaten und
+Gesprächsnotizen. Beide Collections sind im Admin nur für Administratoren
+lesbar und in der Navigation verborgen; geschrieben wird ausschließlich über
+die Cockpit-Routen.
+
+**Vor der ersten echten Kampagne offen:** der Wortlaut der Rechtsgrundlage und
+der Eintrag **V12 „Kampagnen und Anrufaktionen"** in `docs/DATENSCHUTZ.md`. Bei
+Telefonaktionen gegenüber Verbrauchern ist neben der DSGVO auch § 7 UWG zu
+beachten.

@@ -40,6 +40,7 @@ const GRUPPEN: Gruppe[] = [
     titel: 'Werkzeuge',
     punkte: [
       { href: '/cockpit/kundencheck', label: 'Kundencheck', icon: 'kundencheck' },
+      { href: '/cockpit/kampagnen', label: 'Kampagnen', icon: 'kampagnen', nurCockpit: true },
       { href: '/cockpit/daten', label: 'Daten & Jobs', icon: 'daten', nurCockpit: true },
     ],
   },
@@ -89,6 +90,12 @@ const ICONS = {
     <>
       <circle cx="7.2" cy="7.2" r="4.2" />
       <path d="m10.4 10.4 3 3" />
+    </>
+  ),
+  kampagnen: (
+    <>
+      <path d="M3.4 6.2h2.2l4.6-2.8v9.2L5.6 9.8H3.4z" />
+      <path d="M12.2 6.4a2.6 2.6 0 0 1 0 3.2" />
     </>
   ),
   daten: (
