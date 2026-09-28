@@ -52,7 +52,7 @@ Hosting: eigener VPS via Docker Compose + Caddy.
 
 ## Verifikation (immer vor „fertig")
 1. `pnpm typecheck` grün
-2. `pnpm build` grün
+2. `pnpm build` grün — **vorher IMMER den Dev-Server stoppen** (`pkill -f "next dev"`), danach `rm -rf .next` und neu starten. Der Build überschreibt den `.next`-Ordner des laufenden Servers; die Seite liefert dann HTML, aber 404 auf alle CSS- und JS-Dateien und sieht unformatiert aus. Reihenfolge: `pkill` → `pnpm build` → `rm -rf .next` → `pnpm dev`.
 3. Bei Frontend-Änderungen: Seite im Browser/Screenshot prüfen
 
 ## Tabu
