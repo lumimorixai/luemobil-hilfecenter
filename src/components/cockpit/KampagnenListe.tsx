@@ -103,6 +103,7 @@ function KampagneKarte({ k }: { k: KampagnenAnsicht }) {
   const [bearbeiten, setBearbeiten] = useState(false)
   const [loeschfrage, setLoeschfrage] = useState(false)
   const [fehler, setFehler] = useState<string | null>(null)
+  const [laeuft, setLaeuft] = useState(false)
 
   const status = STATUS[k.status] ?? STATUS.entwurf
   const st = k.stand
@@ -111,6 +112,40 @@ function KampagneKarte({ k }: { k: KampagnenAnsicht }) {
   const anteil = st.gesamt > 0 ? Math.round((fertig / st.gesamt) * 100) : 0
   const aktiveRegeln = k.regeln.filter((r) => r.aktiv)
   const aktivierbar = Boolean(k.rechtsgrundlage) && aktiveRegeln.length > 0
+
+  /**
+   * Was dieser Kampagne zum Starten noch fehlt.
+   *
+   * Der Server lehnt das Aktivieren ohnehin ab — aber erst nach dem Klick und
+   * mit einem Satz. Hier steht es vorher und vollständig, damit niemand raten
+   * muss, warum es nicht weitergeht.
+   */
+  const fehlt: string[] = []
+  if (!k.rechtsgrundlage) fehlt.push('die Rechtsgrundlage')
+  if (k.ergebnisse.length === 0) fehlt.push('mindestens ein mögliches Ergebnis')
+  if (aktiveRegeln.length === 0 && st.gesamt === 0) fehlt.push('eine eingeschaltete Auswahlregel')
+
+  async function statusSetzen(neuerStatus: string) {
+    setFehler(null)
+    setLaeuft(true)
+    try {
+      const res = await fetch('/api/cockpit/kampagnen', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: k.id, status: neuerStatus }),
+      })
+      const data = (await res.json()) as { error?: string }
+      if (!res.ok) {
+        setFehler(data.error ?? `Die Anfrage schlug fehl (HTTP ${res.status}).`)
+        return
+      }
+      router.refresh()
+    } catch (err) {
+      setFehler(`Der Server war nicht erreichbar: ${(err as Error).message}`)
+    } finally {
+      setLaeuft(false)
+    }
+  }
 
   async function loeschen() {
     setFehler(null)
@@ -244,13 +279,63 @@ function KampagneKarte({ k }: { k: KampagnenAnsicht }) {
           </p>
         )}
 
+        {k.status !== 'aktiv' && k.status !== 'beendet' && fehlt.length > 0 && (
+          <p className="cx-hinweis-zeile">
+            Zum Starten fehlt noch {fehlt.join(' und ')}. Über „Bearbeiten" nachtragen.
+          </p>
+        )}
+
+        {k.status === 'aktiv' && st.gesamt === 0 && (
+          <p className="cx-hinweis-zeile">
+            Die Kampagne läuft, hat aber noch keine Fälle. Erzeugen Sie die Liste mit „Liste
+            durchrechnen" und anschließend „Fälle anlegen".
+          </p>
+        )}
+
+        {k.status === 'aktiv' && st.gesamt > 0 && st.offen + st.inArbeit === 0 && (
+          <p className="cx-hinweis-zeile">
+            Alle Fälle dieser Kampagne sind abgearbeitet. Sie kann beendet werden.
+          </p>
+        )}
+
         <KampagnenAktionen kampagne={k.id} name={k.name} aktivierbar={aktivierbar} />
 
         <div className="cx-knopfreihe">
+          {k.status !== 'aktiv' && k.status !== 'beendet' && (
+            <button
+              type="button"
+              className="cx-knopf cx-knopf--akzent"
+              onClick={() => void statusSetzen('aktiv')}
+              disabled={laeuft || fehlt.length > 0}
+              title={fehlt.length > 0 ? `Es fehlt noch: ${fehlt.join(', ')}` : undefined}
+            >
+              {k.status === 'pausiert' ? 'Fortsetzen' : 'Kampagne starten'}
+            </button>
+          )}
           {k.status === 'aktiv' && st.offen + st.inArbeit > 0 && (
             <a className="cx-knopf cx-knopf--akzent" href="/cockpit/kampagnen/arbeiten">
               Fälle abarbeiten
             </a>
+          )}
+          {k.status === 'aktiv' && (
+            <button
+              type="button"
+              className="cx-knopf"
+              onClick={() => void statusSetzen('pausiert')}
+              disabled={laeuft}
+            >
+              Pausieren
+            </button>
+          )}
+          {(k.status === 'aktiv' || k.status === 'pausiert') && (
+            <button
+              type="button"
+              className="cx-knopf"
+              onClick={() => void statusSetzen('beendet')}
+              disabled={laeuft}
+            >
+              Beenden
+            </button>
           )}
           <button type="button" className="cx-knopf" onClick={() => setBearbeiten(true)}>
             Bearbeiten

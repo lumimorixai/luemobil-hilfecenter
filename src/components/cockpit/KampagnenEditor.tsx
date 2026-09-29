@@ -534,6 +534,13 @@ export function KampagnenEditor({
         ))}
       </div>
 
+      {e.ergebnisse.length === 0 && (
+        <p className="cx-hinweis-zeile">
+          Ohne mindestens ein Ergebnis lässt sich kein Fall abschließen — die Kampagne kann dann
+          nicht gestartet werden. Am schnellsten geht es mit einer der Vorlagen unten.
+        </p>
+      )}
+
       <div className="cx-knopfreihe">
         <button type="button" className="cx-knopf" onClick={ergebnisZu}>
           Ergebnis hinzufügen

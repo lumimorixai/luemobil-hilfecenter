@@ -4,6 +4,27 @@ Neueste Änderungen oben. Je Eintrag: was neu ist und **was beim Update von Hand
 zu tun ist**. Allgemeiner Update-Ablauf: `LIVE-GEHEN.md`, „Später: Updates
 einspielen".
 
+## 2026-09-29 — Kampagne starten, pausieren, beenden
+
+Eine Kampagne ließ sich nur über ein Auswahlfeld tief im Bearbeitungsformular
+aktivieren. Wer eine fertige Liste vor sich hatte, suchte vergeblich nach einem
+Start — zu Recht.
+
+- **Knöpfe direkt an der Kampagne:** „Kampagne starten" (bzw. „Fortsetzen"),
+  „Pausieren", „Beenden". Das Auswahlfeld im Formular bleibt, ist aber nicht
+  mehr der einzige Weg.
+- **Es steht dabei, was zum Starten fehlt.** Bisher lehnte der Server das
+  Aktivieren ab — aber erst nach dem Klick. Jetzt ist der Knopf gesperrt und
+  darunter steht im Klartext, was nachzutragen ist: Rechtsgrundlage,
+  mindestens ein mögliches Ergebnis, eine eingeschaltete Auswahlregel.
+- **Zwei weitere Hinweise an der Kampagne:** wenn sie läuft, aber noch keine
+  Fälle hat (Liste erzeugen), und wenn alle Fälle abgearbeitet sind (kann
+  beendet werden).
+- **Im Editor** weist ein Hinweis auf fehlende Ergebnisse hin, solange keines
+  angelegt ist — mit dem Verweis auf die Vorlagen.
+
+**Beim Update** — keine Migration, keine neuen Variablen.
+
 ## 2026-09-29 — Konto-Abgleich ist eine Einstellung, keine Annahme
 
 Dass ein Fall entfällt, sobald die Person ein Konto in der App hat, war fest

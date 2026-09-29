@@ -384,7 +384,12 @@ Prüfungen an einer Stelle stehen.
 
 Pflicht vor der Listenerzeugung sind **Rechtsgrundlage** und mindestens eine
 eingeschaltete **Auswahlregel**; ohne beides bleibt das Anlegen gesperrt.
-Aktivieren verlangt zusätzlich mindestens ein mögliches Ergebnis.
+
+**Starten, pausieren, beenden** geht über die Knöpfe an der Kampagne. Zum
+Starten müssen Rechtsgrundlage, mindestens ein mögliches Ergebnis und eine
+eingeschaltete Auswahlregel vorhanden sein — fehlt etwas, ist der Knopf
+gesperrt und der fehlende Punkt steht darunter. Nur **aktive** Kampagnen geben
+Fälle aus.
 
 Der **Gesprächsleitfaden** wird dem Agent bei jedem Fall angezeigt und gehört
 deshalb ausformuliert — samt dem Hinweis nach Art. 14 DSGVO, woher die
