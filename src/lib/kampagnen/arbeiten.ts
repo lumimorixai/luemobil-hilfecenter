@@ -142,7 +142,12 @@ async function naechstenSperren(
           status = 'offen'
        OR (status = 'in_arbeit' AND (gesperrt_bis IS NULL OR gesperrt_bis < '${jetzt}'))
     )
-    AND (wiedervorlage_am IS NULL OR wiedervorlage_am <= '${jetzt}')`
+    AND (wiedervorlage_am IS NULL OR wiedervorlage_am <= '${jetzt}')
+    AND NOT (
+          zurueckgestellt_von = '${wer}'
+      AND zurueckgestellt_bis IS NOT NULL
+      AND zurueckgestellt_bis > '${jetzt}'
+    )`
 
   const sperrklausel = istPostgres ? 'FOR UPDATE SKIP LOCKED' : ''
 
@@ -239,6 +244,49 @@ async function fallEntfaellt(
 }
 
 /**
+ * Warum gerade nichts kommt — so genau, wie es sich feststellen lässt.
+ *
+ * „Kein Fall offen" allein führt in die Irre, sobald jemand Fälle
+ * zurückgegeben hat: Für andere sind sie verfügbar, nur für diese Person
+ * vorübergehend nicht.
+ */
+async function leerGrund(
+  payload: Payload,
+  kampagneId: number | string,
+  bearbeiter: string,
+  gabUebersprungene: boolean,
+): Promise<string> {
+  let zurueckgestellt = 0
+  try {
+    const res = await payload.count({
+      collection: 'kampagnen-faelle',
+      where: {
+        and: [
+          { kampagne: { equals: kampagneId } },
+          { status: { equals: 'offen' } },
+          { zurueckgestelltVon: { equals: bearbeiter } },
+          { zurueckgestelltBis: { greater_than: new Date().toISOString() } },
+        ],
+      },
+      overrideAccess: true,
+    })
+    zurueckgestellt = res.totalDocs
+  } catch (err) {
+    console.warn('[kampagnen] Zurückgestellte nicht gezählt:', (err as Error).message)
+  }
+
+  if (zurueckgestellt > 0) {
+    return `Es ist kein Fall für Sie offen. ${zurueckgestellt} ${
+      zurueckgestellt === 1 ? 'Fall, den Sie zurückgegeben haben, steht' : 'Fälle, die Sie zurückgegeben haben, stehen'
+    } Ihnen vorübergehend nicht wieder zur Verfügung — andere können ${
+      zurueckgestellt === 1 ? 'ihn' : 'sie'
+    } sofort bearbeiten.`
+  }
+  if (gabUebersprungene) return 'Es ist kein weiterer Fall offen.'
+  return 'Es ist derzeit kein Fall offen. Entweder sind alle bearbeitet, oder die übrigen stehen auf Wiedervorlage.'
+}
+
+/**
  * Den nächsten Fall zuteilen.
  *
  * Fälle, die dabei hinfällig werden — Konto inzwischen vorhanden, Sperrliste —
@@ -286,14 +334,7 @@ export async function naechsterFall(
     const id = await naechstenSperren(payload, kampagne.id, bearbeiter, haltefrist, maxVersuche)
     if (id == null) {
       await zaehlerNachziehen()
-      return {
-        art: 'leer',
-        grund:
-          summe() > 0
-            ? 'Es ist kein weiterer Fall offen.'
-            : 'Es ist derzeit kein Fall offen. Entweder sind alle bearbeitet, oder die übrigen stehen auf Wiedervorlage.',
-        uebersprungen,
-      }
+      return { art: 'leer', grund: await leerGrund(payload, kampagne.id, bearbeiter, summe() > 0), uebersprungen }
     }
 
     const fall = await fallLesen(payload, id)
@@ -365,7 +406,18 @@ export async function naechsterFall(
   }
 }
 
-/** Einen zugeteilten Fall ohne Ergebnis zurückgeben. */
+/**
+ * Einen zugeteilten Fall ohne Ergebnis zurückgeben.
+ *
+ * Der Fall wird für die zurückgebende Person zurückgestellt, nicht nur wieder
+ * geöffnet: Sonst stünde er in der Reihenfolge weiter vorn und läge nach dem
+ * nächsten Klick sofort wieder vor ihr — genau das, was sie eben nicht wollte.
+ * Für alle anderen bleibt er unverändert verfügbar; die Liste verliert also
+ * nichts.
+ *
+ * Die Karenz entspricht der Haltefrist der Kampagne — dieselbe Größenordnung,
+ * in der auch ein vergessener Fall zurückfällt.
+ */
 export async function fallFreigeben(fallId: number | string, bearbeiter: string): Promise<void> {
   const payload = await payloadClient()
   const fall = await payload.findByID({
@@ -378,10 +430,31 @@ export async function fallFreigeben(fallId: number | string, bearbeiter: string)
   if (fall.gesperrtVon && fall.gesperrtVon !== bearbeiter) {
     throw new KampagnenFehler('Dieser Fall gehört gerade jemand anderem.')
   }
+
+  const kampagneId = typeof fall.kampagne === 'object' ? fall.kampagne.id : fall.kampagne
+  let karenzMin = 15
+  try {
+    const kampagne = await payload.findByID({
+      collection: 'kampagnen',
+      id: kampagneId as number | string,
+      depth: 0,
+      overrideAccess: true,
+    })
+    karenzMin = kampagne?.sperreMinuten ?? 15
+  } catch (err) {
+    console.warn('[kampagnen] Haltefrist nicht gelesen, nehme 15 Minuten:', (err as Error).message)
+  }
+
   await payload.update({
     collection: 'kampagnen-faelle',
     id: fallId,
-    data: { status: 'offen', gesperrtVon: null, gesperrtBis: null } as never,
+    data: {
+      status: 'offen',
+      gesperrtVon: null,
+      gesperrtBis: null,
+      zurueckgestelltVon: bearbeiter,
+      zurueckgestelltBis: new Date(Date.now() + karenzMin * 60_000).toISOString(),
+    } as never,
     overrideAccess: true,
   })
 }
@@ -474,6 +547,9 @@ export async function ergebnisErfassen(
     letzterVersuchAm: jetzt.toISOString(),
     gesperrtVon: null,
     gesperrtBis: null,
+    // Eine frühere Rückgabe ist mit dem Ergebnis erledigt.
+    zurueckgestelltVon: null,
+    zurueckgestelltBis: null,
   }
 
   if (wirkung === 'wiedervorlage') {

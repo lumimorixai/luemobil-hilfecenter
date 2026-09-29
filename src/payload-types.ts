@@ -688,6 +688,11 @@ export interface KampagnenFaelle {
   wiedervorlageFuer?: string | null;
   gesperrtVon?: string | null;
   gesperrtBis?: string | null;
+  /**
+   * Wer den Fall ohne Ergebnis zurückgegeben hat. Diese Person bekommt ihn eine Weile nicht erneut zugeteilt — sonst läge er sofort wieder vor ihr.
+   */
+  zurueckgestelltVon?: string | null;
+  zurueckgestelltBis?: string | null;
   kontoVorhanden?: boolean | null;
   kontoGeprueftAm?: string | null;
   abschlussAm?: string | null;
@@ -1226,6 +1231,8 @@ export interface KampagnenFaelleSelect<T extends boolean = true> {
   wiedervorlageFuer?: T;
   gesperrtVon?: T;
   gesperrtBis?: T;
+  zurueckgestelltVon?: T;
+  zurueckgestelltBis?: T;
   kontoVorhanden?: T;
   kontoGeprueftAm?: T;
   abschlussAm?: T;

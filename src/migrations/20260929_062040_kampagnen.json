@@ -3489,6 +3489,18 @@
           "primaryKey": false,
           "notNull": false
         },
+        "zurueckgestellt_von": {
+          "name": "zurueckgestellt_von",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "zurueckgestellt_bis": {
+          "name": "zurueckgestellt_bis",
+          "type": "timestamp(3) with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
         "konto_vorhanden": {
           "name": "konto_vorhanden",
           "type": "boolean",
@@ -3663,6 +3675,21 @@
           "columns": [
             {
               "expression": "gesperrt_bis",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "kampagnen_faelle_zurueckgestellt_bis_idx": {
+          "name": "kampagnen_faelle_zurueckgestellt_bis_idx",
+          "columns": [
+            {
+              "expression": "zurueckgestellt_bis",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -5981,6 +6008,6 @@
     "tables": {},
     "columns": {}
   },
-  "id": "e07d4655-6bd2-4e74-b1bb-5edff3371db1",
+  "id": "88c60e8e-75a0-490c-b6d8-a8d0a407ed9a",
   "prevId": "00000000-0000-0000-0000-000000000000"
 }

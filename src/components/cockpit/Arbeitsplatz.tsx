@@ -200,7 +200,9 @@ export function Arbeitsplatz({ kampagnen }: { kampagnen: KampagneKurz[] }) {
       await ruf({ was: 'freigeben', fall: fall.id })
       setFall(null)
       setVerlauf([])
-      setMeldung('Der Fall wurde zurückgegeben.')
+      setMeldung(
+        'Der Fall wurde zurückgegeben und bleibt für Sie eine Weile zurückgestellt. Andere können ihn sofort bearbeiten.',
+      )
     } catch (err) {
       setFehler((err as Error).message)
     } finally {
@@ -419,7 +421,7 @@ export function Arbeitsplatz({ kampagnen }: { kampagnen: KampagneKurz[] }) {
 
             <div className="cx-knopfreihe">
               <button type="button" className="cx-knopf" onClick={() => void freigeben()} disabled={laeuft}>
-                Ohne Ergebnis zurückgeben
+                Zurückgeben, ohne Ergebnis
               </button>
             </div>
 

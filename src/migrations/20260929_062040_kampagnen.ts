@@ -84,6 +84,8 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   	"wiedervorlage_fuer" varchar,
   	"gesperrt_von" varchar,
   	"gesperrt_bis" timestamp(3) with time zone,
+  	"zurueckgestellt_von" varchar,
+  	"zurueckgestellt_bis" timestamp(3) with time zone,
   	"konto_vorhanden" boolean,
   	"konto_geprueft_am" timestamp(3) with time zone,
   	"abschluss_am" timestamp(3) with time zone,
@@ -146,6 +148,7 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   CREATE INDEX "kampagnen_faelle_letzter_versuch_am_idx" ON "kampagnen_faelle" USING btree ("letzter_versuch_am");
   CREATE INDEX "kampagnen_faelle_wiedervorlage_am_idx" ON "kampagnen_faelle" USING btree ("wiedervorlage_am");
   CREATE INDEX "kampagnen_faelle_gesperrt_bis_idx" ON "kampagnen_faelle" USING btree ("gesperrt_bis");
+  CREATE INDEX "kampagnen_faelle_zurueckgestellt_bis_idx" ON "kampagnen_faelle" USING btree ("zurueckgestellt_bis");
   CREATE INDEX "kampagnen_faelle_konto_geprueft_am_idx" ON "kampagnen_faelle" USING btree ("konto_geprueft_am");
   CREATE INDEX "kampagnen_faelle_updated_at_idx" ON "kampagnen_faelle" USING btree ("updated_at");
   CREATE INDEX "kampagnen_faelle_created_at_idx" ON "kampagnen_faelle" USING btree ("created_at");

@@ -4,6 +4,27 @@ Neueste Änderungen oben. Je Eintrag: was neu ist und **was beim Update von Hand
 zu tun ist**. Allgemeiner Update-Ablauf: `LIVE-GEHEN.md`, „Später: Updates
 einspielen".
 
+## 2026-09-29 — Zurückgegebene Fälle kommen nicht sofort zurück
+
+„Zurückgeben, ohne Ergebnis" setzte den Fall wieder auf offen — und weil er in
+der Reihenfolge weit vorn steht, lag er nach dem nächsten Klick sofort wieder
+vor derselben Person. Damit war der Knopf nutzlos.
+
+- **Der Fall wird jetzt für die zurückgebende Person zurückgestellt**, und
+  zwar für die Dauer der Haltefrist der Kampagne (Vorgabe 15 Minuten).
+- **Für alle anderen bleibt er sofort verfügbar.** Die Liste verliert nichts;
+  nur wer den Fall abgegeben hat, bekommt ihn nicht gleich wieder.
+- **Die Leermeldung sagt, woran es liegt:** „Es ist kein Fall für Sie offen.
+  2 Fälle, die Sie zurückgegeben haben, stehen Ihnen vorübergehend nicht
+  wieder zur Verfügung — andere können sie sofort bearbeiten." Bisher hieß es
+  pauschal, es sei nichts offen, was in dieser Lage schlicht falsch war.
+- Wird später ein Ergebnis erfasst, ist die Zurückstellung aufgehoben.
+
+**Beim Update**
+- Die Migration heißt jetzt `20260929_062040_kampagnen` und ersetzt die nie
+  ausgelieferte `20260929_054852_kampagnen`. Neu sind zwei Spalten an
+  `kampagnen_faelle`: `zurueckgestellt_von` und `zurueckgestellt_bis`.
+
 ## 2026-09-29 — Kampagne starten, pausieren, beenden
 
 Eine Kampagne ließ sich nur über ein Auswahlfeld tief im Bearbeitungsformular

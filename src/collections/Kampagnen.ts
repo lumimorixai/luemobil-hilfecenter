@@ -377,6 +377,16 @@ export const KampagnenFaelle: CollectionConfig = {
     },
     { name: 'gesperrtVon', label: 'In Arbeit bei', type: 'text' },
     { name: 'gesperrtBis', label: 'Haltefrist bis', type: 'date', index: true },
+    {
+      name: 'zurueckgestelltVon',
+      label: 'Zurückgegeben von',
+      type: 'text',
+      admin: {
+        description:
+          'Wer den Fall ohne Ergebnis zurückgegeben hat. Diese Person bekommt ihn eine Weile nicht erneut zugeteilt — sonst läge er sofort wieder vor ihr.',
+      },
+    },
+    { name: 'zurueckgestelltBis', label: 'Zurückgestellt bis', type: 'date', index: true },
     { name: 'kontoVorhanden', label: 'Konto vorhanden', type: 'checkbox' },
     { name: 'kontoGeprueftAm', label: 'Konto geprüft am', type: 'date', index: true },
     { name: 'abschlussAm', label: 'Abgeschlossen am', type: 'date' },

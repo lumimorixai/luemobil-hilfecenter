@@ -474,6 +474,12 @@ Zeit (Vorgabe 15 Minuten); danach wird er wieder ausgegeben. Wer die Seite
 verlässt, gibt ihn sofort frei. So blockiert ein geschlossener Browser die
 Liste nicht.
 
+**Zurückgeben.** „Zurückgeben, ohne Ergebnis" stellt den Fall für die
+zurückgebende Person zurück — für dieselbe Dauer wie die Haltefrist. Andere
+können ihn sofort bearbeiten. Ohne diese Zurückstellung läge er nach dem
+nächsten Klick wieder vor derselben Person, weil er in der Reihenfolge weit
+vorn steht. Ein später erfasstes Ergebnis hebt die Zurückstellung auf.
+
 **Vor der Anzeige wird geprüft:**
 
 1. **Sperrliste — immer.** Steht die Person darauf, entfällt der Fall. Das ist
