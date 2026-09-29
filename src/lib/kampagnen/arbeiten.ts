@@ -16,7 +16,7 @@
 import type { Payload } from 'payload'
 import { payloadClient } from '../content'
 import { findUserByEmail } from '../keycloak'
-import { KampagnenFehler } from './erzeugen'
+import { KampagnenFehler, zaehlerAktualisieren } from './erzeugen'
 import { schluesselVon } from './regeln'
 
 export type Fall = {
@@ -42,9 +42,20 @@ export type Verlauf = {
   notiz: string
 }
 
+/**
+ * Warum Fälle beim Zuteilen übersprungen wurden — je Grund gezählt.
+ *
+ * Ohne diese Aufschlüsselung stünde am Arbeitsplatz nur „kein Fall offen",
+ * während im Hintergrund die halbe Liste verschwindet. Wer arbeitet, muss
+ * sehen, was mit den Fällen geschehen ist.
+ */
+export type Uebersprungen = { konto: number; widerspruch: number }
+
+export const KEINE_UEBERSPRUNGEN: Uebersprungen = { konto: 0, widerspruch: 0 }
+
 export type Zuteilung =
-  | { art: 'fall'; fall: Fall; verlauf: Verlauf[]; uebersprungen: number }
-  | { art: 'leer'; grund: string; uebersprungen: number }
+  | { art: 'fall'; fall: Fall; verlauf: Verlauf[]; uebersprungen: Uebersprungen }
+  | { art: 'leer'; grund: string; uebersprungen: Uebersprungen }
 
 /** Wie viele Fälle ein Zuteilungsversuch höchstens überspringt. */
 const MAX_UEBERSPRUNGEN = 25
@@ -248,26 +259,39 @@ export async function naechsterFall(
 
   const haltefrist = kampagne.sperreMinuten ?? 15
   const maxVersuche = kampagne.maxVersuche ?? 3
-  let uebersprungen = 0
+  const uebersprungen: Uebersprungen = { konto: 0, widerspruch: 0 }
+  const summe = () => uebersprungen.konto + uebersprungen.widerspruch
+
+  /*
+   * Entfällt beim Zuteilen etwas, stimmen die gespeicherten Zähler der
+   * Kampagne nicht mehr — die Leitung sähe „offen", wo nichts mehr offen ist.
+   * Deshalb am Ende jedes Laufs nachziehen, der etwas aussortiert hat.
+   */
+  const zaehlerNachziehen = async () => {
+    if (summe() === 0) return
+    try {
+      await zaehlerAktualisieren(kampagne.id)
+    } catch (err) {
+      console.warn('[kampagnen] Zähler nach Zuteilung nicht aktualisiert:', (err as Error).message)
+    }
+  }
 
   for (let i = 0; i < MAX_UEBERSPRUNGEN; i++) {
     const id = await naechstenSperren(payload, kampagne.id, bearbeiter, haltefrist, maxVersuche)
     if (id == null) {
+      await zaehlerNachziehen()
       return {
         art: 'leer',
         grund:
-          uebersprungen > 0
-            ? 'Es ist derzeit kein weiterer Fall offen.'
+          summe() > 0
+            ? 'Es ist kein weiterer Fall offen.'
             : 'Es ist derzeit kein Fall offen. Entweder sind alle bearbeitet, oder die übrigen stehen auf Wiedervorlage.',
         uebersprungen,
       }
     }
 
     const fall = await fallLesen(payload, id)
-    if (!fall) {
-      uebersprungen++
-      continue
-    }
+    if (!fall) continue
 
     // Sperrliste: Ein Widerspruch kann nach dem Erzeugen der Liste eingegangen sein.
     const schluessel = schluesselVon({
@@ -285,7 +309,7 @@ export async function naechsterFall(
       })
       if (gesperrt.docs.length > 0) {
         await fallEntfaellt(payload, fall.id, 'widerspruch')
-        uebersprungen++
+        uebersprungen.widerspruch++
         continue
       }
     }
@@ -299,7 +323,7 @@ export async function naechsterFall(
             kontoVorhanden: true,
             kontoGeprueftAm: new Date().toISOString(),
           })
-          uebersprungen++
+          uebersprungen.konto++
           continue
         }
         await payload.update({
@@ -318,13 +342,15 @@ export async function naechsterFall(
       }
     }
 
+    await zaehlerNachziehen()
     const verlauf = await verlaufLesen(payload, fall.id)
-    return { art: 'fall', fall: await fallLesen(payload, fall.id) ?? fall, verlauf, uebersprungen }
+    return { art: 'fall', fall: (await fallLesen(payload, fall.id)) ?? fall, verlauf, uebersprungen }
   }
 
+  await zaehlerNachziehen()
   return {
     art: 'leer',
-    grund: `Es wurden ${uebersprungen} Fälle geprüft, die alle hinfällig waren. Bitte noch einmal versuchen.`,
+    grund: `Es wurden ${MAX_UEBERSPRUNGEN} Fälle geprüft, die alle hinfällig waren. Bitte noch einmal versuchen.`,
     uebersprungen,
   }
 }

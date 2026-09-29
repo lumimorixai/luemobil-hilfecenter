@@ -45,6 +45,33 @@ type Fall = {
 
 type Verlauf = { zeitpunkt: string; bearbeiter: string; ergebnisCode: string; notiz: string }
 
+type Uebersprungen = { konto: number; widerspruch: number }
+
+/**
+ * Was beim Zuteilen still aussortiert wurde, in einem Satz.
+ *
+ * Ohne diesen Satz stünde hier nur „kein Fall offen", während im Hintergrund
+ * die halbe Liste verschwindet — genau die Frage, die sonst als Störung
+ * gemeldet wird.
+ */
+function uebersprungenText(u: Uebersprungen | undefined): string {
+  if (!u) return ''
+  const teile: string[] = []
+  if (u.konto > 0) {
+    teile.push(
+      `${u.konto} ${u.konto === 1 ? 'Person hat' : 'Personen haben'} inzwischen ein Konto in der App`,
+    )
+  }
+  if (u.widerspruch > 0) {
+    teile.push(
+      `${u.widerspruch} ${u.widerspruch === 1 ? 'Person steht' : 'Personen stehen'} auf der Sperrliste`,
+    )
+  }
+  if (teile.length === 0) return ''
+  const gesamt = u.konto + u.widerspruch
+  return `${gesamt} ${gesamt === 1 ? 'Fall wurde' : 'Fälle wurden'} übersprungen und abgeschlossen: ${teile.join(', ')}.`
+}
+
 function datum(iso: string | null): string {
   if (!iso) return '—'
   const d = new Date(iso)
@@ -113,22 +140,18 @@ export function Arbeitsplatz({ kampagnen }: { kampagnen: KampagneKurz[] }) {
     setMeldung(null)
     try {
       const a = await ruf({ was: 'naechster', kampagne: kampagne.id })
+      const u = uebersprungenText(a.uebersprungen as Uebersprungen | undefined)
       if (a.art === 'fall') {
         setFall(a.fall as Fall)
         setVerlauf((a.verlauf as Verlauf[]) ?? [])
         setNotiz('')
         setWiedervorlage('')
         setBegonnen(Date.now())
-        const u = Number(a.uebersprungen ?? 0)
-        if (u > 0) {
-          setMeldung(
-            `${u} ${u === 1 ? 'Fall wurde' : 'Fälle wurden'} übersprungen — dort gibt es inzwischen ein Konto oder einen Widerspruch.`,
-          )
-        }
+        setMeldung(u)
       } else {
         setFall(null)
         setVerlauf([])
-        setMeldung(String(a.grund ?? 'Kein Fall offen.'))
+        setMeldung([String(a.grund ?? 'Kein Fall offen.'), u].filter(Boolean).join(' '))
       }
     } catch (err) {
       setFehler((err as Error).message)
@@ -238,7 +261,7 @@ export function Arbeitsplatz({ kampagnen }: { kampagnen: KampagneKurz[] }) {
           </div>
         )}
 
-        {meldung && !fall && <p className="cx-card-hint">{meldung}</p>}
+        {meldung && <p className="cx-card-hint">{meldung}</p>}
         {fehler && <p className="cx-fehler">{fehler}</p>}
       </Karte>
 

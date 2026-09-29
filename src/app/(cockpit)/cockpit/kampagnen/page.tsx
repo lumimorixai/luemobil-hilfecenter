@@ -3,6 +3,7 @@ import { seiteCockpit } from '@/lib/auth/guard'
 import { payloadClient } from '@/lib/content'
 import { Seitenkopf } from '@/components/cockpit/bausteine'
 import { KampagnenListe, type KampagnenAnsicht } from '@/components/cockpit/KampagnenListe'
+import { LEERER_STAND, standJeKampagne } from '@/lib/kampagnen/stand'
 
 export const dynamic = 'force-dynamic'
 
@@ -17,6 +18,16 @@ export default async function KampagnenSeite() {
     sort: '-createdAt',
     overrideAccess: true,
   })
+
+  // Nachzählen statt den fortgeschriebenen Zählern zu glauben: Fälle entfallen
+  // auch ohne erfasstes Ergebnis — etwa wenn beim Zuteilen auffällt, dass die
+  // Person inzwischen ein Konto hat.
+  let stand = new Map<string, typeof LEERER_STAND>()
+  try {
+    stand = await standJeKampagne(payload)
+  } catch (err) {
+    console.warn('[kampagnen] Stand nicht ermittelt:', (err as Error).message)
+  }
 
   const kampagnen: KampagnenAnsicht[] = res.docs.map((k) => ({
     id: k.id,
@@ -45,9 +56,7 @@ export default async function KampagnenSeite() {
       standardWiedervorlageTage: g.standardWiedervorlageTage ?? null,
       notizPflicht: Boolean(g.notizPflicht),
     })),
-    faelleGesamt: k.faelleGesamt ?? 0,
-    faelleOffen: k.faelleOffen ?? 0,
-    faelleErledigt: k.faelleErledigt ?? 0,
+    stand: stand.get(String(k.id)) ?? LEERER_STAND,
     erzeugtAm: k.erzeugtAm ?? null,
   }))
 

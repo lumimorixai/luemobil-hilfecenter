@@ -14,12 +14,12 @@ import { Karte } from './bausteine'
 import { KampagnenAktionen } from './KampagnenAktionen'
 import { KampagnenEditor, LEERE_KAMPAGNE, type KampagnenEntwurf } from './KampagnenEditor'
 import { MERKMAL, OPERATOREN, OHNE_WERT, feldLabel } from '@/lib/kampagnen/regeln'
+import { GRUND_TEXT, type Stand } from '@/lib/kampagnen/standTypen'
 
 export type KampagnenAnsicht = KampagnenEntwurf & {
   id: number | string
-  faelleGesamt: number
-  faelleOffen: number
-  faelleErledigt: number
+  /** Beim Anzeigen gezählt, nicht fortgeschrieben — siehe lib/kampagnen/stand.ts. */
+  stand: Stand
   erzeugtAm: string | null
 }
 
@@ -105,7 +105,10 @@ function KampagneKarte({ k }: { k: KampagnenAnsicht }) {
   const [fehler, setFehler] = useState<string | null>(null)
 
   const status = STATUS[k.status] ?? STATUS.entwurf
-  const anteil = k.faelleGesamt > 0 ? Math.round((k.faelleErledigt / k.faelleGesamt) * 100) : 0
+  const st = k.stand
+  // „Fertig" meint bearbeitet ODER hinfällig — beides ist abgearbeitet.
+  const fertig = st.erledigt + st.entfallen
+  const anteil = st.gesamt > 0 ? Math.round((fertig / st.gesamt) * 100) : 0
   const aktiveRegeln = k.regeln.filter((r) => r.aktiv)
   const aktivierbar = Boolean(k.rechtsgrundlage) && aktiveRegeln.length > 0
 
@@ -161,18 +164,22 @@ function KampagneKarte({ k }: { k: KampagnenAnsicht }) {
         <div className="cx-paare">
           <div>
             <span className="k">Fälle gesamt</span>
-            <span className="v">{de(k.faelleGesamt)}</span>
+            <span className="v">{de(st.gesamt)}</span>
           </div>
           <div>
-            <span className="k">Davon offen</span>
-            <span className="v">{de(k.faelleOffen)}</span>
-          </div>
-          <div>
-            <span className="k">Davon erledigt</span>
+            <span className="k">Offen</span>
             <span className="v">
-              {de(k.faelleErledigt)}
-              {k.faelleGesamt > 0 && <em className="cx-toplist-sub"> · {anteil} %</em>}
+              {de(st.offen)}
+              {st.inArbeit > 0 && <em className="cx-toplist-sub"> · {de(st.inArbeit)} in Arbeit</em>}
             </span>
+          </div>
+          <div>
+            <span className="k">Bearbeitet</span>
+            <span className="v">{de(st.erledigt)}</span>
+          </div>
+          <div>
+            <span className="k">Entfallen</span>
+            <span className="v">{de(st.entfallen)}</span>
           </div>
           <div>
             <span className="k">Liste erzeugt</span>
@@ -180,10 +187,20 @@ function KampagneKarte({ k }: { k: KampagnenAnsicht }) {
           </div>
         </div>
 
-        {k.faelleGesamt > 0 && (
+        {st.gesamt > 0 && (
           <div className="cx-bar">
             <i style={{ width: `${anteil}%` }} />
           </div>
+        )}
+
+        {st.entfallen > 0 && (
+          <p className="cx-card-hint">
+            Entfallen sind {de(st.entfallen)} Fälle:{' '}
+            {Object.entries(st.gruende)
+              .map(([grund, n]) => `${de(n)} ${GRUND_TEXT[grund] ?? grund}`)
+              .join(', ')}
+            .
+          </p>
         )}
 
         {k.regeln.length > 0 && (
@@ -204,6 +221,15 @@ function KampagneKarte({ k }: { k: KampagnenAnsicht }) {
           </div>
         )}
 
+        {k.regeln.some((r) => r.aktiv && r.feld === 'kontoVorhanden') === false &&
+          k.regeln.length > 0 && (
+            <p className="cx-card-hint">
+              Diese Kampagne prüft bei der Auswahl nicht, ob schon ein Konto in der App besteht.
+              Solche Fälle kommen in die Liste und entfallen erst beim Zuteilen. Mit der Regel
+              „Konto in der App vorhanden ist nein" stehen sie gar nicht erst darin.
+            </p>
+          )}
+
         {k.regeln.some((r) => r.feld.startsWith(MERKMAL)) && (
           <p className="cx-card-hint">
             Diese Kampagne bezieht sich auf Merkmale einer hochgeladenen Liste. Aus dem
@@ -221,7 +247,7 @@ function KampagneKarte({ k }: { k: KampagnenAnsicht }) {
         <KampagnenAktionen kampagne={k.id} name={k.name} aktivierbar={aktivierbar} />
 
         <div className="cx-knopfreihe">
-          {k.status === 'aktiv' && k.faelleOffen > 0 && (
+          {k.status === 'aktiv' && st.offen + st.inArbeit > 0 && (
             <a className="cx-knopf cx-knopf--akzent" href="/cockpit/kampagnen/arbeiten">
               Fälle abarbeiten
             </a>
@@ -229,7 +255,7 @@ function KampagneKarte({ k }: { k: KampagnenAnsicht }) {
           <button type="button" className="cx-knopf" onClick={() => setBearbeiten(true)}>
             Bearbeiten
           </button>
-          {k.faelleGesamt === 0 && !loeschfrage && (
+          {st.gesamt === 0 && !loeschfrage && (
             <button type="button" className="cx-knopf" onClick={() => setLoeschfrage(true)}>
               Löschen
             </button>

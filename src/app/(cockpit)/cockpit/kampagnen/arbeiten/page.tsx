@@ -3,6 +3,7 @@ import { seiteCallcenter } from '@/lib/auth/guard'
 import { payloadClient } from '@/lib/content'
 import { Seitenkopf } from '@/components/cockpit/bausteine'
 import { Arbeitsplatz, type KampagneKurz } from '@/components/cockpit/Arbeitsplatz'
+import { standJeKampagne } from '@/lib/kampagnen/stand'
 
 export const dynamic = 'force-dynamic'
 
@@ -21,12 +22,21 @@ export default async function ArbeitsplatzSeite() {
     overrideAccess: true,
   })
 
+  // Die Zahl in der Auswahlliste wird gezählt, nicht dem gespeicherten Zähler
+  // entnommen: Er hinkt hinterher, sobald Fälle beim Zuteilen entfallen.
+  let stand = new Map<string, { offen: number; inArbeit: number }>()
+  try {
+    stand = await standJeKampagne(payload)
+  } catch (err) {
+    console.warn('[kampagnen] Stand nicht ermittelt:', (err as Error).message)
+  }
+
   const kampagnen: KampagneKurz[] = res.docs.map((k) => ({
     id: k.id,
     name: k.name,
     kanal: k.kanal ?? 'telefon',
     gespraechsleitfaden: k.gespraechsleitfaden ?? '',
-    faelleOffen: k.faelleOffen ?? 0,
+    faelleOffen: (stand.get(String(k.id))?.offen ?? 0) + (stand.get(String(k.id))?.inArbeit ?? 0),
     ergebnisse: (k.ergebnisse ?? []).map((e) => ({
       code: e.code ?? '',
       label: e.label ?? '',

@@ -4,6 +4,34 @@ Neueste Änderungen oben. Je Eintrag: was neu ist und **was beim Update von Hand
 zu tun ist**. Allgemeiner Update-Ablauf: `LIVE-GEHEN.md`, „Später: Updates
 einspielen".
 
+## 2026-09-29 — Kampagnen: Stand nachzählen statt fortschreiben
+
+Beim ersten echten Lauf meldete der Arbeitsplatz „kein Fall offen", während die
+Übersicht sechs offene Fälle zeigte. Beides war falsch beziehungsweise
+unvollständig: Alle sechs Personen hatten inzwischen ein Konto in der App,
+waren beim Zuteilen korrekt entfallen — nur sagte das niemand.
+
+- **Der Arbeitsplatz nennt den Grund.** Statt „kein Fall offen" steht dort
+  jetzt, wie viele Fälle übersprungen wurden und warum: „6 Fälle wurden
+  übersprungen und abgeschlossen: 6 Personen haben inzwischen ein Konto in der
+  App." Die Meldung erscheint auch, wenn danach ein Fall kommt.
+- **Die Übersicht zählt nach, statt den Zählern zu glauben.** Fälle entfallen
+  auch ohne erfasstes Ergebnis; die fortgeschriebenen Zähler hinkten dann
+  hinterher. Der Stand wird jetzt beim Anzeigen ermittelt — in einer einzigen
+  Abfrage über alle Kampagnen, nicht einer je Kampagne und Status.
+- **Neue Spalte „Entfallen"** in der Kennzahlenzeile, darunter die
+  Aufschlüsselung: wie viele wegen eines Kontos, eines Widerspruchs, fehlender
+  Kontaktmöglichkeit oder erreichter Höchstzahl. Der Fortschrittsbalken zählt
+  entfallene Fälle als abgearbeitet — sie sind es.
+- **Hinweis an der Kampagne**, wenn keine eingeschaltete Regel das Konto
+  prüft: Solche Personen kommen in die Liste und entfallen erst beim Zuteilen.
+  Mit der Regel „Konto in der App vorhanden ist nein" stehen sie gar nicht
+  erst darin.
+- Entfällt beim Zuteilen etwas, werden die gespeicherten Zähler der Kampagne
+  jetzt ebenfalls nachgezogen.
+
+**Beim Update** — keine Migration, keine neuen Variablen.
+
 ## 2026-09-28 — Kampagnen: Arbeitsplatz zum Abarbeiten
 
 Unter **`/cockpit/kampagnen/arbeiten`** werden Fälle bearbeitet. Erreichbar

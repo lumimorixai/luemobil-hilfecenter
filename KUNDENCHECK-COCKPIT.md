@@ -491,6 +491,12 @@ Anruf bei jemandem, der vielleicht schon ein Konto hat.
 
 Jeder Versuch wird protokolliert: Zeitpunkt, Person, Ergebnis, Notiz und Dauer.
 
+**Übersprungene Fälle werden benannt.** Entfällt beim Zuteilen etwas, sagt der
+Arbeitsplatz, wie viele und warum — sonst verschwänden Fälle lautlos aus der
+Liste. Die Kampagnenübersicht zählt den Stand beim Anzeigen nach (eine Abfrage
+mit GROUP BY über alle Kampagnen, `src/lib/kampagnen/stand.ts`), weil die
+fortgeschriebenen Zähler an der Kampagne hinterherhinken können.
+
 ### 7.6 Datenschutz
 
 Fälle und Kontaktversuche enthalten Namen, Telefonnummern, Geburtsdaten und
