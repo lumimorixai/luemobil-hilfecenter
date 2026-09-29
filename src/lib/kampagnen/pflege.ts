@@ -22,6 +22,7 @@ export type KampagnenEingabe = {
   loeschenNachTagen?: number
   maxVersuche?: number
   sperreMinuten?: number
+  kontoAbgleich?: string
   regelVerknuepfung?: string
   regeln?: Regel[]
   ergebnisse?: {
@@ -36,6 +37,7 @@ export type KampagnenEingabe = {
 const KANAELE = new Set(['telefon', 'email', 'brief', 'sonstiges'])
 const STATUS = new Set(['entwurf', 'aktiv', 'pausiert', 'beendet'])
 const WIRKUNGEN = new Set(['abschluss', 'wiedervorlage', 'erneut', 'entfaellt', 'sperren'])
+const KONTO_ABGLEICH = new Set(['aus', 'ueberspringen', 'hinweis'])
 
 const text = (v: unknown, max: number): string => String(v ?? '').trim().slice(0, max)
 
@@ -108,6 +110,14 @@ function pruefe(eingabe: KampagnenEingabe, neu: boolean): Record<string, unknown
   }
   if (neu || eingabe.sperreMinuten !== undefined) {
     daten.sperreMinuten = zahl(eingabe.sperreMinuten, 15, 1, 480)
+  }
+
+  if (neu || eingabe.kontoAbgleich !== undefined) {
+    const wahl = text(eingabe.kontoAbgleich, 20) || 'aus'
+    if (!KONTO_ABGLEICH.has(wahl)) {
+      throw new KampagnenFehler('Diese Einstellung für den Konto-Abgleich gibt es nicht.')
+    }
+    daten.kontoAbgleich = wahl
   }
 
   if (eingabe.regelVerknuepfung !== undefined) {

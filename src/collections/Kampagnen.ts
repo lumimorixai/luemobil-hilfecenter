@@ -136,6 +136,22 @@ export const Kampagnen: CollectionConfig = {
       },
     },
     {
+      name: 'kontoAbgleich',
+      label: 'Konto beim Zuteilen prüfen',
+      type: 'select',
+      required: true,
+      defaultValue: 'aus',
+      options: [
+        { label: 'Nicht prüfen', value: 'aus' },
+        { label: 'Fall entfällt, wenn ein Konto besteht', value: 'ueberspringen' },
+        { label: 'Fall zeigen, aber auf das Konto hinweisen', value: 'hinweis' },
+      ],
+      admin: {
+        description:
+          'Beim Zuteilen wird für diese Person einzeln in Keycloak nachgesehen. Ob ein bestehendes Konto den Fall hinfällig macht, hängt vom Zweck der Aktion ab — bei einer Einrichtungshilfe ja, bei einer Befragung nicht. Die Prüfung der Sperrliste läuft unabhängig davon immer (Art. 21 DSGVO).',
+      },
+    },
+    {
       name: 'regelVerknuepfung',
       label: 'Regeln verknüpfen mit',
       type: 'select',

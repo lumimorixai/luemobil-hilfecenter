@@ -41,6 +41,7 @@ type Fall = {
   versuche: number
   letzterVersuchAm: string | null
   wiedervorlageAm: string | null
+  kontoVorhanden: boolean | null
 }
 
 type Verlauf = { zeitpunkt: string; bearbeiter: string; ergebnisCode: string; notiz: string }
@@ -283,6 +284,13 @@ export function Arbeitsplatz({ kampagnen }: { kampagnen: KampagneKurz[] }) {
                 </a>
               )}
             </div>
+
+            {fall.kontoVorhanden === true && (
+              <p className="cx-hinweis-zeile">
+                Diese Person hat bereits ein Konto in der App. Die Kampagne führt sie trotzdem —
+                ob das für das Gespräch eine Rolle spielt, steht im Leitfaden.
+              </p>
+            )}
 
             <div className="cx-paare">
               {fall.email && kampagne?.kanal !== 'email' && (

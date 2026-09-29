@@ -4,6 +4,31 @@ Neueste Änderungen oben. Je Eintrag: was neu ist und **was beim Update von Hand
 zu tun ist**. Allgemeiner Update-Ablauf: `LIVE-GEHEN.md`, „Später: Updates
 einspielen".
 
+## 2026-09-29 — Konto-Abgleich ist eine Einstellung, keine Annahme
+
+Dass ein Fall entfällt, sobald die Person ein Konto in der App hat, war fest
+eingebaut — übernommen aus der D-Ticket-Aktion. Für eine Befragung oder eine
+Störungsinformation wäre das falsch. Die Kampagne entscheidet das jetzt selbst.
+
+**Neue Einstellung „Konto beim Zuteilen prüfen"** mit drei Möglichkeiten:
+
+| Einstellung | Wirkung |
+|---|---|
+| **Nicht prüfen** (Vorgabe) | Keine Abfrage bei Keycloak, schnellste Zuteilung |
+| **Fall entfällt, wenn ein Konto besteht** | Für Aktionen, deren Anlass mit dem Konto erledigt ist — etwa Hilfe beim Einrichten |
+| **Fall zeigen, aber auf das Konto hinweisen** | Für Aktionen unabhängig vom Konto — etwa eine Befragung |
+
+- Bei „hinweisen" erscheint am Fall deutlich, dass bereits ein Konto besteht;
+  der Fall wird trotzdem bearbeitet.
+- Die Vorgabe ist **Nicht prüfen** — keine Annahme über den Zweck der Aktion.
+  Bestehende Kampagnen müssen die Einstellung also bewusst setzen.
+- **Die Sperrliste bleibt davon unberührt und wird immer geprüft.** Ein
+  Widerspruch nach Art. 21 DSGVO ist keine Konfigurationsfrage.
+
+**Beim Update**
+- Die Migration heißt jetzt `20260929_054852_kampagnen` und ersetzt die nie
+  ausgelieferte `20260928_200047_kampagnen`.
+
 ## 2026-09-29 — Kampagnen: Stand nachzählen statt fortschreiben
 
 Beim ersten echten Lauf meldete der Arbeitsplatz „kein Fall offen", während die

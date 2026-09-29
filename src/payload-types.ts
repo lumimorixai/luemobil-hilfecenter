@@ -587,6 +587,10 @@ export interface Kampagnen {
    * So lange gehört ein zugeteilter Fall einer Person. Danach wird er wieder ausgegeben — verhindert, dass ein geschlossener Browser Fälle blockiert.
    */
   sperreMinuten: number;
+  /**
+   * Beim Zuteilen wird für diese Person einzeln in Keycloak nachgesehen. Ob ein bestehendes Konto den Fall hinfällig macht, hängt vom Zweck der Aktion ab — bei einer Einrichtungshilfe ja, bei einer Befragung nicht. Die Prüfung der Sperrliste läuft unabhängig davon immer (Art. 21 DSGVO).
+   */
+  kontoAbgleich: 'aus' | 'ueberspringen' | 'hinweis';
   regelVerknuepfung?: ('und' | 'oder') | null;
   /**
    * Bestimmen, wer in die Liste kommt. Leer lassen, wenn die Liste hochgeladen wird.
@@ -1165,6 +1169,7 @@ export interface KampagnenSelect<T extends boolean = true> {
   loeschenNachTagen?: T;
   maxVersuche?: T;
   sperreMinuten?: T;
+  kontoAbgleich?: T;
   regelVerknuepfung?: T;
   regeln?:
     | T

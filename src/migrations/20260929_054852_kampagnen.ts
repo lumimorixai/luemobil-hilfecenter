@@ -5,6 +5,7 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
    CREATE TYPE "public"."enum_kampagnen_ergebnisse_wirkung" AS ENUM('abschluss', 'wiedervorlage', 'erneut', 'entfaellt', 'sperren');
   CREATE TYPE "public"."enum_kampagnen_kanal" AS ENUM('telefon', 'email', 'brief', 'sonstiges');
   CREATE TYPE "public"."enum_kampagnen_status" AS ENUM('entwurf', 'aktiv', 'pausiert', 'beendet');
+  CREATE TYPE "public"."enum_kampagnen_konto_abgleich" AS ENUM('aus', 'ueberspringen', 'hinweis');
   CREATE TYPE "public"."enum_kampagnen_regel_verknuepfung" AS ENUM('und', 'oder');
   CREATE TYPE "public"."enum_kampagnen_quelle" AS ENUM('regel', 'csv', 'beides');
   CREATE TYPE "public"."enum_kampagnen_faelle_quelle" AS ENUM('regel', 'csv');
@@ -47,6 +48,7 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   	"loeschen_nach_tagen" numeric DEFAULT 90 NOT NULL,
   	"max_versuche" numeric DEFAULT 3 NOT NULL,
   	"sperre_minuten" numeric DEFAULT 15 NOT NULL,
+  	"konto_abgleich" "enum_kampagnen_konto_abgleich" DEFAULT 'aus' NOT NULL,
   	"regel_verknuepfung" "enum_kampagnen_regel_verknuepfung" DEFAULT 'und',
   	"quelle" "enum_kampagnen_quelle",
   	"erzeugt_am" timestamp(3) with time zone,
@@ -200,6 +202,7 @@ export async function down({ db, payload, req }: MigrateDownArgs): Promise<void>
   DROP TYPE "public"."enum_kampagnen_ergebnisse_wirkung";
   DROP TYPE "public"."enum_kampagnen_kanal";
   DROP TYPE "public"."enum_kampagnen_status";
+  DROP TYPE "public"."enum_kampagnen_konto_abgleich";
   DROP TYPE "public"."enum_kampagnen_regel_verknuepfung";
   DROP TYPE "public"."enum_kampagnen_quelle";
   DROP TYPE "public"."enum_kampagnen_faelle_quelle";

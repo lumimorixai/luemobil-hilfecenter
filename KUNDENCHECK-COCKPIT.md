@@ -469,15 +469,25 @@ Zeit (Vorgabe 15 Minuten); danach wird er wieder ausgegeben. Wer die Seite
 verlässt, gibt ihn sofort frei. So blockiert ein geschlossener Browser die
 Liste nicht.
 
-**Vor der Anzeige wird zweimal geprüft** — und der Fall still übersprungen,
-wenn eines zutrifft:
-1. Steht die Person inzwischen auf der Sperrliste? → entfällt (Widerspruch).
-2. Gibt es inzwischen ein Konto in Keycloak? → entfällt (Anlass weggefallen).
-   Hier zählt der Einzelabruf, nicht der gecachte Sammelabgleich.
+**Vor der Anzeige wird geprüft:**
+
+1. **Sperrliste — immer.** Steht die Person darauf, entfällt der Fall. Das ist
+   nicht einstellbar: Ein Widerspruch nach Art. 21 DSGVO gilt unabhängig vom
+   Zweck der Aktion.
+2. **Konto in Keycloak — wie die Kampagne es festlegt** (`kontoAbgleich`):
+
+| Einstellung | Wirkung |
+|---|---|
+| `aus` (Vorgabe) | Keine Abfrage. Schnellste Zuteilung. |
+| `ueberspringen` | Besteht ein Konto, entfällt der Fall — für Aktionen, deren Anlass damit erledigt ist (Hilfe beim Einrichten). |
+| `hinweis` | Der Fall wird gezeigt, mit deutlichem Hinweis auf das Konto — für Aktionen, die unabhängig davon stattfinden (Befragung). |
+
+Geprüft wird einzeln über `findUserByEmail`, nicht über den gecachten
+Sammelabgleich der Listenerzeugung: Hier zählt der aktuelle Stand.
 
 Ist Keycloak nicht erreichbar, wird der Fall trotzdem ausgegeben und der Grund
 protokolliert: Ein stiller Ausfall des Arbeitsplatzes wäre schlimmer als ein
-Anruf bei jemandem, der vielleicht schon ein Konto hat.
+Kontakt, der sich als überflüssig herausstellt.
 
 **Was ein Ergebnis bewirkt, steht an der Kampagne**, nicht im Code:
 

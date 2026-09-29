@@ -3205,6 +3205,14 @@
           "notNull": true,
           "default": 15
         },
+        "konto_abgleich": {
+          "name": "konto_abgleich",
+          "type": "enum_kampagnen_konto_abgleich",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'aus'"
+        },
         "regel_verknuepfung": {
           "name": "regel_verknuepfung",
           "type": "enum_kampagnen_regel_verknuepfung",
@@ -5872,6 +5880,15 @@
         "beendet"
       ]
     },
+    "public.enum_kampagnen_konto_abgleich": {
+      "name": "enum_kampagnen_konto_abgleich",
+      "schema": "public",
+      "values": [
+        "aus",
+        "ueberspringen",
+        "hinweis"
+      ]
+    },
     "public.enum_kampagnen_regel_verknuepfung": {
       "name": "enum_kampagnen_regel_verknuepfung",
       "schema": "public",
@@ -5964,6 +5981,6 @@
     "tables": {},
     "columns": {}
   },
-  "id": "a319fcce-5c1b-4834-8737-f2153682ef36",
+  "id": "e07d4655-6bd2-4e74-b1bb-5edff3371db1",
   "prevId": "00000000-0000-0000-0000-000000000000"
 }

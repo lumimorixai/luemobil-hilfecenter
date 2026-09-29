@@ -43,6 +43,7 @@ export type KampagnenEntwurf = {
   loeschenNachTagen: number
   maxVersuche: number
   sperreMinuten: number
+  kontoAbgleich: string
   regelVerknuepfung: string
   regeln: RegelEntwurf[]
   ergebnisse: ErgebnisEntwurf[]
@@ -60,6 +61,7 @@ export const LEERE_KAMPAGNE: KampagnenEntwurf = {
   loeschenNachTagen: 90,
   maxVersuche: 3,
   sperreMinuten: 15,
+  kontoAbgleich: 'aus',
   regelVerknuepfung: 'und',
   regeln: [],
   ergebnisse: [],
@@ -70,6 +72,28 @@ const KANAELE = [
   { wert: 'email', label: 'E-Mail', hinweis: 'Jeder Fall braucht eine E-Mail-Adresse.' },
   { wert: 'brief', label: 'Brief', hinweis: 'Kein Kontaktfeld zwingend.' },
   { wert: 'sonstiges', label: 'Anderer Weg', hinweis: 'Kein Kontaktfeld zwingend.' },
+]
+
+/**
+ * Was ein bestehendes Konto in der App bedeutet, hängt vom Zweck der Aktion ab
+ * — deshalb eine Auswahl und keine Annahme.
+ */
+const KONTO_ABGLEICH = [
+  {
+    wert: 'aus',
+    label: 'Nicht prüfen',
+    hinweis: 'Keine Abfrage bei Keycloak. Schnellste Zuteilung.',
+  },
+  {
+    wert: 'ueberspringen',
+    label: 'Fall entfällt, wenn ein Konto besteht',
+    hinweis: 'Für Aktionen, deren Anlass mit dem Konto erledigt ist — etwa Hilfe beim Einrichten.',
+  },
+  {
+    wert: 'hinweis',
+    label: 'Fall zeigen, aber auf das Konto hinweisen',
+    hinweis: 'Für Aktionen, die unabhängig vom Konto stattfinden — etwa eine Befragung.',
+  },
 ]
 
 const WIRKUNGEN = [
@@ -298,6 +322,21 @@ export function KampagnenEditor({
       </label>
 
       {/* --- Zielgruppe --- */}
+      <label className="cx-feld">
+        <span>Konto in der App beim Zuteilen prüfen</span>
+        <select value={e.kontoAbgleich} onChange={(ev) => setzen('kontoAbgleich', ev.target.value)}>
+          {KONTO_ABGLEICH.map((k) => (
+            <option key={k.wert} value={k.wert}>
+              {k.label}
+            </option>
+          ))}
+        </select>
+        <em>
+          {KONTO_ABGLEICH.find((k) => k.wert === e.kontoAbgleich)?.hinweis}{' '}
+          Die Sperrliste wird unabhängig davon immer geprüft — ein Widerspruch gilt dauerhaft.
+        </em>
+      </label>
+
       <div className="cx-form-abschnitt">
         <h4>Zielgruppe</h4>
         <p>

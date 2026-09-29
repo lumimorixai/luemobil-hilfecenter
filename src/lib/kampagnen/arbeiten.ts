@@ -6,9 +6,11 @@
  * 1. **Zuteilen muss atomar sein.** Zwei Personen dürfen denselben Fall nicht
  *    bekommen — sonst ruft jemand zweimal an. Deshalb wird in einer einzigen
  *    Anweisung gesperrt und gelesen, nicht erst gesucht und dann geschrieben.
- * 2. **Niemand wird angerufen, der schon ein Konto hat.** Beim Zuteilen wird
- *    einzeln gegen Keycloak geprüft — hier zählt der aktuelle Stand, nicht der
- *    schnelle aus dem Sammelabgleich.
+ * 2. **Was ein bestehendes Konto bedeutet, entscheidet die Kampagne.** Bei
+ *    einer Einrichtungshilfe ist der Anlass damit entfallen, bei einer
+ *    Befragung nicht. Deshalb ist der Abgleich eine Einstellung
+ *    (`kontoAbgleich`) und keine Annahme dieses Moduls. Die Sperrliste ist
+ *    davon ausgenommen: Ein Widerspruch gilt immer (Art. 21 DSGVO).
  *
  * Es gibt keinen Weg, sich einen Fall auszusuchen. Das verhindert Rosinen-
  * picken und macht die Zuteilung nachvollziehbar.
@@ -33,6 +35,8 @@ export type Fall = {
   letzterVersuchAm: string | null
   gesperrtBis: string | null
   wiedervorlageAm: string | null
+  /** Nur gesetzt, wenn die Kampagne das Konto prüfen lässt. */
+  kontoVorhanden: boolean | null
 }
 
 export type Verlauf = {
@@ -191,6 +195,7 @@ async function fallLesen(payload: Payload, id: number | string): Promise<Fall | 
     letzterVersuchAm: d.letzterVersuchAm ?? null,
     gesperrtBis: d.gesperrtBis ?? null,
     wiedervorlageAm: d.wiedervorlageAm ?? null,
+    kontoVorhanden: d.kontoVorhanden ?? null,
   }
 }
 
@@ -259,6 +264,7 @@ export async function naechsterFall(
 
   const haltefrist = kampagne.sperreMinuten ?? 15
   const maxVersuche = kampagne.maxVersuche ?? 3
+  const kontoAbgleich = String(kampagne.kontoAbgleich ?? 'aus')
   const uebersprungen: Uebersprungen = { konto: 0, widerspruch: 0 }
   const summe = () => uebersprungen.konto + uebersprungen.widerspruch
 
@@ -314,11 +320,20 @@ export async function naechsterFall(
       }
     }
 
-    // Konto inzwischen vorhanden? Dann ist der Anlass entfallen.
-    if (fall.email) {
+    // Konto prüfen — aber nur, wenn die Kampagne es verlangt.
+    if (kontoAbgleich !== 'aus' && fall.email) {
       try {
         const konto = await findUserByEmail(fall.email)
-        if (konto) {
+        await payload.update({
+          collection: 'kampagnen-faelle',
+          id: fall.id,
+          data: {
+            kontoVorhanden: Boolean(konto),
+            kontoGeprueftAm: new Date().toISOString(),
+          } as never,
+          overrideAccess: true,
+        })
+        if (konto && kontoAbgleich === 'ueberspringen') {
           await fallEntfaellt(payload, fall.id, 'konto_vorhanden', {
             kontoVorhanden: true,
             kontoGeprueftAm: new Date().toISOString(),
@@ -326,16 +341,11 @@ export async function naechsterFall(
           uebersprungen.konto++
           continue
         }
-        await payload.update({
-          collection: 'kampagnen-faelle',
-          id: fall.id,
-          data: { kontoVorhanden: false, kontoGeprueftAm: new Date().toISOString() } as never,
-          overrideAccess: true,
-        })
+        // Bei 'hinweis' läuft der Fall weiter; die Oberfläche zeigt den Stand.
       } catch (err) {
         // Keycloak ist nicht erreichbar. Den Fall trotzdem ausgeben und den
-        // Grund festhalten — ein stiller Ausfall wäre schlimmer als ein
-        // Anruf bei jemandem, der vielleicht schon ein Konto hat.
+        // Grund festhalten — ein stiller Ausfall des Arbeitsplatzes wäre
+        // schlimmer als ein Kontakt, der sich als überflüssig herausstellt.
         console.warn(
           `[kampagnen] Konto-Abgleich für Fall ${fall.id} nicht möglich: ${(err as Error).message}`,
         )

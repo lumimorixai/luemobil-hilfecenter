@@ -42,6 +42,7 @@ export default async function KampagnenSeite() {
     loeschenNachTagen: k.loeschenNachTagen ?? 90,
     maxVersuche: k.maxVersuche ?? 3,
     sperreMinuten: k.sperreMinuten ?? 15,
+    kontoAbgleich: k.kontoAbgleich ?? 'aus',
     regelVerknuepfung: k.regelVerknuepfung ?? 'und',
     regeln: (k.regeln ?? []).map((r) => ({
       aktiv: r.aktiv !== false,
