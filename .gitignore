@@ -21,3 +21,9 @@ next-env.d.ts
 # Kopier-Dubletten von Finder/iCloud („datei 2.ts")
 * 2.*
 * 2
+
+# Datenbank-Dumps NIE einchecken — kk_* sind Produktivkopien mit Klarnamen und
+# Passwort-Hashes. Sie gehören in den Reporting-Stack, nicht in dieses Repo.
+kk_*.sql
+kk_*.sql.gz
+*.dump

@@ -39,8 +39,14 @@ Aufruf sämtliche Kennzahlen.
 | | Daten und Jobs | `/cockpit/daten` |
 
 `/kennzahlen` und `/kundencheck` leiten auf die entsprechenden Bereiche weiter.
-Wer nur die Kundencheck-Berechtigung hat, sieht ausschließlich die Gruppe
-„Werkzeuge".
+
+**Fokussierte Ansicht.** Konten mit genau einem zugänglichen Bereich — also
+nur `kundencheck` oder nur `callcenter` — sehen **keine Seitenleiste**, sondern
+eine schmale Kopfzeile mit Bereichsname, Person und „Abmelden". Für
+Servicemitarbeitende ist das der Normalfall: Sie brauchen den Kundencheck, und
+eine Leiste mit einem einzigen Punkt weckt nur die Erwartung, es gäbe mehr zu
+sehen. Entschieden wird an der Rolle, nicht am Pfad; Konten mit `cockpit` oder
+`support` behalten die vollständige Navigation.
 
 **Gestaltung.** Eigene Sprache, freigegeben am 25.09.2026: Glasflächen mit
 Tiefenunschärfe, große Radien, weiche Schatten, Diagramme ohne Achsen und

@@ -11,6 +11,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { ThemeSchalter } from './ThemeSchalter'
+import { LuemobilZeichen } from './LuemobilZeichen'
 
 type Punkt = {
   href: string
@@ -169,45 +170,6 @@ function Icon({ name }: { name: keyof typeof ICONS }) {
       aria-hidden="true"
     >
       {ICONS[name]}
-    </svg>
-  )
-}
-
-/**
- * Das LüMobil-Zeichen — dasselbe wie im Kopf des Hilfe-Centers, damit intern
- * und öffentlich dieselbe Marke steht. Der Verlauf ist Teil des Zeichens; die
- * Regel „keine Verläufe" gilt für Flächen, nicht für das Signet.
- */
-function LuemobilZeichen() {
-  return (
-    <svg
-      className="cx-nav-logo"
-      viewBox="0 0 1024 1024"
-      role="img"
-      aria-label="LüMobil"
-    >
-      <defs>
-        <linearGradient
-          id="cx_lm_grad"
-          x1="451.37"
-          y1="293.12"
-          x2="744.85"
-          y2="642.87"
-          gradientUnits="userSpaceOnUse"
-        >
-          <stop offset="0" stopColor="#ff8200" />
-          <stop offset=".36" stopColor="#ff3d59" />
-          <stop offset=".53" stopColor="#ff00aa" />
-          <stop offset=".72" stopColor="#b945c1" />
-          <stop offset=".81" stopColor="#8579d2" />
-          <stop offset=".91" stopColor="#43bbe8" />
-          <stop offset="1" stopColor="#00ffff" />
-        </linearGradient>
-      </defs>
-      <polygon
-        fill="url(#cx_lm_grad)"
-        points="803.87 223.15 231.68 509.24 517.77 509.24 517.77 795.33 803.87 223.15"
-      />
     </svg>
   )
 }

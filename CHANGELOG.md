@@ -4,6 +4,28 @@ Neueste Änderungen oben. Je Eintrag: was neu ist und **was beim Update von Hand
 zu tun ist**. Allgemeiner Update-Ablauf: `LIVE-GEHEN.md`, „Später: Updates
 einspielen".
 
+## 2026-10-06 — Kundencheck ohne Menü für Servicemitarbeitende
+
+Wer ausschließlich die Rolle `kundencheck` hat, sieht ab jetzt **nur den
+Kundencheck** — keine Seitenleiste, keine Bereiche, die ohnehin gesperrt sind.
+
+- **Fokussierte Ansicht:** Statt der Seitenleiste steht oben eine schmale
+  Zeile mit LüMobil-Zeichen, Bereichsname, angemeldeter Person, Hell/Dunkel
+  und „Abmelden". Der Inhalt nimmt die volle Breite ein.
+- **Entschieden wird an der Rolle, nicht am Pfad.** Wer nur einen Bereich
+  darf, wird von allen anderen Seiten ohnehin dorthin umgeleitet. Konten mit
+  `cockpit` oder `support` behalten die vollständige Navigation unverändert.
+- **Gilt ebenso für den Arbeitsplatz:** Ein Konto mit nur `callcenter` sieht
+  „Fälle abarbeiten" ohne Menü. Dieselbe Begründung, derselbe Code — eine
+  Seitenleiste mit einem einzigen Punkt ist kein Wegweiser.
+- Die Rollenprüfung selbst ist unverändert: Jede Seite und jeder Endpunkt
+  prüft weiterhin serverseitig. Die Ansicht macht die Trennung nur sichtbar,
+  sie stellt sie nicht her.
+- Das LüMobil-Zeichen liegt jetzt in `src/components/cockpit/LuemobilZeichen.tsx`,
+  weil es an zwei Stellen gebraucht wird.
+
+**Beim Update** — keine Migration, keine neuen Variablen.
+
 ## 2026-09-29 — Zurückgegebene Fälle kommen nicht sofort zurück
 
 „Zurückgeben, ohne Ergebnis" setzte den Fall wieder auf offen — und weil er in
