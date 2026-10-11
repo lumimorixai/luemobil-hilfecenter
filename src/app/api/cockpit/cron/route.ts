@@ -40,6 +40,8 @@ function readSecret(req: Request): string | null {
  *                       Minuten-Checks aufräumen
  *   konten              komplette Kontenhistorie ab dem ersten Konto (nachts)
  *   report&period=…     Bericht per Mail und PDF
+ *   handbuch            Handbuch auf den Zielzustand der App-Version 2 heben
+ *                       (einmalig beim Update; idempotent, löscht nichts)
  *
  * WICHTIG: Das Produktions-Image ist ein Standalone-Build (`node server.js`)
  * ohne pnpm, tsx und Quelltext — die CLI-Jobs aus src/jobs/ laufen dort NICHT.
@@ -92,6 +94,13 @@ export async function POST(req: Request) {
         const { sendReport } = await import('@/lib/cockpit/reportSend')
         const result = await sendReport(payload, period)
         return NextResponse.json({ ok: result.sent, job, period, to: result.to, reason: result.reason })
+      }
+      case 'handbuch': {
+        // Redaktioneller Zielzustand aus dem Quelltext. Nicht regelmäßig,
+        // sondern einmal je Update — hier, weil die CLI in Produktion fehlt.
+        const { handbuchAktualisieren } = await import('@/seed/handbuch-v2')
+        const erg = await handbuchAktualisieren(url.searchParams.get('bilder') !== 'nein')
+        return NextResponse.json({ ok: true, job, ...erg })
       }
       default:
         return NextResponse.json({ error: 'bad_job' }, { status: 400 })

@@ -20,8 +20,15 @@
  * 11.10.2026. Alles hier Beschriebene ist dort zu sehen; nichts ist ergänzt
  * oder vermutet.
  *
- * Aufruf: pnpm handbuch:v2        (Bilder werden mitgeladen)
- *         pnpm handbuch:v2 --ohne-bilder
+ * Aufruf lokal: pnpm handbuch:v2        (Bilder werden mitgeladen)
+ *               pnpm handbuch:v2 --ohne-bilder
+ *
+ * Aufruf in PRODUKTION: nicht über die CLI — das Prod-Image ist ein
+ * Standalone-Build ohne pnpm, tsx und Quelltext. Dort führt der Weg über
+ *   · den Knopf „Handbuch aktualisieren" unter /cockpit/daten  (Rolle cockpit)
+ *   · oder POST /api/cockpit/cron?job=handbuch  (Header x-cron-secret)
+ * Beide rufen genau diese Funktion auf. Die Screenshots liegen im Image unter
+ * /app/handbuch-bilder (siehe COPY im Dockerfile).
  */
 import path from 'path'
 import fs from 'fs'
@@ -221,10 +228,20 @@ export const KAPITEL: Kapitel[] = [
   },
 ]
 
+/** Was ein Lauf bewirkt hat — für die Rückmeldung im Cockpit und im Protokoll. */
+export type HandbuchErgebnis = {
+  neu: number
+  geaendert: number
+  bilderNeu: number
+  /** Namen der Bilder, die im Bildordner fehlten (Kapitel wurden trotzdem geschrieben). */
+  bilderFehlen: string[]
+}
+
 /** Bild in die Media-Collection laden — oder das vorhandene wiederverwenden. */
 async function bildId(
   payload: Awaited<ReturnType<typeof payloadClient>>,
   name: string,
+  erg: HandbuchErgebnis,
 ): Promise<number | string | null> {
   const dateiname = `${name}.jpg`
   const vorhanden = await payload.find({
@@ -237,7 +254,10 @@ async function bildId(
 
   const pfad = path.join(BILDORDNER, dateiname)
   if (!fs.existsSync(pfad)) {
+    // Kein Abbruch: Die Texte sind das Wesentliche, ein fehlendes Bild wird
+    // gemeldet und beim nächsten Lauf nachgeladen.
     console.warn(`  ! Bild fehlt, wird übersprungen: ${pfad}`)
+    erg.bilderFehlen.push(dateiname)
     return null
   }
   const doc = await payload.create({
@@ -246,6 +266,7 @@ async function bildId(
     filePath: pfad,
     overrideAccess: true,
   })
+  erg.bilderNeu++
   return doc.id
 }
 
@@ -268,16 +289,15 @@ const ALT: Record<string, string> = {
   b_meine_fahrzeuge: 'Gespeichertes Fahrzeug mit Name und Kennzeichen vor dem Fahrtbeginn',
 }
 
-export async function handbuchAktualisieren(mitBildern = true): Promise<void> {
+export async function handbuchAktualisieren(mitBildern = true): Promise<HandbuchErgebnis> {
   const payload = await payloadClient()
-  let neu = 0
-  let geaendert = 0
+  const erg: HandbuchErgebnis = { neu: 0, geaendert: 0, bilderNeu: 0, bilderFehlen: [] }
 
   for (const k of KAPITEL) {
     const bilder: (number | string)[] = []
     if (mitBildern) {
       for (const name of k.bilder ?? []) {
-        const id = await bildId(payload, name)
+        const id = await bildId(payload, name, erg)
         if (id != null) bilder.push(id)
       }
     }
@@ -307,7 +327,7 @@ export async function handbuchAktualisieren(mitBildern = true): Promise<void> {
     if (da.docs.length === 0) {
       await payload.create({ collection: 'manual-chapters', data: daten as never, overrideAccess: true })
       console.log(`  + angelegt:    ${k.num} ${k.title}`)
-      neu++
+      erg.neu++
     } else {
       await payload.update({
         collection: 'manual-chapters',
@@ -316,11 +336,14 @@ export async function handbuchAktualisieren(mitBildern = true): Promise<void> {
         overrideAccess: true,
       })
       console.log(`  ~ aktualisiert: ${k.num} ${k.title}${bilder.length ? ` (${bilder.length} Bilder)` : ''}`)
-      geaendert++
+      erg.geaendert++
     }
   }
 
-  console.log(`\nFertig: ${neu} angelegt, ${geaendert} aktualisiert, nichts gelöscht.`)
+  console.log(
+    `\nFertig: ${erg.neu} angelegt, ${erg.geaendert} aktualisiert, ${erg.bilderNeu} Bilder geladen, nichts gelöscht.`,
+  )
+  return erg
 }
 
 if (process.argv[1]?.includes('handbuch-v2')) {

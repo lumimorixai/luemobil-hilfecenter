@@ -4,6 +4,41 @@ Neueste Änderungen oben. Je Eintrag: was neu ist und **was beim Update von Hand
 zu tun ist**. Allgemeiner Update-Ablauf: `LIVE-GEHEN.md`, „Später: Updates
 einspielen".
 
+## 2026-10-11 — Handbuch zur App-Version 2, zwei Bereiche entfernt
+
+Das Handbuch beschreibt jetzt die App in Version 2. Grundlage sind fünf
+Bildschirmaufnahmen vom 11.10.2026; beschrieben ist nur, was dort zu sehen ist.
+
+- **Zwei neue Kapitel:** „Tickets kaufen und bezahlen" (Zeit- und Einzelkarten,
+  Preisstufen und Tarifzonen, Personalisierung, Karte/Apple Pay/Wero über
+  PAYONE) und „Fährtickets kaufen" (Richtung, Einzel- und Woka/Moka-Karten,
+  Fahrzeugmitnahme nach Gewicht, gespeicherte Fahrzeuge).
+- **Erweitert:** Startbildschirm und Kartenebenen, Auslastungsprognose bei
+  Verbindungen und Abfahrten, Profil mit Anschrift, Zahlungsmethoden und
+  „Meine Fahrzeuge", Netzplan und On-Demand-Shuttle.
+- **Zwei Stellen entfernt,** weil sie nicht mehr stimmen: der Hinweis, der
+  Ticketkauf sei „in Vorbereitung", und der Hinweis auf den „Ausbau" bei den
+  Abos. Sonst wurde nichts gelöscht.
+- **15 Screenshots** liegen als Bilder in den Kapiteln.
+- **Die Bereiche „Testen & Mitmachen" (`/testen`) und „Ausblick auf Version 2"
+  (`/ausblick`) sind entfallen** samt der Collection dahinter — beides war an
+  Version 1 gebunden.
+- **Neuer Weg für Inhalts-Updates in Produktion:** Redaktionelle Zielzustände
+  stehen im Quelltext, die CLI fehlt im Prod-Image. Deshalb sind sie jetzt über
+  HTTP erreichbar — als Knopf im Cockpit und als Cron-Job.
+
+**Beim Update** — zwei Schritte, der zweite ist neu:
+
+1. `docker compose up -d --build` wie immer. Die Migration entfernt die
+   Roadmap-Tabellen; `/testen` und `/ausblick` antworten danach mit 404.
+2. **Handbuchtexte einspielen:** im Cockpit unter *Daten und Jobs → Inhalte
+   einspielen → „Handbuch aktualisieren"*, oder auf dem Server
+   `curl -fsS -X POST -H "x-cron-secret: $CRON_SECRET" ".../api/cockpit/cron?job=handbuch"`.
+   Der Lauf ist wiederholbar, schreibt die zwölf Kapitel auf den Zielzustand und
+   löscht nichts. Ohne diesen Schritt bleibt das Handbuch auf dem alten Stand.
+
+Keine neuen Umgebungsvariablen.
+
 ## 2026-10-06 — Kundencheck ohne Menü für Servicemitarbeitende
 
 Wer ausschließlich die Rolle `kundencheck` hat, sieht ab jetzt **nur den

@@ -35,6 +35,9 @@ COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 # Legacy-Inhalte für den automatischen Erstimport (onInit / SEED_ON_INIT)
 COPY --from=builder /app/legacy ./legacy
+# Screenshots für das Handbuch-Update (POST /api/cockpit/cron?job=handbuch bzw.
+# der Knopf im Cockpit laden sie von hier in die Media-Collection)
+COPY --from=builder /app/handbuch-bilder ./handbuch-bilder
 
 RUN mkdir -p media && chown -R nextjs:nodejs /app
 USER nextjs

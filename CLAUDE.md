@@ -14,7 +14,8 @@ Hosting: eigener VPS via Docker Compose + Caddy.
 - `pnpm job:cockpit` – Tageswerte für die Cockpit-Zeitreihe aktualisieren (minütlich per Cron; in Dev nur bei gestopptem Dev-Server wegen SQLite-Lock)
 - `pnpm job:cockpit backfill [tage]` – vergangene Tage neu berechnen, inkl. Anmeldezahlen (Standard 14; begrenzt durch die Event-Aufbewahrung in Keycloak)
 - `pnpm job:cockpit konten` – KOMPLETTE Kontenhistorie ab dem ersten angelegten Konto schreiben; braucht keine Events und reicht beliebig weit zurück
-- **Achtung Produktion:** Das Prod-Image ist ein Standalone-Build (`node server.js`) ohne pnpm/tsx/Quelltext — die CLI-Jobs laufen dort NICHT. Alles Regelmäßige und Einmalige muss über `POST /api/cockpit/cron?job=health|aggregate|konten|report` erreichbar sein (Header `x-cron-secret`).
+- `pnpm handbuch:v2` – Handbuch auf den Zielzustand der App-Version 2 schreiben (idempotent, löscht nichts; `--ohne-bilder` überspringt den Bild-Upload). In Produktion statt der CLI: Knopf unter `/cockpit/daten` → „Inhalte einspielen" oder `POST /api/cockpit/cron?job=handbuch`
+- **Achtung Produktion:** Das Prod-Image ist ein Standalone-Build (`node server.js`) ohne pnpm/tsx/Quelltext — die CLI-Jobs laufen dort NICHT. Alles Regelmäßige und Einmalige muss über `POST /api/cockpit/cron?job=health|aggregate|konten|report|handbuch` erreichbar sein (Header `x-cron-secret`). Redaktionelle Zielzustände zusätzlich über `POST /api/cockpit/inhalte` (Cockpit-Rolle statt Secret). Dateien, die ein solcher Lauf zur Laufzeit braucht (z. B. `handbuch-bilder/`), müssen im Dockerfile ins Image kopiert werden.
 - `pnpm job:health` – Systemstatus-Check + Störungs-Alerting (minütlich per Cron)
 - `pnpm job:report <hour|day|week|month>` – grafischen Cockpit-Report (HTML-Mail + PDF) an ALERT_EMAIL senden (per Cron oder Button im Cockpit)
 

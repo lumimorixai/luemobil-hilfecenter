@@ -5,6 +5,7 @@ import type { CronStatus } from '@/lib/cockpit/types'
 import { getPatrisStatus } from '@/lib/cockpit/patris'
 import { PatrisUpload, type PatrisUploadStatus } from '@/components/cockpit/PatrisUpload'
 import { ReportButtons } from '@/components/cockpit/ReportButtons'
+import { InhalteUpdate } from '@/components/cockpit/InhalteUpdate'
 import { Karte, Seitenkopf } from '@/components/cockpit/bausteine'
 
 export const dynamic = 'force-dynamic'
@@ -119,6 +120,13 @@ export default async function DatenSeite() {
             </tbody>
           </table>
         </div>
+      </Karte>
+
+      <Karte
+        titel="Inhalte einspielen"
+        quelle="redaktionelle Zielzustände aus dem Quelltext"
+      >
+        <InhalteUpdate />
       </Karte>
 
       <div className="cx-split">

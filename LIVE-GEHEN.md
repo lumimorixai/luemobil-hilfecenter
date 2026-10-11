@@ -424,6 +424,32 @@ Prüfe nach dem Update außerdem, ob `.env.example` neue Werte enthält
 Patris-CSV hochladen (9f); Rollen `kundencheck`/`cockpit` in Keycloak sind
 optional — `support` schaltet weiterhin alles frei (9c).
 
+**Update vom 11.10.2026** (Handbuch zur App-Version 2): Code und Migrationen
+kommen mit `docker compose up -d --build` von selbst mit. Die **Handbuchtexte
+nicht** — sie stehen in der Datenbank und werden deshalb in einem zweiten
+Schritt eingespielt, einmalig nach dem Neustart:
+
+Im Cockpit unter **Daten und Jobs → „Inhalte einspielen" → „Handbuch
+aktualisieren"** (Rolle `cockpit` oder `support`). Der Knopf zeigt danach, wie
+viele Kapitel angelegt bzw. aktualisiert und wie viele Bilder geladen wurden.
+
+Ohne Anmeldung geht derselbe Lauf auf dem Server:
+
+```bash
+curl -fsS -X POST -H "x-cron-secret: $CRON_SECRET" \
+  "https://hilfe.example.de/api/cockpit/cron?job=handbuch"
+```
+
+Der Lauf ist wiederholbar: Er schreibt die zwölf Kapitel auf einen festgelegten
+Zielzustand, legt fehlende an und löscht nichts. Ein zweiter Aufruf ändert
+nichts mehr — bei Zweifeln also gefahrlos noch einmal starten. Die Screenshots
+liegen im Image unter `/app/handbuch-bilder`; fehlen sie, meldet der Lauf die
+Dateinamen und die Texte stehen trotzdem.
+
+Die Bereiche `/testen` und `/ausblick` entfallen mit diesem Update; die
+Migration räumt die zugehörigen Tabellen beim Start ab. Wer die Adressen
+verlinkt hat, muss die Links entfernen — sie antworten danach mit 404.
+
 ---
 
 ## Datensicherung (empfohlen)
