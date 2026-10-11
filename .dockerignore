@@ -26,6 +26,13 @@ secrets
 *.db-*
 media
 
+# Datenbank-Dumps und Bildschirmaufnahmen: nichts davon gehört in den
+# Build-Kontext — sonst liegen Produktivdaten in einem Image-Layer.
+kk_*.sql
+kk_*.sql.gz
+*.MP4
+*.mp4
+
 # Build-Metadaten
 tsconfig.tsbuildinfo
 next-env.d.ts
