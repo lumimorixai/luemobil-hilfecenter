@@ -17,7 +17,8 @@
     "job:health": "tsx --env-file=.env src/jobs/healthAlert.ts",
     "job:report": "tsx --env-file=.env src/jobs/report.ts",
     "typecheck": "tsc --noEmit",
-    "lint": "next lint"
+    "lint": "next lint",
+    "handbuch:v2": "tsx --env-file=.env src/seed/handbuch-v2.ts"
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.2.8",
