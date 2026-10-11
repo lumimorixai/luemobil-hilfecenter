@@ -74,7 +74,6 @@ export interface Config {
     'open-questions': OpenQuestion;
     'bug-reports': BugReport;
     'question-submissions': QuestionSubmission;
-    roadmap: Roadmap;
     'cockpit-daily': CockpitDaily;
     'health-checks': HealthCheck;
     'patris-entitlements': PatrisEntitlement;
@@ -98,7 +97,6 @@ export interface Config {
     'open-questions': OpenQuestionsSelect<false> | OpenQuestionsSelect<true>;
     'bug-reports': BugReportsSelect<false> | BugReportsSelect<true>;
     'question-submissions': QuestionSubmissionsSelect<false> | QuestionSubmissionsSelect<true>;
-    roadmap: RoadmapSelect<false> | RoadmapSelect<true>;
     'cockpit-daily': CockpitDailySelect<false> | CockpitDailySelect<true>;
     'health-checks': HealthChecksSelect<false> | HealthChecksSelect<true>;
     'patris-entitlements': PatrisEntitlementsSelect<false> | PatrisEntitlementsSelect<true>;
@@ -379,32 +377,6 @@ export interface QuestionSubmission {
    */
   convertedTo?: (number | null) | OpenQuestion;
   publishedQid?: string | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * Inhalte der Seite „Ausblick auf Version 2“. Blöcke lassen sich hinzufügen, sortieren und mit Punkten füllen.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "roadmap".
- */
-export interface Roadmap {
-  id: number;
-  /**
-   * Kleinere Zahl = weiter oben.
-   */
-  order?: number | null;
-  kicker?: string | null;
-  heading: string;
-  intro?: string | null;
-  items?:
-    | {
-        title: string;
-        status: 'geplant' | 'in Prüfung' | 'in Vorbereitung';
-        text?: string | null;
-        id?: string | null;
-      }[]
-    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -833,10 +805,6 @@ export interface PayloadLockedDocument {
         value: number | QuestionSubmission;
       } | null)
     | ({
-        relationTo: 'roadmap';
-        value: number | Roadmap;
-      } | null)
-    | ({
         relationTo: 'cockpit-daily';
         value: number | CockpitDaily;
       } | null)
@@ -1086,26 +1054,6 @@ export interface QuestionSubmissionsSelect<T extends boolean = true> {
   internalNote?: T;
   convertedTo?: T;
   publishedQid?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "roadmap_select".
- */
-export interface RoadmapSelect<T extends boolean = true> {
-  order?: T;
-  kicker?: T;
-  heading?: T;
-  intro?: T;
-  items?:
-    | T
-    | {
-        title?: T;
-        status?: T;
-        text?: T;
-        id?: T;
-      };
   updatedAt?: T;
   createdAt?: T;
 }

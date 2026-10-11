@@ -19,12 +19,12 @@ Hosting: eigener VPS via Docker Compose + Caddy.
 - `pnpm job:report <hour|day|week|month>` – grafischen Cockpit-Report (HTML-Mail + PDF) an ALERT_EMAIL senden (per Cron oder Button im Cockpit)
 
 ## Architektur
-- `src/collections/` – Payload-Collections: Articles, FaqGroups, ManualChapters, KnownBugs, OpenQuestions, BugReports, QuestionSubmissions, RoadmapGroups (/ausblick), Media, Users; Cockpit: CockpitDaily, HealthChecks, PatrisEntitlements
+- `src/collections/` – Payload-Collections: Articles, FaqGroups, ManualChapters, KnownBugs, OpenQuestions, BugReports, QuestionSubmissions, Media, Users; Cockpit: CockpitDaily, HealthChecks, PatrisEntitlements
 - `src/globals/` – Payload-Globals: KundencheckHinweise (Ampel-Texte, im CMS pflegbar), PatrisImport (Stand des letzten CSV-Uploads)
 - `src/app/(frontend)/fehler/actions.ts` – Server Action für öffentliche Fehlermeldungen (Validierung, Honeypot, Bild-Limits); die Collection bug-reports ist für die REST-API gesperrt
 - `src/app/(frontend)/fragen/actions.ts` – Server Action für öffentliche Fragen-Einreichungen; Collection question-submissions ist REST-gesperrt. Übernahme (Status „uebernommen“) hängt die Frage an eine Offene-Fragen-Gruppe an
 - `src/payload.config.ts` – zentrale Payload-Konfiguration; DB-Adapter wird per DATABASE_URI gewählt (file: → SQLite, postgres → Postgres)
-- `src/app/(frontend)/` – öffentliche Seiten: / (Hilfe-Center), /artikel/[slug], /handbuch, /fragen, /fehler, /stoerungen, /testen, /ausblick, /suche; intern: /kundencheck, /kennzahlen
+- `src/app/(frontend)/` – öffentliche Seiten: / (Hilfe-Center), /artikel/[slug], /handbuch, /fragen, /fehler, /stoerungen, /suche; intern: /kundencheck, /kennzahlen
 - `src/app/(cockpit)/cockpit` – Migrations-Cockpit mit Seitenleiste; je Bereich eine eigene Route (`/cockpit`, `/ankommen`, `/umsatz`, `/anmeldungen`, `/verfuegbarkeit`, `/support`, `/dashboards`, `/kundencheck`, `/daten`), damit jede Seite nur ihre Daten lädt; `layout.tsx` prüft die Rolle, `src/components/cockpit/bausteine.tsx` hält die wiederkehrenden Bausteine
 - `src/app/api/cockpit/*` – interne APIs (Kundencheck, Patris-Upload, Stats, Health, Reports, Cron) → Details in `KUNDENCHECK-COCKPIT.md`
 - `/kennzahlen` und `/kundencheck` sind nur noch Weiterleitungen in die entsprechenden Cockpit-Bereiche
@@ -47,7 +47,7 @@ Hosting: eigener VPS via Docker Compose + Caddy.
 - Deutsch, formelles „Sie" in allen UI-Texten; Typografie: Inter (self-hosted via @fontsource-variable/inter, KEIN Google-Fonts-Request — DSGVO)
 - Styling über CSS-Klassen in src/app/(frontend)/globals.css mit den SWL-Token-Variablen; keine neuen Farben außerhalb der Tokens
 - Frontend liest Daten über die Payload Local API (src/lib/content.ts), nicht über HTTP
-- Neue Postgres-Migrationen: `pnpm payload migrate:create` gegen eine Wegwerf-Postgres (Docker) erzeugen und die Datei auf die tatsächlich neuen Tabellen/Spalten prüfen; in `down` erst Constraints/Spalten, dann Tabellen droppen
+- Neue Postgres-Migrationen: `pnpm payload migrate:create` gegen eine Wegwerf-Postgres (Docker) erzeugen und die Datei auf die tatsächlich neuen Tabellen/Spalten prüfen. **In `up` UND `down` gilt: erst Constraints, Indizes und Spalten der verweisenden Tabellen lösen, dann die Tabellen droppen** — `DROP TABLE … CASCADE` räumt Fremdschlüssel selbst ab, ein danach folgendes `DROP CONSTRAINT` bricht mit „does not exist" ab. Der Generator erzeugt diese Reihenfolge regelmäßig falsch. Jede Migration vor dem Commit hoch, vollständig runter und wieder hoch prüfen
 - Secrets (Tokens, Passwörter) nie in Code, Repo oder Logs — Ticket-API-Token als Datei (`LUEMOBIL_API_TOKEN_FILE`)
 
 ## Verifikation (immer vor „fertig")

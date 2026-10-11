@@ -130,7 +130,7 @@ beim Start automatisch (Details in `LIVE-GEHEN.md`, „Später: Updates einspiel
 src/collections/     Payload-Collections (Datenmodell)
 src/globals/         Payload-Globals (Kundencheck-Hinweise, Patris-Import-Status)
 src/app/(frontend)   Öffentliche Seiten (/, /artikel/…, /handbuch, /fragen, /fehler,
-                     /stoerungen, /testen, /ausblick, /suche) + /kundencheck (intern)
+                     /stoerungen, /ausblick, /suche) + /kundencheck (intern)
 src/app/(cockpit)    Migrations-Cockpit (/cockpit, intern)
 src/app/api/         Interne APIs: auth (Keycloak-Login), cockpit, jira-export,
                      stoerungen-proxy

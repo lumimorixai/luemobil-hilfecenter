@@ -13,6 +13,7 @@ import * as migration_20260925_183000_cockpit_availability from './20260925_1830
 import * as migration_20260925_193000_cockpit_migrated from './20260925_193000_cockpit_migrated';
 import * as migration_20260928_120000_patris_telefon from './20260928_120000_patris_telefon';
 import * as migration_20260929_062040_kampagnen from './20260929_062040_kampagnen';
+import * as migration_20261011_144000_entferne_roadmap from './20261011_144000_entferne_roadmap';
 
 export const migrations = [
   {
@@ -88,6 +89,11 @@ export const migrations = [
   {
     up: migration_20260929_062040_kampagnen.up,
     down: migration_20260929_062040_kampagnen.down,
-    name: '20260929_062040_kampagnen'
+    name: '20260929_062040_kampagnen',
+  },
+  {
+    up: migration_20261011_144000_entferne_roadmap.up,
+    down: migration_20261011_144000_entferne_roadmap.down,
+    name: '20261011_144000_entferne_roadmap'
   },
 ];

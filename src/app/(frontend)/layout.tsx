@@ -111,9 +111,6 @@ export default async function FrontendLayout({ children }: { children: React.Rea
                 Konto
               </Link>
             </div>
-            <Link href="/ausblick" className="lm-version-link">
-              Das ist Version 1 — Ausblick auf Version 2 ansehen →
-            </Link>
           </div>
         </header>
         <div className="lm-container">

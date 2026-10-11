@@ -68,6 +68,42 @@ Start — zu Recht.
 
 **Beim Update** — keine Migration, keine neuen Variablen.
 
+## 2026-10-11 — Handbuch auf App-Version 2, „Testen" und „Ausblick" entfernt
+
+**Handbuch überarbeitet.** Grundlage sind fünf Bildschirmaufnahmen der App vom
+11.10.2026. Aus 10 Kapiteln wurden 12, dazu 15 neue Screenshots.
+
+- **Neu: „Tickets kaufen und bezahlen"** — Region, Zeit- und Einzelkarten mit
+  Preisen, Ticket-Favoriten, Personalisierung, Preisstufe und Tarifzonen,
+  Zahlung per Karte, Apple Pay und Wero über PAYONE.
+- **Neu: „Fährtickets kaufen"** — Richtung wählen, Personentarife (Einzel,
+  Woka, Moka), Fahrzeugmitnahme nach Gewichtsklasse, Fahrzeuge mit Name und
+  Kennzeichen speichern. Vorher steckte das unauffindbar in „Netzplan, Fähre &
+  On-Demand-Shuttle".
+- **Ergänzt:** Datenschutzdialog beim ersten Start · Linienübersicht mit 29
+  wählbaren Linien, Fahrzeugen in Echtzeit und Aktualisierungstakt ·
+  Auslastung an Abfahrten und als Prognose bei Verbindungen · Route per langem
+  Druck auf die Karte · Profil mit Anschrift, Zahlungsmethoden und Fahrzeugen ·
+  Kachel „Störungsmeldungen".
+- **Zwei überholte Hinweise entfernt:** der Ticketkauf sei „in Vorbereitung"
+  (er ist fertig) und die Abo-Verwaltung „im Ausbau".
+
+**Neues Werkzeug `pnpm handbuch:v2`** (`src/seed/handbuch-v2.ts`): schreibt alle
+Kapitel auf einen festgelegten Zielzustand, legt fehlende an und lädt die
+Screenshots mit. Wiederholbar — ein zweiter Lauf verdoppelt nichts.
+
+**Entfernt:** die Bereiche **„Testen & Mitmachen"** (`/testen`) und **„Ausblick
+auf Version 2"** (`/ausblick`) samt Navigationseinträgen, dem Verweis „Das ist
+Version 1 …" im Seitenkopf, der Collection `RoadmapGroups`, deren Seed-Daten
+und den zugehörigen CSS-Blöcken.
+
+**Beim Update**
+- Migration `20261011_144000_entferne_roadmap` entfernt die Tabellen `roadmap`
+  und `roadmap_items` samt Verweisspalte. **Die Inhalte gehen dabei verloren**
+  (5 Blöcke mit 14 Punkten) — das ist beabsichtigt.
+- Die Handbuchtexte müssen nach dem Einspielen gesondert übertragen werden;
+  `pnpm handbuch:v2` läuft im Prod-Image nicht (Standalone-Build ohne tsx).
+
 ## 2026-09-29 — Konto-Abgleich ist eine Einstellung, keine Annahme
 
 Dass ein Fall entfällt, sobald die Person ein Konto in der App hat, war fest

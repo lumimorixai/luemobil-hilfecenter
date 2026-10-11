@@ -17,7 +17,6 @@ import { KnownBugs } from './collections/KnownBugs'
 import { OpenQuestions } from './collections/OpenQuestions'
 import { BugReports } from './collections/BugReports'
 import { QuestionSubmissions } from './collections/QuestionSubmissions'
-import { RoadmapGroups } from './collections/RoadmapGroups'
 import { CockpitDaily } from './collections/CockpitDaily'
 import { HealthChecks } from './collections/HealthChecks'
 import { Kampagnen, KampagnenFaelle, KampagnenKontakte, KampagnenSperrliste } from './collections/Kampagnen'
@@ -76,7 +75,6 @@ export default buildConfig({
     OpenQuestions,
     BugReports,
     QuestionSubmissions,
-    RoadmapGroups,
     CockpitDaily,
     HealthChecks,
     PatrisEntitlements,
