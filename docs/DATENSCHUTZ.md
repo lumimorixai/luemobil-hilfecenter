@@ -21,7 +21,7 @@ Verantwortlichen ergänzt werden. Stand: 22.09.2026.
 | V7 | Migrations-Cockpit | Kund:innen | Benutzername/E-Mail bei fehlgeschlagenen Logins (Fehlertabelle), Zählwerte | live aus Keycloak; nur Zählwerte in DB `cockpit_daily` | Tageswerte unbefristet (ohne Personenbezug) |
 | V8 | Benachrichtigungen | Redaktion, Betrieb | Inhalt neuer Meldungen (inkl. Name/Kontakt) per E-Mail; Alarm- und Report-Mails ohne Kundendaten | SMTP-Server, Postfächer | nach Postfach-Regeln |
 | V9 | Jira-Export | Melder:innen | Inhalte bekannter Fehler; bei übernommenen Meldungen Name des Melders im Feld „Fundort" | Jira Cloud (Atlassian) | nach Jira-Regeln |
-| V11 | Kennzahlen (`/kennzahlen`) | Kund:innen | Dashboards aus Metabase, überwiegend Summen; „Abo-Bestand": PLZ-Tabelle mit kleinen Fallzahlen; „Betrieb & Störungen": **einzelne Bestellungen** (Bestellnummer, Kauftag, Produkt, Preis, Status) | nicht im Hilfecenter — der Browser lädt direkt aus Metabase | — |
+| V11 | Kennzahlen (`/cockpit/dashboards`) | Kund:innen | Sieben Dashboards aus Metabase, überwiegend Summen; „Abo-Bestand" und „Monatsbilanz Abo": PLZ-Tabellen mit kleinen Fallzahlen; „Betrieb und Störungen": **einzelne Bestellungen** (Bestellnummer, Kauftag, Produkt, Preis, Status); „Einzeltickets und PayOne": **einzelne Erstattungen** (Bestellnummer, Betrag) — beide nur mit Rolle `support` | nicht im Hilfecenter — der Browser lädt direkt aus Metabase | — |
 | V10 | Datensicherung | alle oben | vollständige DB + Medien | Backup-Ordner, 14 Tage | automatisch nach 14 Tagen |
 
 Kein Tracking, keine Analyse-Werkzeuge, keine externen Schriftarten (Inter
@@ -98,6 +98,8 @@ Zugriff nur für Mitarbeitende mit Rolle `kundencheck`, `cockpit` oder
 7. Telefonnummern (seit 25.09.2026 im Patris-Import): Zweck ist die geplante
    Anrufaktion des Callcenters. Rechtsgrundlage für die Anrufe und Löschfrist der
    Nummern festlegen; bis dahin werden sie nur gespeichert, nicht genutzt.
-8. Kennzahlen (V11): festlegen, welche Rollen „Betrieb & Störungen" (einzelne
-   Bestellungen) und die PLZ-Auswertung sehen dürfen. Technischer Standard:
-   Bestelldaten nur Rolle `support` (`docs/KENNZAHLEN.md`).
+8. Kennzahlen (V11): festlegen, welche Rollen die Boards mit einzelnen
+   Bestellungen — „Betrieb und Störungen" sowie seit dem 21.10.2026 auch
+   „Einzeltickets und PayOne" (Tabelle „Erstattungen im Einzelnen") — und die
+   PLZ-Auswertungen sehen dürfen. Technischer Standard: Bestelldaten nur Rolle
+   `support` (`docs/KENNZAHLEN.md`).

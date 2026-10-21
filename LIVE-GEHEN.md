@@ -397,6 +397,17 @@ Schlüssel als Datei `secrets/metabase_embed_secret` ablegen (wie in 9g),
 in die `.env`, dann `docker compose up -d`. Die Adresse des Hilfecenters dem
 LüMobil-Betrieb melden. Details und Rechte je Dashboard: `docs/KENNZAHLEN.md`.
 
+Seit dem 21.10.2026 sind es **sieben** Boards. Die Zeile lautet in der Demo
+
+```
+METABASE_DASHBOARDS=ueberblick:6,abo:7,payone:8,betrieb:9,monatsbilanz:10,verlaengerung:11,nutzung:12
+```
+
+In Produktion sind die IDs andere; `docker compose run --rm reports` im
+Reporting nennt sie am Ende („Board-IDs: 1=6, 2=7, …"). Die Reihenfolge der
+Einträge ist die Reihenfolge der Reiter. Fehlt ein Eintrag, fehlt nur das
+Board — der Rest läuft weiter.
+
 ---
 
 ## Später: Updates einspielen

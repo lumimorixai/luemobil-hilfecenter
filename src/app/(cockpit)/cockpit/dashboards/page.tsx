@@ -87,7 +87,15 @@ export default async function DashboardSeite({
         <div className="cx-embed-kopf">
           <span className="cx-punkt cx-punkt--ok" />
           <div>
-            <div style={{ fontSize: 15, fontWeight: 500 }}>{current.title}</div>
+            <div style={{ fontSize: 15, fontWeight: 500 }}>
+              {current.nummer != null && (
+                // Die Boards verweisen in ihren Kopfzeilen per Nummer aufeinander
+                // („siehe Board 6"). Ohne die Nummer wäre der Verweis hier nicht
+                // auffindbar.
+                <span className="cx-embed-nr">Board {current.nummer} · </span>
+              )}
+              {current.title}
+            </div>
             <div className="cx-card-hint" style={{ marginBottom: 0, marginTop: 3 }}>
               {current.description || 'Metabase-Auswertung'}
             </div>

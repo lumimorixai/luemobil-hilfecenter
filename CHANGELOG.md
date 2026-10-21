@@ -4,6 +4,43 @@ Neueste Änderungen oben. Je Eintrag: was neu ist und **was beim Update von Hand
 zu tun ist**. Allgemeiner Update-Ablauf: `LIVE-GEHEN.md`, „Später: Updates
 einspielen".
 
+## 2026-10-21 — Sieben Reporting-Boards statt vier
+
+Das LüMobil-Reporting hat seine Dashboards umgebaut: drei sind neu, zwei haben
+neue Inhalte, einer einen neuen Namen. Das Hilfecenter kannte bisher vier.
+
+- **Neu:** „Monatsbilanz Abo" (wer im Monat ein gültiges Abo-Ticket hat),
+  „Abo-Verlängerung" (der Lauf am 27.) und „App-Nutzung" (Konten,
+  Einwilligungen, Kaufverhalten).
+- **Umgebaut:** „Einzeltickets und PayOne" (vorher „Einzeltickets (PayOne)",
+  jetzt 24 Kacheln mit Erfolgsquote, Abbruchgründen, Relationen und
+  Erstattungen) und „Betrieb und Störungen" (vorher „Betrieb & Störungen").
+- **„Einzeltickets und PayOne" sieht nur noch die Rolle `support`.** Das Board
+  zeigt nach dem Umbau die Tabelle „Erstattungen im Einzelnen" mit
+  Bestellnummer und Betrag. Für Boards mit einzelnen Bestellungen gilt seit
+  22.09.2026 „nur `support`" — die Regel ist unverändert, der Inhalt des Boards
+  hat sich geändert. Konten mit `cockpit` sehen damit fünf der sieben Boards.
+  Abweichend regelbar über `METABASE_DASHBOARD_ROLES=payone:support|controlling`.
+- **Die Boardnummer steht jetzt vor dem Titel** („Board 5 · Monatsbilanz Abo").
+  Die Boards zitieren sich in ihren Kopfzeilen gegenseitig per Nummer („siehe
+  Board 6"); ohne die Nummer ließ sich der Verweis nicht auflösen.
+- **Die iframe-Höhe wird gerechnet, nicht mehr gemessen:** `sizingFuerRaster()`
+  leitet sie aus der Zahl der Rasterzeilen eines Boards ab (48,5 px je Zeile,
+  Steigung 1/30 je Zeile). Die Faktoren sind an den zwei Boards kalibriert,
+  deren Layout unverändert ist, und reproduzieren deren gemessene Werte exakt.
+  Ein umgebautes Board braucht damit nur eine neue Zeilenzahl.
+
+**Beim Update** — keine Migration. Aber **`METABASE_DASHBOARDS` in der `.env`
+muss erweitert werden**, sonst erscheinen die drei neuen Boards nicht:
+
+```
+METABASE_DASHBOARDS=ueberblick:6,abo:7,payone:8,betrieb:9,monatsbilanz:10,verlaengerung:11,nutzung:12
+```
+
+Die IDs 10–12 gelten für die Demo. Die Produktiv-IDs nennt im Reporting
+`docker compose run --rm reports` am Ende („Board-IDs: 1=6, 2=7, …"); sie sind
+dort andere. Danach `docker compose up -d` — ein Neustart genügt, kein Neubau.
+
 ## 2026-10-11 — Handbuch zur App-Version 2, zwei Bereiche entfernt
 
 Das Handbuch beschreibt jetzt die App in Version 2. Grundlage sind fünf

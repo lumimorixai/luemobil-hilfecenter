@@ -66,8 +66,9 @@ Auf einer lokalen oder Test-Instanz durchgehen; Ergebnis im Release-Eintrag
 - [ ] Patris-Upload: Beispiel-CSV → „4 Tickets übernommen · 1 Zeile ohne entitlement_id übersprungen"; Datei ohne Pflichtspalte → verständliche Fehlermeldung, alter Stand bleibt
 - [ ] Ticket-API: Käufe erscheinen; mit falschem Token → Hinweis „Zugang abgelehnt" (Alarm-Mail nur bei gesetztem `ALERT_EMAIL`)
 - [ ] Cockpit: Kennzahlen, Live-Ampel, Report-Button
-- [ ] `/kennzahlen`: `support` sieht 4 Dashboards, `cockpit` 3 (ohne „Betrieb"), `kundencheck` „Kein Zugriff" ohne Token im HTML; ohne Login → Anmeldung
-- [ ] `/kennzahlen`: „Überblick" zeigt Daten (Demo: „Umsatz brutto" 81.926 €); Seite 30 Minuten offen lassen → kein Flackern/Neuladen; nach Tabwechsel und Zurückkehren lädt das Dashboard einmal frisch
+- [ ] `/cockpit/dashboards`: `support` sieht 7 Boards, `cockpit` 5 (ohne „Einzeltickets und PayOne" und „Betrieb und Störungen" — beide mit einzelnen Bestellungen), `kundencheck` „Kein Zugriff" ohne Token im HTML; ohne Login → Anmeldung
+- [ ] `/cockpit/dashboards`: „Überblick" zeigt Daten (Demo 21.10.2026: „Umsatz brutto" 451.706,97 €); Seite 30 Minuten offen lassen → kein Flackern/Neuladen; nach Tabwechsel und Zurückkehren lädt das Dashboard einmal frisch
+- [ ] Jedes Board endet ohne abgeschnittene Kachel und ohne großen Leerraum unter „Powered by Metabase" — sonst stimmt die Zeilenzahl in `sizingFuerRaster` nicht mehr (Boards werden im Reporting umgebaut)
 - [ ] Schlüssel nicht im Build: `grep -rl "$(cat <schlüsseldatei>)" .next` liefert nichts
 
 **Nach dem Deployment (Produktion)**

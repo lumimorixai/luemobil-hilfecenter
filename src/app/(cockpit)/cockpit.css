@@ -863,6 +863,18 @@ body:has(.cx-app) .lm-topbar {
   gap: 2px;
   font-size: 13px;
 }
+/*
+ * Die Dashboard-Reiterleiste (das einzige <nav> mit dieser Klasse) muss
+ * umbrechen: Seit dem 21.10.2026 sind es sieben Boards mit langen Namen, die
+ * in einer Zeile über die Spalte hinauslaufen würden. Die Schalter-Variante
+ * mit Kontrollkästchen (KampagnenEditor) bleibt unberührt.
+ */
+nav.cx-schalter {
+  display: flex;
+  flex-wrap: wrap;
+  max-width: 100%;
+  row-gap: 3px;
+}
 .cx-schalter button,
 .cx-schalter a {
   font: inherit;
@@ -1495,6 +1507,11 @@ body:has(.cx-app) .lm-topbar {
   gap: 14px;
   border-bottom: 1px solid var(--linie);
   flex-wrap: wrap;
+}
+/* Boardnummer vor dem Titel — die Boards zitieren sich gegenseitig per Nummer. */
+.cx-embed-nr {
+  color: var(--t2);
+  font-weight: 400;
 }
 .cx-embed iframe {
   border: 0;
